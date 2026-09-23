@@ -3,6 +3,9 @@ import { useState } from 'react';
 
 export default function Home() {
   const [tab, setTab] = useState('metricas');
+ // Estados para Filtro de Datas no Painel
+  const [dataInicioFiltro, setDataInicioFiltro] = useState('');
+  const [dataFimFiltro, setDataFimFiltro] = useState('');
   const [user, setUser] = useState('admin');
 
   // Estados dos funcionários
