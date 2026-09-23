@@ -5,20 +5,21 @@ export default function Home() {
   const [tab, setTab] = useState('metricas');
   const [user, setUser] = useState('admin');
 
-  // Estados dos dados (simulados para persistir na sessão)
+  // Estados dos funcionários (com suporte a tipo e valor: 'comissao' ou 'fixo')
   const [funcionarios, setFuncionarios] = useState([
-    { id: 1, nome: 'João Silva', cargo: 'Detailer Master', comissaoPct: 35 },
-    { id: 2, nome: 'Miguel Santos', cargo: 'Preparador / Lavagem', comissaoPct: 25 },
+    { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 35 },
+    { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista / Atendimento', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000 },
   ]);
 
   const [novoFuncNome, setNovoFuncNome] = useState('');
   const [novoFuncCargo, setNovoFuncCargo] = useState('');
-  const [novoFuncPct, setNovoFuncPct] = useState('30');
+  const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo'>('comissao');
+  const [valorRemuneracao, setValorRemuneracao] = useState('30');
 
   // Registo de serviços concluídos para cálculo de comissões
   const [servicosRealizados, setServicosRealizados] = useState([
     { id: 1, cliente: 'Carlos Alcantara', veiculo: 'BMW Série 3', servico: 'Polimento Comercial + Vitrificação', valor: 350, funcionarioId: 1, pago: true },
-    { id: 2, cliente: 'Ana Rodrigues', veiculo: 'Audi A4', servico: 'Higienização de Interiores', valor: 120, funcionarioId: 2, pago: true },
+    { id: 2, cliente: 'Ana Rodrigues', veiculo: 'Audi A4', servico: 'Higienização de Interiores', valor: 120, funcionarioId: 1, pago: true },
   ]);
 
   const adicionarFuncionario = (e: React.FormEvent) => {
@@ -27,18 +28,32 @@ export default function Home() {
     const novo = {
       id: Date.now(),
       nome: novoFuncNome,
-      cargo: novoFuncCargo || 'Técnico',
-      comissaoPct: parseFloat(novoFuncPct) || 30,
+      cargo: novoFuncCargo || (tipoRemuneracao === 'fixo' ? 'Colaborador Fixo' : 'Técnico'),
+      tipoRemuneracao: tipoRemuneracao,
+      valorPctOuFixo: parseFloat(valorRemuneracao) || (tipoRemuneracao === 'fixo' ? 900 : 30),
     };
     setFuncionarios([...funcionarios, novo]);
     setNovoFuncNome('');
     setNovoFuncCargo('');
-    setNovoFuncPct('30');
+    setValorRemuneracao('30');
   };
 
   const removerFuncionario = (id: number) => {
     setFuncionarios(funcionarios.filter(f => f.id !== id));
   };
+
+  // Cálculo total de custos com pessoal (Salários fixos + Comissões devidas)
+  const totalSalariosFixos = funcionarios
+    .filter(f => f.tipoRemuneracao === 'fixo')
+    .reduce((acc, f) => acc + f.valorPctOuFixo, 0);
+
+  const totalComissoesDevidas = servicosRealizados.reduce((acc, s) => {
+    const func = funcionarios.find(f => f.id === s.funcionarioId);
+    if (func && func.tipoRemuneracao === 'comissao') {
+      return acc + (s.valor * func.valorPctOuFixo) / 100;
+    }
+    return acc;
+  }, 0);
 
   if (!user) {
     return (
@@ -86,7 +101,7 @@ export default function Home() {
           { id: 'os', label: '🔧 Ordens de Serviço' },
           { id: 'agenda', label: '📅 Agenda & Feriados' },
           { id: 'financeiro', label: '💰 Financeiro & Caixa' },
-          { id: 'comissoes', label: '👥 Funcionários & Comissões' },
+          { id: 'comissoes', label: '👥 Funcionários & Salários' },
         ].map((item) => (
           <button
             key={item.id}
@@ -120,18 +135,16 @@ export default function Home() {
                 </p>
               </div>
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Total Comissões Devidas</p>
+                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Salários Fixos Mensais</p>
                 <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#fbbf24', margin: 0 }}>
-                  {servicosRealizados.reduce((acc, s) => {
-                    const func = funcionarios.find(f => f.id === s.funcionarioId);
-                    const pct = func ? func.comissaoPct : 0;
-                    return acc + (s.valor * pct) / 100;
-                  }, 0).toFixed(2)} €
+                  {totalSalariosFixos.toFixed(2)} €
                 </p>
               </div>
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Serviços Realizados</p>
-                <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#60a5fa', margin: 0 }}>{servicosRealizados.length}</p>
+                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Comissões Variáveis</p>
+                <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#60a5fa', margin: 0 }}>
+                  {totalComissoesDevidas.toFixed(2)} €
+                </p>
               </div>
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
                 <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Equipa Ativa</p>
@@ -171,40 +184,57 @@ export default function Home() {
         {tab === 'comissoes' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Gestão de Funcionários & Comissões</h2>
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Registe a equipa e acompanhe os valores calculados por cada serviço.</p>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Gestão de Funcionários, Salários & Comissões</h2>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Registe colaboradores com vencimento fixo ou comissão por serviços executados.</p>
             </div>
 
             {/* Formulário para Novo Funcionário */}
             <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Adicionar Novo Funcionário</h3>
-              <form onSubmit={adicionarFuncionario} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Adicionar Colaborador</h3>
+              <form onSubmit={adicionarFuncionario} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Nome do Colaborador</label>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Nome</label>
                   <input 
                     type="text" 
-                    placeholder="Ex: Pedro Martins"
+                    placeholder="Ex: Rita Ferreira"
                     value={novoFuncNome}
                     onChange={(e) => setNovoFuncNome(e.target.value)}
                     style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Cargo / Especialidade</label>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Cargo</label>
                   <input 
                     type="text" 
-                    placeholder="Ex: Polidor / Esteticista"
+                    placeholder="Ex: Gestora de Cliente"
                     value={novoFuncCargo}
                     onChange={(e) => setNovoFuncCargo(e.target.value)}
                     style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Comissão (%)</label>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Tipo de Remuneração</label>
+                  <select 
+                    value={tipoRemuneracao} 
+                    onChange={(e) => {
+                      const val = e.target.value as 'comissao' | 'fixo';
+                      setTipoRemuneracao(val);
+                      setValorRemuneracao(val === 'fixo' ? '900' : '30');
+                    }}
+                    style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                  >
+                    <option value="comissao">Comissão (%)</option>
+                    <option value="fixo">Salário Fixo (€)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
+                    {tipoRemuneracao === 'fixo' ? 'Valor do Salário (€)' : 'Percentual de Comissão (%)'}
+                  </label>
                   <input 
                     type="number" 
-                    value={novoFuncPct}
-                    onChange={(e) => setNovoFuncPct(e.target.value)}
+                    value={valorRemuneracao}
+                    onChange={(e) => setValorRemuneracao(e.target.value)}
                     style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
                   />
                 </div>
@@ -217,22 +247,33 @@ export default function Home() {
               </form>
             </div>
 
-            {/* Lista de Colaboradores e Resumo de Comissões */}
+            {/* Listas e Resumos */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Equipa Registada</h3>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Equipa & Condições de Pagamento</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {funcionarios.map(f => {
-                    const servsFunc = servicosRealizados.filter(s => s.funcionarioId === f.id);
-                    const totalServs = servsFunc.reduce((acc, s) => acc + s.valor, 0);
-                    const comissaoTotal = (totalServs * f.comissaoPct) / 100;
+                    let totalGanho = 0;
+                    if (f.tipoRemuneracao === 'fixo') {
+                      totalGanho = f.valorPctOuFixo;
+                    } else {
+                      const servsFunc = servicosRealizados.filter(s => s.funcionarioId === f.id);
+                      const somaServs = servsFunc.reduce((acc, s) => acc + s.valor, 0);
+                      totalGanho = (somaServs * f.valorPctOuFixo) / 100;
+                    }
 
                     return (
                       <div key={f.id} style={{ backgroundColor: '#1e293b', padding: '14px', borderRadius: '12px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <p style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', margin: '0 0 2px 0' }}>{f.nome}</p>
-                          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 6px 0' }}>{f.cargo} • <span style={{ color: '#60a5fa' }}>{f.comissaoPct}% comissão</span></p>
-                          <p style={{ fontSize: '13px', color: '#34d399', fontWeight: 'bold', margin: 0 }}>A Receber: {comissaoTotal.toFixed(2)} €</p>
+                          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 6px 0' }}>
+                            {f.cargo} • <span style={{ color: f.tipoRemuneracao === 'fixo' ? '#fbbf24' : '#60a5fa' }}>
+                              {f.tipoRemuneracao === 'fixo' ? `Salário Fixo: ${f.valorPctOuFixo.toFixed(2)} €` : `Comissão: ${f.valorPctOuFixo}%`}
+                            </span>
+                          </p>
+                          <p style={{ fontSize: '13px', color: '#34d399', fontWeight: 'bold', margin: 0 }}>
+                            Total a Pagar: {totalGanho.toFixed(2)} €
+                          </p>
                         </div>
                         <button 
                           onClick={() => removerFuncionario(f.id)}
@@ -246,14 +287,14 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Registo de Serviços Executados */}
+              {/* Registo de Serviços */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Serviços Atribuídos & Comissões</h3>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Serviços Realizados (Comissões)</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {servicosRealizados.map(s => {
                     const func = funcionarios.find(f => f.id === s.funcionarioId);
-                    const pct = func ? func.comissaoPct : 0;
-                    const valorComissao = (s.valor * pct) / 100;
+                    const isFixo = func?.tipoRemuneracao === 'fixo';
+                    const valorComissao = (!isFixo && func) ? (s.valor * func.valorPctOuFixo) / 100 : 0;
 
                     return (
                       <div key={s.id} style={{ backgroundColor: '#1e293b', padding: '12px', borderRadius: '10px', border: '1px solid #334155', fontSize: '13px' }}>
@@ -263,7 +304,9 @@ export default function Home() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '12px' }}>
                           <span>Cliente: {s.cliente} ({s.veiculo})</span>
-                          <span style={{ color: '#fbbf24' }}>Comissão ({pct}%): {valorComissao.toFixed(2)} €</span>
+                          <span style={{ color: isFixo ? '#94a3b8' : '#fbbf24' }}>
+                            {isFixo ? 'Colaborador com Salário Fixo' : `Comissão (${func?.valorPctOuFixo}%): ${valorComissao.toFixed(2)} €`}
+                          </span>
                         </div>
                         <div style={{ marginTop: '6px', fontSize: '11px', color: '#60a5fa' }}>
                           Responsável: {func ? func.nome : 'Não atribuído'}
