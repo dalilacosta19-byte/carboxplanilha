@@ -4,7 +4,6 @@ import { useState } from 'react';
 export default function Home() {
   const [tab, setTab] = useState('pateo');
   const [user, setUser] = useState('admin');
-  const [menuMobileAberto, setMenuMobileAberto] = useState(false);
 
   const [dadosEmpresa, setDadosEmpresa] = useState({
     nome: 'CARBOX 77 - Estética Automotiva',
@@ -225,7 +224,7 @@ export default function Home() {
           h1 { color: #d4af37; margin: 0; font-size: 22px; }
           .box { background: #f9f9f9; border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin: 15px 0; }
           table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          th, td { border: 1px solid #ccc; padding: 8px; font-size: 14px; text-align: left; }
+          th, td { border: 1px solid #ccc; padding: 10px; font-size: 15px; text-align: left; }
           th { background: #111; color: #d4af37; }
         </style>
         </head>
@@ -243,7 +242,7 @@ export default function Home() {
             <tr><th>Serviço Solicitado</th><th>Observações</th></tr>
             <tr><td><b>${os.servico}</b></td><td>${os.observacoes}</td></tr>
           </table>
-          <div style="margin-top: 20px; text-align: right; font-size: 15px;">
+          <div style="margin-top: 20px; text-align: right; font-size: 16px;">
             <p>Subtotal: ${os.valorOriginal.toFixed(2)}€ | Desconto: -${os.desconto.toFixed(2)}€</p>
             <p style="color: #059669;">Sinal Pago: -${os.sinalPago.toFixed(2)}€</p>
             <h3 style="color: #d4af37;">Restante a Pagar: ${os.restanteAPagar.toFixed(2)}€</h3>
@@ -269,9 +268,9 @@ export default function Home() {
         </head>
         <body>
           <h1>${dadosEmpresa.nome} - Relatório Financeiro</h1>
-          <p>Receitas: <b>+${rec.toFixed(2)}€</b> | Despesas: <b style="color:red;">-${desp.toFixed(2)}€</b> | Líquido: <b>${(rec - desp).toFixed(2)}€</b></p>
+          <p style="font-size: 16px;">Receitas: <b>+${rec.toFixed(2)}€</b> | Despesas: <b style="color:red;">-${desp.toFixed(2)}€</b> | Líquido: <b>${(rec - desp).toFixed(2)}€</b></p>
           <hr/>
-          <table width="100%" border="1" cellspacing="0" cellpadding="8" style="border-collapse:collapse;font-size:13px;">
+          <table width="100%" border="1" cellspacing="0" cellpadding="10" style="border-collapse:collapse;font-size:14px;">
             <tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr>
             ${filtradas.map(t => `<tr><td>${t.data}</td><td>${t.tipo.toUpperCase()}</td><td>${t.categoria}</td><td>${t.descricao}</td><td>${t.valor.toFixed(2)}€</td></tr>`).join('')}
           </table>
@@ -294,11 +293,11 @@ export default function Home() {
 
   const getBadgeStyle = (status: string) => {
     switch (status) {
-      case 'Pendente Aprovação': return { bg: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' };
-      case 'Aguardando Peças': return { bg: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.3)' };
-      case 'Em Execução': return { bg: 'rgba(37, 99, 235, 0.15)', color: '#60a5fa', border: '1px solid rgba(37, 99, 235, 0.3)' };
-      case 'Aguardando Pagamento': return { bg: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)' };
-      case 'Pronto / Entregue': return { bg: 'rgba(52, 211, 153, 0.15)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.3)' };
+      case 'Pendente Aprovação': return { bg: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.4)' };
+      case 'Aguardando Peças': return { bg: 'rgba(251, 191, 36, 0.2)', color: '#fde047', border: '1px solid rgba(251, 191, 36, 0.4)' };
+      case 'Em Execução': return { bg: 'rgba(37, 99, 235, 0.2)', color: '#93c5fd', border: '1px solid rgba(37, 99, 235, 0.4)' };
+      case 'Aguardando Pagamento': return { bg: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.4)' };
+      case 'Pronto / Entregue': return { bg: 'rgba(52, 211, 153, 0.2)', color: '#6ee7b7', border: '1px solid rgba(52, 211, 153, 0.4)' };
       default: return { bg: '#1e293b', color: '#fff', border: '1px solid #334155' };
     }
   };
@@ -307,18 +306,16 @@ export default function Home() {
     <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
       
       {/* HEADER */}
-      <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '18px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div>
-            <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0, letterSpacing: '0.5px' }}>{dadosEmpresa.nome}</h1>
-            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '3px 0 0 0' }}>Estética Automotiva de Alta Performance • Cascais</p>
-          </div>
+      <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#d4af37', margin: 0, letterSpacing: '0.5px' }}>{dadosEmpresa.nome}</h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>Estética Automotiva de Alta Performance • Cascais</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', backgroundColor: '#131722', padding: '4px', borderRadius: '8px', border: '1px solid #222b45' }}>
-            <button onClick={() => setUser('admin')} style={{ backgroundColor: user === 'admin' ? '#d4af37' : 'transparent', color: user === 'admin' ? '#090a0f' : '#94a3b8', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>Admin</button>
-            <button onClick={() => setUser('funcionario')} style={{ backgroundColor: user === 'funcionario' ? '#d4af37' : 'transparent', color: user === 'funcionario' ? '#090a0f' : '#94a3b8', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>Equipa</button>
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', backgroundColor: '#131722', padding: '6px', borderRadius: '10px', border: '1px solid #222b45' }}>
+            <button onClick={() => setUser('admin')} style={{ backgroundColor: user === 'admin' ? '#d4af37' : 'transparent', color: user === 'admin' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Admin</button>
+            <button onClick={() => setUser('funcionario')} style={{ backgroundColor: user === 'funcionario' ? '#d4af37' : 'transparent', color: user === 'funcionario' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Equipa</button>
           </div>
         </div>
       </header>
@@ -327,32 +324,32 @@ export default function Home() {
         
         {/* MENU LATERAL */}
         <nav style={{ 
-          width: '280px', 
+          width: '300px', 
           backgroundColor: '#0d0f17', 
           borderRight: '1px solid #1e2235', 
           display: 'flex', 
           flexDirection: 'column', 
-          gap: '6px', 
-          padding: '20px 14px',
+          gap: '8px', 
+          padding: '24px 16px',
           boxSizing: 'border-box',
           flexShrink: 0
         }}>
-          <p style={{ fontSize: '11px', textTransform: 'uppercase', color: '#d4af37', fontWeight: 'bold', padding: '0 12px', marginBottom: '10px', letterSpacing: '1px' }}>Menu Principal</p>
+          <p style={{ fontSize: '13px', textTransform: 'uppercase', color: '#d4af37', fontWeight: 'bold', padding: '0 12px', marginBottom: '12px', letterSpacing: '1px' }}>Menu Principal</p>
           {menuItems.map(item => (
             <button
               key={item.id}
-              onClick={() => { setTab(item.id); setMenuMobileAberto(false); }}
+              onClick={() => setTab(item.id)}
               style={{
                 textAlign: 'left',
-                padding: '14px 16px',
-                fontSize: '14px',
+                padding: '16px 18px',
+                fontSize: '16px',
                 fontWeight: tab === item.id ? 'bold' : '500',
                 cursor: 'pointer',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 border: 'none',
-                backgroundColor: tab === item.id ? 'rgba(212, 175, 55, 0.12)' : 'transparent',
-                color: tab === item.id ? '#d4af37' : '#cbd5e1',
-                borderLeft: tab === item.id ? '4px solid #d4af37' : '4px solid transparent',
+                backgroundColor: tab === item.id ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
+                color: tab === item.id ? '#d4af37' : '#e2e8f0',
+                borderLeft: tab === item.id ? '5px solid #d4af37' : '5px solid transparent',
                 transition: 'all 0.2s'
               }}
             >
@@ -361,40 +358,40 @@ export default function Home() {
           ))}
         </nav>
 
-        {/* CONTEÚDO PRINCIPAL EXPANDIDO (100% da tela) */}
-        <main style={{ flex: 1, padding: '32px 40px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
+        {/* CONTEÚDO PRINCIPAL (Fontes maiores e visíveis) */}
+        <main style={{ flex: 1, padding: '36px 44px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
           {/* ABA 1: VEÍCULOS NO PÁTIO */}
           {tab === 'pateo' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Veículos no Pátio</h2>
-                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Acompanhe o status em tempo real com botões dinâmicos.</p>
+                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Veículos no Pátio</h2>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Acompanhe o status em tempo real com botões dinâmicos.</p>
                 </div>
                 <button 
                   onClick={() => setTab('ordem-servico')}
-                  style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '14px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}
                 >
                   + Dar Entrada em Veículo
                 </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
                 {ordensServico.map(os => {
                   const badge = getBadgeStyle(os.status);
                   return (
-                    <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <span style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 'bold' }}>OS #{os.id}</span>
-                          <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '4px 0 0 0' }}>{os.veiculo}</h3>
-                          <p style={{ fontSize: '13px', color: '#94a3b8', margin: '4px 0 0 0' }}>Matrícula: <b style={{ color: '#fff', background: '#090a0f', padding: '3px 8px', borderRadius: '4px', fontSize: '14px' }}>{os.matricula}</b></p>
+                          <span style={{ fontSize: '14px', color: '#60a5fa', fontWeight: 'bold' }}>OS #{os.id}</span>
+                          <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: '4px 0 0 0' }}>{os.veiculo}</h3>
+                          <p style={{ fontSize: '15px', color: '#cbd5e1', margin: '6px 0 0 0' }}>Matrícula: <b style={{ color: '#fff', background: '#090a0f', padding: '4px 10px', borderRadius: '6px', fontSize: '16px', border: '1px solid #222b45' }}>{os.matricula}</b></p>
                         </div>
                         <select 
                           value={os.status}
                           onChange={(e) => atualizarStatusOS(os.id, e.target.value)}
-                          style={{ backgroundColor: badge.bg, color: badge.color, border: badge.border, padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                          style={{ backgroundColor: badge.bg, color: badge.color, border: badge.border, padding: '10px 14px', borderRadius: '10px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
                         >
                           <option value="Pendente Aprovação">Pendente Aprovação</option>
                           <option value="Aguardando Peças">Aguardando Peças</option>
@@ -404,25 +401,25 @@ export default function Home() {
                         </select>
                       </div>
 
-                      <div style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '10px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid #1e2235' }}>
-                        <p style={{ margin: 0, color: '#e2e8f0' }}><b>Cliente:</b> {os.cliente}</p>
-                        <p style={{ margin: 0, color: '#e2e8f0' }}><b>Serviço:</b> {os.servico}</p>
-                        <p style={{ margin: 0, color: '#94a3b8' }}><b>Técnico(s):</b> {os.funcionariosAtgados.join(', ') || 'Nenhum'}</p>
+                      <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', fontSize: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #1e2235' }}>
+                        <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente}</p>
+                        <p style={{ margin: 0, color: '#f1f5f9' }}><b>Serviço:</b> {os.servico}</p>
+                        <p style={{ margin: 0, color: '#cbd5e1' }}><b>Técnico(s):</b> {os.funcionariosAtgados.join(', ') || 'Nenhum'}</p>
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', borderTop: '1px solid #1e2235', paddingTop: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '15px', borderTop: '1px solid #1e2235', paddingTop: '14px' }}>
                         <div>
                           <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span><br/>
                           <span style={{ color: '#34d399' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b></span>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                           <span style={{ color: '#94a3b8' }}>Falta Pagar:</span><br/>
-                          <span style={{ fontSize: '16px', fontWeight: 'bold', color: os.restanteAPagar > 0 ? '#f87171' : '#34d399' }}>{os.restanteAPagar.toFixed(2)} €</span>
+                          <span style={{ fontSize: '18px', fontWeight: 'bold', color: os.restanteAPagar > 0 ? '#f87171' : '#34d399' }}>{os.restanteAPagar.toFixed(2)} €</span>
                         </div>
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button onClick={() => imprimirFichaOS(os)} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                        <button onClick={() => imprimirFichaOS(os)} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
                           🖨️ Imprimir OS (PDF)
                         </button>
                       </div>
@@ -435,16 +432,16 @@ export default function Home() {
 
           {/* ABA 2: PAINEL & GRÁFICOS */}
           {tab === 'metricas' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Painel & Desempenho</h2>
-                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Balanço financeiro por período.</p>
+                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Painel & Desempenho</h2>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Balanço financeiro por período.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: '#131722', padding: '12px', borderRadius: '12px', border: '1px solid #1e2235' }}>
-                  <input type="date" value={dataInicioFiltro} onChange={(e) => setDataInicioFiltro(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '8px', borderRadius: '6px', fontSize: '13px' }} />
-                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>até</span>
-                  <input type="date" value={dataFimFiltro} onChange={(e) => setDataFimFiltro(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '8px', borderRadius: '6px', fontSize: '13px' }} />
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', backgroundColor: '#131722', padding: '14px', borderRadius: '12px', border: '1px solid #1e2235' }}>
+                  <input type="date" value={dataInicioFiltro} onChange={(e) => setDataInicioFiltro(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '15px' }} />
+                  <span style={{ color: '#94a3b8', fontSize: '15px' }}>até</span>
+                  <input type="date" value={dataFimFiltro} onChange={(e) => setDataFimFiltro(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '15px' }} />
                 </div>
               </div>
 
@@ -455,18 +452,18 @@ export default function Home() {
                 const liq = rec - desp;
 
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
-                      <p style={{ fontSize: '12px', color: '#d4af37', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Balanço Líquido</p>
-                      <p style={{ fontSize: '28px', fontWeight: 'extrabold', color: liq >= 0 ? '#34d399' : '#f87171', margin: 0 }}>{liq.toFixed(2)} €</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#d4af37', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Balanço Líquido</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: liq >= 0 ? '#34d399' : '#f87171', margin: 0 }}>{liq.toFixed(2)} €</p>
                     </div>
-                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
-                      <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Total Receitas</p>
-                      <p style={{ fontSize: '28px', fontWeight: 'extrabold', color: '#34d399', margin: 0 }}>+{rec.toFixed(2)} €</p>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Receitas</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#34d399', margin: 0 }}>+{rec.toFixed(2)} €</p>
                     </div>
-                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
-                      <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Total Despesas / Custos</p>
-                      <p style={{ fontSize: '28px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>-{desp.toFixed(2)} €</p>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Despesas / Custos</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>-{desp.toFixed(2)} €</p>
                     </div>
                   </div>
                 );
@@ -476,63 +473,63 @@ export default function Home() {
 
           {/* ABA 3: NOVA ORDEM DE SERVIÇO */}
           {tab === 'ordem-servico' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Nova Ordem de Serviço</h2>
-                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Registe a entrada da viatura, custos de peças e equipa.</p>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Nova Ordem de Serviço</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Registe a entrada da viatura, custos de peças e equipa.</p>
               </div>
 
-              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px', maxWidth: '850px' }}>
-                <form onSubmit={criarOrdemServico} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '14px' }}>
+              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '900px' }}>
+                <form onSubmit={criarOrdemServico} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Matrícula</label>
-                      <input type="text" placeholder="0KM-7700" value={osMatricula} onChange={(e) => handleOsMatriculaChange(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '14px' }} />
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Matrícula</label>
+                      <input type="text" placeholder="0KM-7700" value={osMatricula} onChange={(e) => handleOsMatriculaChange(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '16px' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Cliente</label>
-                      <input type="text" placeholder="Nome do cliente" value={osCliente} onChange={(e) => setOsCliente(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Cliente</label>
+                      <input type="text" placeholder="Nome do cliente" value={osCliente} onChange={(e) => setOsCliente(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Viatura</label>
-                      <input type="text" placeholder="Ex: Porsche 911" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Viatura</label>
+                      <input type="text" placeholder="Ex: Porsche 911" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Serviço</label>
-                      <input type="text" placeholder="Ex: Vitrificação" value={osServico} onChange={(e) => setOsServico(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Serviço</label>
+                      <input type="text" placeholder="Ex: Vitrificação" value={osServico} onChange={(e) => setOsServico(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                     </div>
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>👥 Técnicos Encarregues:</label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', backgroundColor: '#090a0f', padding: '14px', borderRadius: '8px', border: '1px solid #222b45' }}>
+                    <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>👥 Técnicos Encarregues:</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
                       {funcionarios.map(f => (
-                        <button key={f.id} type="button" onClick={() => toggleFuncionarioOS(f.nome)} style={{ backgroundColor: osFuncionarios.includes(f.nome) ? '#2563eb' : '#131722', color: '#fff', border: '1px solid #222b45', padding: '8px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        <button key={f.id} type="button" onClick={() => toggleFuncionarioOS(f.nome)} style={{ backgroundColor: osFuncionarios.includes(f.nome) ? '#2563eb' : '#131722', color: '#fff', border: '1px solid #222b45', padding: '10px 18px', borderRadius: '8px', fontSize: '15px', cursor: 'pointer', fontWeight: 'bold' }}>
                           {osFuncionarios.includes(f.nome) ? '✓ ' : ''}{f.nome}
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Valor (€)</label>
-                      <input type="number" step="0.01" value={osValor} onChange={(e) => setOsValor(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Valor (€)</label>
+                      <input type="number" step="0.01" value={osValor} onChange={(e) => setOsValor(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#f87171', marginBottom: '6px' }}>Custos (Peças) (€)</label>
-                      <input type="number" step="0.01" value={osCustos} onChange={(e) => setOsCustos(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                      <label style={{ display: 'block', fontSize: '14px', color: '#f87171', marginBottom: '8px', fontWeight: 'bold' }}>Custos (Peças) (€)</label>
+                      <input type="number" step="0.01" value={osCustos} onChange={(e) => setOsCustos(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#34d399', marginBottom: '6px' }}>Sinal Entrada (€)</label>
-                      <input type="number" step="0.01" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                      <label style={{ display: 'block', fontSize: '14px', color: '#34d399', marginBottom: '8px', fontWeight: 'bold' }}>Sinal Entrada (€)</label>
+                      <input type="number" step="0.01" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                     </div>
                   </div>
 
-                  <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', fontWeight: 'bold', padding: '14px', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '10px', fontSize: '15px' }}>
+                  <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', fontWeight: 'bold', padding: '16px', borderRadius: '10px', border: 'none', cursor: 'pointer', marginTop: '12px', fontSize: '17px' }}>
                     Criar Ordem de Serviço
                   </button>
                 </form>
@@ -542,28 +539,28 @@ export default function Home() {
 
           {/* ABA 4: AGENDA & FERIADOS */}
           {tab === 'agenda' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Agenda & Feriados Nacionais</h2>
-                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Consulte agendamentos e feriados em Portugal.</p>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Agenda & Feriados Nacionais</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Consulte agendamentos e feriados em Portugal.</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 16px 0' }}>Novo Agendamento</h3>
-                  <form onSubmit={adicionarAgendamento} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <input type="text" placeholder="Matrícula (Ex: 0KM-7700)" value={novaMatriculaAgend} onChange={(e) => setNovaMatriculaAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px' }} />
-                    <input type="text" placeholder="Nome Cliente" value={novoClienteAgend} onChange={(e) => setNovoClienteAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px' }} />
-                    <input type="date" value={novaDataAgend} onChange={(e) => setNovaDataAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px' }} />
-                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px' }}>Agendar</button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '28px' }}>
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 18px 0' }}>Novo Agendamento</h3>
+                  <form onSubmit={adicionarAgendamento} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <input type="text" placeholder="Matrícula (Ex: 0KM-7700)" value={novaMatriculaAgend} onChange={(e) => setNovaMatriculaAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    <input type="text" placeholder="Nome Cliente" value={novoClienteAgend} onChange={(e) => setNovoClienteAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    <input type="date" value={novaDataAgend} onChange={(e) => setNovaDataAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Agendar</button>
                   </form>
                 </div>
 
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>🇵🇹 Feriados Nacionais</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '280px', overflowY: 'auto' }}>
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '0 0 18px 0' }}>🇵🇹 Feriados Nacionais</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
                     {feriadosPortugal.map((f, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '10px 14px', backgroundColor: '#090a0f', borderRadius: '8px', border: '1px solid #1e2235' }}>
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', padding: '12px 16px', backgroundColor: '#090a0f', borderRadius: '8px', border: '1px solid #1e2235' }}>
                         <span style={{ color: '#fff', fontWeight: 'bold' }}>{f.nome}</span>
                         <span style={{ color: '#60a5fa' }}>{f.data}</span>
                       </div>
@@ -576,26 +573,26 @@ export default function Home() {
 
           {/* ABA 5: LIVRO-CAIXA */}
           {tab === 'financeiro' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Livro-Caixa</h2>
-                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Registo financeiro integrado com sinais e despesas.</p>
+                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Livro-Caixa</h2>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Registo financeiro integrado com sinais e despesas.</p>
                 </div>
-                <button onClick={exportarRelatorioPDF} style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                <button onClick={exportarRelatorioPDF} style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
                   📄 Gerar Relatório PDF
                 </button>
               </div>
 
-              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '450px', overflowY: 'auto' }}>
+              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '500px', overflowY: 'auto' }}>
                   {transacoes.map(t => (
-                    <div key={t.id} style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div key={t.id} style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
-                        <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>{t.descricao} <span style={{ fontSize: '12px', color: '#60a5fa' }}>[{t.categoria}]</span></p>
-                        <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>📅 {t.data}</p>
+                        <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>{t.descricao} <span style={{ fontSize: '13px', color: '#60a5fa' }}>[{t.categoria}]</span></p>
+                        <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>📅 {t.data}</p>
                       </div>
-                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: t.tipo === 'receita' ? '#34d399' : '#f87171' }}>
+                      <span style={{ fontSize: '17px', fontWeight: 'bold', color: t.tipo === 'receita' ? '#34d399' : '#f87171' }}>
                         {t.tipo === 'receita' ? '+' : '-'}{t.valor.toFixed(2)} €
                       </span>
                     </div>
@@ -607,39 +604,39 @@ export default function Home() {
 
           {/* ABA 6: FUNCIONÁRIOS */}
           {tab === 'funcionarios' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Funcionários</h2>
-                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Controlo de equipa com salários e comissões.</p>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Funcionários</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Controlo de equipa com salários e comissões.</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 16px 0' }}>Novo Funcionário</h3>
-                  <form onSubmit={adicionarFuncionario} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <input type="text" placeholder="Nome" value={novoFuncNome} onChange={(e) => setNovoFuncNome(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px' }} />
-                    <input type="text" placeholder="Cargo" value={novoFuncCargo} onChange={(e) => setNovoFuncCargo(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px' }} />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                      <select value={tipoRemuneracao} onChange={(e) => setTipoRemuneracao(e.target.value as any)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '28px' }}>
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 18px 0' }}>Novo Funcionário</h3>
+                  <form onSubmit={adicionarFuncionario} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <input type="text" placeholder="Nome" value={novoFuncNome} onChange={(e) => setNovoFuncNome(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    <input type="text" placeholder="Cargo" value={novoFuncCargo} onChange={(e) => setNovoFuncCargo(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <select value={tipoRemuneracao} onChange={(e) => setTipoRemuneracao(e.target.value as any)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }}>
                         <option value="comissao">Comissão (%)</option>
                         <option value="fixo">Fixo (€)</option>
                       </select>
-                      <input type="number" value={valorRemuneracao} onChange={(e) => setValorRemuneracao(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px' }} />
+                      <input type="number" value={valorRemuneracao} onChange={(e) => setValorRemuneracao(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
                     </div>
-                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px' }}>Guardar</button>
+                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Guardar</button>
                   </form>
                 </div>
 
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Equipa</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '0 0 18px 0' }}>Equipa</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {funcionarios.map(f => (
-                      <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#090a0f', padding: '14px', borderRadius: '8px', border: '1px solid #222b45' }}>
+                      <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
                         <div>
-                          <p style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 'bold', color: '#fff' }}>{f.nome} ({f.cargo})</p>
-                          <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>{f.tipoRemuneracao === 'fixo' ? `Fixo: ${f.valorPctOuFixo}€` : `Comissão: ${f.valorPctOuFixo}%`}</p>
+                          <p style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{f.nome} ({f.cargo})</p>
+                          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>{f.tipoRemuneracao === 'fixo' ? `Fixo: ${f.valorPctOuFixo}€` : `Comissão: ${f.valorPctOuFixo}%`}</p>
                         </div>
-                        <button onClick={() => removerFuncionario(f.id)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>✕</button>
+                        <button onClick={() => removerFuncionario(f.id)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>✕</button>
                       </div>
                     ))}
                   </div>
@@ -650,34 +647,34 @@ export default function Home() {
 
           {/* ABA 7: CONFIGURAÇÕES DA EMPRESA */}
           {tab === 'config' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '750px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '800px' }}>
               <div>
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>⚙️ Dados da Empresa</h2>
-                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Informações oficiais impressas nos documentos.</p>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>⚙️ Dados da Empresa</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Informações oficiais impressas nos documentos.</p>
               </div>
 
-              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Nome Comercial</label>
-                  <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                  <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Nome Comercial</label>
+                  <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>NIF</label>
-                    <input type="text" value={dadosEmpresa.nif} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nif: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>NIF</label>
+                    <input type="text" value={dadosEmpresa.nif} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nif: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Telefone</label>
-                    <input type="text" value={dadosEmpresa.telefone} onChange={(e) => setDadosEmpresa({...dadosEmpresa, telefone: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Telefone</label>
+                    <input type="text" value={dadosEmpresa.telefone} onChange={(e) => setDadosEmpresa({...dadosEmpresa, telefone: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Morada</label>
-                  <input type="text" value={dadosEmpresa.morada} onChange={(e) => setDadosEmpresa({...dadosEmpresa, morada: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                  <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Morada</label>
+                  <input type="text" value={dadosEmpresa.morada} onChange={(e) => setDadosEmpresa({...dadosEmpresa, morada: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Email</label>
-                  <input type="text" value={dadosEmpresa.email} onChange={(e) => setDadosEmpresa({...dadosEmpresa, email: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+                  <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Email</label>
+                  <input type="text" value={dadosEmpresa.email} onChange={(e) => setDadosEmpresa({...dadosEmpresa, email: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                 </div>
               </div>
             </div>
