@@ -31,6 +31,18 @@ export default function Home() {
   const [novoServicoAgend, setNovoServicoAgend] = useState('');
   const [novaDataAgend, setNovaDataAgend] = useState('');
 
+  // Estados de Ordens de Serviço (OS)
+  const [ordensServico, setOrdensServico] = useState([
+    { id: 101, cliente: 'Carlos Silva', veiculo: 'BMW Série 3', matricula: '00-AA-00', servico: 'Polimento de 2 Passos + Cerâmico', observacoes: 'Riscos ligeiros no para-choques traseiro.', valor: 350.00, status: 'Em Execução', data: '2026-06-01' }
+  ]);
+  const [osCliente, setOsCliente] = useState('');
+  const [osVeiculo, setOsVeiculo] = useState('');
+  const [osMatricula, setOsMatricula] = useState('');
+  const [osServico, setOsServico] = useState('');
+  const [osObs, setOsObs] = useState('');
+  const [osValor, setOsValor] = useState('');
+  const [osStatus, setOsStatus] = useState('Em Execução');
+
   // Estados do Financeiro & Faturas IA
   const [transacoes, setTransacoes] = useState([
     { id: 1, descricao: 'Adiantamento Serviço BMW (Polimento)', categoria: 'Polimento', tipo: 'receita', valor: 150.00, data: '2026-06-01' },
@@ -65,6 +77,16 @@ export default function Home() {
     if (historicoAnterior) {
       setNovoClienteAgend(historicoAnterior.cliente);
       setNovoVeiculoAgend(historicoAnterior.veiculo);
+    }
+  };
+
+  const handleOsMatriculaChange = (matriculaInput: string) => {
+    const matriculaLimpa = matriculaInput.toUpperCase();
+    setOsMatricula(matriculaLimpa);
+    const historicoAnterior = ordensServico.find(o => o.matricula.toUpperCase() === matriculaLimpa) || servicosRealizados.find(s => s.matricula.toUpperCase() === matriculaLimpa);
+    if (historicoAnterior) {
+      setOsCliente(historicoAnterior.cliente);
+      setOsVeiculo(historicoAnterior.veiculo);
     }
   };
 
@@ -107,6 +129,87 @@ export default function Home() {
     setNovaDataAgend('');
   };
 
+  const criarOrdemServico = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!osCliente || !osMatricula || !osServico) return;
+    const novaOS = {
+      id: Date.now(),
+      cliente: osCliente,
+      veiculo: osVeiculo || 'Desconhecido',
+      matricula: osMatricula,
+      servico: osServico,
+      observacoes: osObs || 'Nenhuma observação registada à entrada.',
+      valor: Number(osValor) || 0,
+      status: osStatus,
+      data: new Date().toISOString().split('T')[0]
+    };
+    setOrdensServico([novaOS, ...ordensServico]);
+    setOsCliente('');
+    setOsVeiculo('');
+    setOsMatricula('');
+    setOsServico('');
+    setOsObs('');
+    setOsValor('');
+  };
+
+  const imprimirFichaOS = (os: any) => {
+    const janelaPrint = window.open('', '_blank');
+    if (!janelaPrint) return;
+
+    janelaPrint.document.write(`
+      <html>
+        <head>
+          <title>Ordem de Serviço #${os.id} - Carbox Planilha</title>
+          <style>
+            body { font-family: Arial, sans-serif; color: #111; padding: 30px; margin: 0; }
+            h1 { font-size: 20px; color: #1e3a8a; margin-bottom: 4px; }
+            p { font-size: 13px; color: #444; margin-top: 0; }
+            .box { border: 1px solid #ccc; padding: 15px; border-radius: 6px; margin-top: 15px; }
+            .grid { display: flex; gap: 20px; margin-top: 15px; }
+            .col { flex: 1; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }
+            th { background-color: #f3f4f6; }
+            .assinatura { margin-top: 50px; display: flex; justify-content: space-between; }
+            .linha-assinatura { width: 40%; border-top: 1px solid #333; text-align: center; padding-top: 5px; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>CARBOX PLANILHA - ORDEM DE SERVIÇO #${os.id}</h1>
+          <p>Data de Emissão: ${os.data} | Estética Automotiva Portugal</p>
+
+          <div class="box">
+            <h3>Dados do Cliente & Viatura</h3>
+            <p><b>Cliente:</b> ${os.cliente}</p>
+            <p><b>Viatura:</b> ${os.veiculo} | <b>Matrícula:</b> ${os.matricula}</p>
+            <p><b>Estado Atual:</b> ${os.status}</p>
+          </div>
+
+          <div class="box">
+            <h3>Serviço Solicitado</h3>
+            <p style="font-size: 15px; font-weight: bold; color: #2563eb;">${os.servico}</p>
+            <p><b>Observações / Danos Detetados à Entrada:</b> ${os.observacoes}</p>
+          </div>
+
+          <div class="box">
+            <h3>Orçamento / Valor</h3>
+            <p style="font-size: 18px; font-weight: bold; color: #059669;">Total: ${os.valor.toFixed(2)} €</p>
+          </div>
+
+          <div class="assinatura">
+            <div class="linha-assinatura">Assinatura da Oficina</div>
+            <div class="linha-assinatura">Assinatura do Cliente (Receção)</div>
+          </div>
+
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `);
+    janelaPrint.document.close();
+  };
+
   const adicionarTransacao = (e: React.FormEvent) => {
     e.preventDefault();
     if (!descTransacao || !valorTransacao || !dataTransacao) return;
@@ -143,7 +246,6 @@ export default function Home() {
     }, 1500);
   };
 
-  // Gerar Relatório PDF Filtrado pelo Período Selecionado
   const exportarRelatorioPDF = () => {
     const transacoesFiltradas = transacoes.filter(t => {
       if (dataInicioFiltro && t.data < dataInicioFiltro) return false;
@@ -236,7 +338,7 @@ export default function Home() {
 
   const menuItems = [
     { id: 'metricas', label: '📊 Painel & Gráficos' },
-    { id: 'ordem-servico', label: '🚗 Ordens de Serviço' },
+    { id: 'ordem-servico', label: '🚗 Ordens de Serviço (OS)' },
     { id: 'agenda', label: '📅 Agenda & Matrículas' },
     { id: 'financeiro', label: '💰 Livro-Caixa & Contabilidade' },
     { id: 'funcionarios', label: '👥 Funcionários & Salários' },
@@ -381,11 +483,131 @@ export default function Home() {
           </div>
         )}
 
+        {/* Módulo Completo de Ordens de Serviço (OS) */}
         {tab === 'ordem-servico' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Ordens de Serviço</h2>
-            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', textAlign: 'center' }}>
-              <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Módulo avançado de fichas de intervenção para polimentos e proteção cerâmica.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Ordens de Serviço (OS) & Fichas de Intervenção</h2>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Crie fichas detalhadas por matrícula, registe danos à entrada e imprima o documento para o cliente.</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+              {/* Formulário Nova OS */}
+              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px', height: 'fit-content' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Criar Nova Ordem de Serviço</h3>
+                <form onSubmit={criarOrdemServico} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Matrícula (Ex: 00-AA-00)</label>
+                    <input 
+                      type="text" 
+                      placeholder="00-AA-00"
+                      value={osMatricula}
+                      onChange={(e) => handleOsMatriculaChange(e.target.value)}
+                      style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box', textTransform: 'uppercase', fontWeight: 'bold' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Nome do Cliente</label>
+                    <input 
+                      type="text" 
+                      placeholder="Preenchido autom. se veículo já registado"
+                      value={osCliente}
+                      onChange={(e) => setOsCliente(e.target.value)}
+                      style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Modelo da Viatura</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: BMW Série 3"
+                      value={osVeiculo}
+                      onChange={(e) => setOsVeiculo(e.target.value)}
+                      style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Serviço a Executar</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Polimento Cerâmico 3 Anos"
+                      value={osServico}
+                      onChange={(e) => setOsServico(e.target.value)}
+                      style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Observações / Riscos à Entrada</label>
+                    <textarea 
+                      placeholder="Ex: Risco ligeiro na embaladeiras, jantes com marcas..."
+                      value={osObs}
+                      onChange={(e) => setOsObs(e.target.value)}
+                      rows={2}
+                      style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box', resize: 'vertical' }}
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Valor (€)</label>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        placeholder="0.00"
+                        value={osValor}
+                        onChange={(e) => setOsValor(e.target.value)}
+                        style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Estado</label>
+                      <select 
+                        value={osStatus}
+                        onChange={(e) => setOsStatus(e.target.value)}
+                        style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                      >
+                        <option value="Em Execução">Em Execução</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Pendente">Pendente</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '6px' }}>
+                    Emitir Ordem de Serviço
+                  </button>
+                </form>
+              </div>
+
+              {/* Lista de Ordens de Serviço */}
+              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Histórico de Ordens de Serviço</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '520px', overflowY: 'auto' }}>
+                  {ordensServico.map(os => (
+                    <div key={os.id} style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '12px', border: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: '0 0 2px 0' }}>OS #{os.id} - {os.cliente}</p>
+                          <p style={{ fontSize: '12px', color: '#60a5fa', margin: 0 }}>🚗 {os.veiculo} ({os.matricula})</p>
+                        </div>
+                        <span style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '6px', backgroundColor: os.status === 'Concluído' ? 'rgba(52, 211, 153, 0.1)' : 'rgba(251, 191, 36, 0.1)', color: os.status === 'Concluído' ? '#34d399' : '#fbbf24', fontWeight: 'bold' }}>
+                          {os.status}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '13px', color: '#cbd5e1', margin: '4px 0', borderLeft: '2px solid #3b82f6', paddingLeft: '8px' }}>
+                        <b>Serviço:</b> {os.servico}
+                      </p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#34d399' }}>{os.valor.toFixed(2)} €</span>
+                        <button 
+                          onClick={() => imprimirFichaOS(os)}
+                          style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                          🖨️ Imprimir Ficha OS (PDF)
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
