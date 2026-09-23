@@ -426,7 +426,7 @@ export default function Home() {
                     {aProcessarFoto ? '⌛ A ler...' : '📸 Ler Fatura (IA)'}
                     <input 
                       type="file" 
-                      accept="image/*" 
+                      accept="image/*,application/pdf"
                       capture="environment" 
                       onChange={handleProcessarFotoFatura} 
                       style={{ display: 'none' }} 
