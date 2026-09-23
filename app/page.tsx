@@ -143,18 +143,9 @@ export default function Home() {
     }, 1500);
   };
 
-  const exportarParaContabilista = () => {
-    let csvContent = "data:text/csv;charset=utf-8,ID;Data;Tipo;Categoria;Descricao;Valor(EUR)\n";
-    transacoes.forEach(t => {
-      csvContent += `${t.id};${t.data};${t.tipo};${t.categoria};"${t.descricao}";${t.valor.toFixed(2)}\n`;
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Carbox_Contabilidade_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Exportar Relatório em PDF Direto (via Print do Browser)
+  const exportarParaPDF = () => {
+    window.print();
   };
 
   const menuItems = [
@@ -416,14 +407,14 @@ export default function Home() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
                 <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Livro-Caixa & Contabilidade</h2>
-                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Gestão financeira com leitura de faturas e exportação de relatórios.</p>
+                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Gestão financeira com leitura de faturas e exportação de relatórios em PDF.</p>
               </div>
 
               <button 
-                onClick={exportarParaContabilista}
+                onClick={exportarParaPDF}
                 style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                📥 Exportar para Contabilista (CSV)
+                🖨️ Imprimir / Guardar Relatório (PDF)
               </button>
             </div>
 
