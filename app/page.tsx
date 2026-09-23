@@ -20,28 +20,30 @@ export default function Home() {
   const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo'>('comissao');
   const [valorRemuneracao, setValorRemuneracao] = useState('30');
 
-  // Estados da Agenda
+  // Estados da Agenda & Histórico por Matrícula
   const [servicosRealizados, setServicosRealizados] = useState([
-    { id: 1, cliente: 'Carlos Silva', veiculo: 'BMW (00-AA-00)', servico: 'Polimento', data: '2026-06-01', status: 'Agendado' },
-    { id: 2, cliente: 'Ana Costa', veiculo: 'Audi A4 (11-BB-11)', servico: 'Lavagem Detalhada', data: '2026-06-02', status: 'Concluído' }
+    { id: 1, cliente: 'Carlos Silva', veiculo: 'BMW', matricula: '00-AA-00', servico: 'Polimento Cerâmico', data: '2026-06-01', status: 'Concluído' },
+    { id: 2, cliente: 'Ana Costa', veiculo: 'Audi A4', matricula: '11-BB-11', servico: 'Lavagem Detalhada', data: '2026-06-15', status: 'Agendado' }
   ]);
   const [novoClienteAgend, setNovoClienteAgend] = useState('');
   const [novoVeiculoAgend, setNovoVeiculoAgend] = useState('');
+  const [novaMatriculaAgend, setNovaMatriculaAgend] = useState('');
   const [novoServicoAgend, setNovoServicoAgend] = useState('');
   const [novaDataAgend, setNovaDataAgend] = useState('');
 
   // Estados do Financeiro & Faturas IA
   const [transacoes, setTransacoes] = useState([
-    { id: 1, descricao: 'Adiantamento Serviço BMW', tipo: 'receita', valor: 150.00, data: '2026-06-01' },
-    { id: 2, descricao: 'Compra de Panos Microfibra', tipo: 'despesa', valor: 45.00, data: '2026-06-01' }
+    { id: 1, descricao: 'Adiantamento Serviço BMW (Polimento)', categoria: 'Polimento', tipo: 'receita', valor: 150.00, data: '2026-06-01' },
+    { id: 2, descricao: 'Compra de Panos Microfibra & Quimicos', categoria: 'Produtos', tipo: 'despesa', valor: 45.00, data: '2026-06-01' }
   ]);
   const [descTransacao, setDescTransacao] = useState('');
+  const [categoriaTransacao, setCategoriaTransacao] = useState('Polimento');
   const [tipoTransacao, setTipoTransacao] = useState<'receita' | 'despesa'>('receita');
   const [valorTransacao, setValorTransacao] = useState('');
   const [dataTransacao, setDataTransacao] = useState('');
   const [aProcessarFoto, setAProcessarFoto] = useState(false);
 
-  // Feriados Oficiais de Portugal (Exemplo estrutural)
+  // Feriados Oficiais de Portugal
   const feriadosPortugal = [
     { data: '2026-01-01', nome: 'Ano Novo' },
     { data: '2026-04-05', nome: 'Páscoa' },
@@ -56,7 +58,18 @@ export default function Home() {
     { data: '2026-12-25', nome: 'Natal' }
   ];
 
-  // Funções de Gestão
+  // Funções de Apoio com Inteligência de Matrícula
+  const handleMatriculaChange = (matriculaInput: string) => {
+    const matriculaLimpa = matriculaInput.toUpperCase();
+    setNovaMatriculaAgend(matriculaLimpa);
+    // Procurar se o carro já esteve na oficina
+    const historicoAnterior = servicosRealizados.find(s => s.matricula.toUpperCase() === matriculaLimpa);
+    if (historicoAnterior) {
+      setNovoClienteAgend(historicoAnterior.cliente);
+      setNovoVeiculoAgend(historicoAnterior.veiculo);
+    }
+  };
+
   const adicionarFuncionario = (e: React.FormEvent) => {
     e.preventDefault();
     if (!novoFuncNome || !novoFuncCargo) return;
@@ -78,11 +91,12 @@ export default function Home() {
 
   const adicionarAgendamento = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!novoClienteAgend || !novoServicoAgend || !novaDataAgend) return;
+    if (!novoClienteAgend || !novoServicoAgend || !novaDataAgend || !novaMatriculaAgend) return;
     const novo = {
       id: Date.now(),
       cliente: novoClienteAgend,
-      veiculo: novoVeiculoAgend || 'Não especificado',
+      veiculo: novoVeiculoAgend || 'Desconhecido',
+      matricula: novaMatriculaAgend,
       servico: novoServicoAgend,
       data: novaDataAgend,
       status: 'Agendado'
@@ -90,6 +104,7 @@ export default function Home() {
     setServicosRealizados([...servicosRealizados, novo]);
     setNovoClienteAgend('');
     setNovoVeiculoAgend('');
+    setNovaMatriculaAgend('');
     setNovoServicoAgend('');
     setNovaDataAgend('');
   };
@@ -100,6 +115,7 @@ export default function Home() {
     const nova = {
       id: Date.now(),
       descricao: descTransacao,
+      categoria: categoriaTransacao,
       tipo: tipoTransacao,
       valor: Number(valorTransacao) || 0,
       data: dataTransacao
@@ -119,20 +135,36 @@ export default function Home() {
     if (!file) return;
     setAProcessarFoto(true);
     setTimeout(() => {
-      setDescTransacao('Fatura Processada (IA): Produtos de Limpeza');
+      setDescTransacao('Fatura Processada (IA): Produtos de Estética');
+      setCategoriaTransacao('Produtos');
       setTipoTransacao('despesa');
-      setValorTransacao('35.50');
+      setValorTransacao('42.50');
       setDataTransacao(new Date().toISOString().split('T')[0]);
       setAProcessarFoto(false);
       alert('Fatura/Talão lido com sucesso! Verifique os dados no formulário.');
     }, 1500);
   };
 
+  // Exportar Relatório para Contabilidade (CSV / AT)
+  const exportarParaContabilista = () => {
+    let csvContent = "data:text/csv;charset=utf-8,ID;Data;Tipo;Categoria;Descricao;Valor(EUR)\n";
+    transacoes.forEach(t => {
+      csvContent += `${t.id};${t.data};${t.tipo};${t.categoria};"${t.descricao}";${t.valor.toFixed(2)}\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Carbox_Contabilidade_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const menuItems = [
-    { id: 'metricas', label: '📊 Painel & Métricas' },
+    { id: 'metricas', label: '📊 Painel & Gráficos' },
     { id: 'ordem-servico', label: '🚗 Ordens de Serviço' },
-    { id: 'agenda', label: '📅 Agenda & Feriados' },
-    { id: 'financeiro', label: '💰 Livro-Caixa & Caixa' },
+    { id: 'agenda', label: '📅 Agenda, Matrículas & Feriados' },
+    { id: 'financeiro', label: '💰 Livro-Caixa & Contabilidade' },
     { id: 'funcionarios', label: '👥 Funcionários & Salários' },
   ];
 
@@ -142,7 +174,7 @@ export default function Home() {
       <header style={{ backgroundColor: '#0f172a', borderBottom: '1px solid #1e293b', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>CARBOX PLANILHA</h1>
-          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '2px 0 0 0' }}>Portugal • Estética Automotiva</p>
+          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '2px 0 0 0' }}>Portugal • Gestão de Estética Automotiva</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => setUser('admin')} style={{ backgroundColor: user === 'admin' ? '#2563eb' : '#1e293b', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Admin</button>
@@ -177,47 +209,43 @@ export default function Home() {
       {/* Conteúdo Principal */}
       <main style={{ flex: 1, padding: '24px', maxWidth: '1200px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         
-        {/* Painel & Métricas */}
+        {/* Painel & Métricas com Gráficos Visuais */}
         {tab === 'metricas' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
               <div>
-                <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Painel & Métricas da Oficina</h2>
-                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Acompanhe o balanço diário, mensal e anual escolhendo o período pretendido.</p>
+                <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Painel & Gráficos de Desempenho</h2>
+                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Análise financeira detalhada por período e categorias de serviços.</p>
               </div>
 
               {/* Seletor de Datas Personalizado */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '12px 16px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 'bold' }}>📅 Filtrar Período:</span>
-                <div>
-                  <input 
-                    type="date" 
-                    value={dataInicioFiltro}
-                    onChange={(e) => setDataInicioFiltro(e.target.value)}
-                    style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '6px 8px', borderRadius: '6px', fontSize: '12px' }}
-                  />
-                </div>
+                <input 
+                  type="date" 
+                  value={dataInicioFiltro}
+                  onChange={(e) => setDataInicioFiltro(e.target.value)}
+                  style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '6px 8px', borderRadius: '6px', fontSize: '12px' }}
+                />
                 <span style={{ fontSize: '12px', color: '#94a3b8' }}>até</span>
-                <div>
-                  <input 
-                    type="date" 
-                    value={dataFimFiltro}
-                    onChange={(e) => setDataFimFiltro(e.target.value)}
-                    style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '6px 8px', borderRadius: '6px', fontSize: '12px' }}
-                  />
-                </div>
+                <input 
+                  type="date" 
+                  value={dataFimFiltro}
+                  onChange={(e) => setDataFimFiltro(e.target.value)}
+                  style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '6px 8px', borderRadius: '6px', fontSize: '12px' }}
+                />
                 {(dataInicioFiltro || dataFimFiltro) && (
                   <button 
                     onClick={() => { setDataInicioFiltro(''); setDataFimFiltro(''); }}
                     style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px' }}
                   >
-                    Limpar Filtro
+                    Limpar
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Cálculos Dinâmicos baseados no Filtro */}
+            {/* Cálculos e Gráficos Dinâmicos */}
             {(() => {
               const transacoesFiltradas = transacoes.filter(t => {
                 if (dataInicioFiltro && t.data < dataInicioFiltro) return false;
@@ -228,53 +256,57 @@ export default function Home() {
               const totalReceitas = transacoesFiltradas.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + t.valor, 0);
               const totalDespesas = transacoesFiltradas.filter(t => t.tipo === 'despesa').reduce((acc, t) => acc + t.valor, 0);
               const balancoPeriodo = totalReceitas - totalDespesas;
-
               const totalSalariosFixos = funcionarios.reduce((acc, f) => acc + (f.tipoRemuneracao === 'fixo' ? f.valorPctOuFixo : 0), 0);
-              const agendamentosFuturosCount = servicosRealizados.filter(s => s.status === 'Agendado').length;
+
+              // Agrupamento por Categoria para Gráfico Visual
+              const porCategoria: { [key: string]: number } = {};
+              transacoesFiltradas.forEach(t => {
+                porCategoria[t.categoria] = (porCategoria[t.categoria] || 0) + t.valor;
+              });
 
               return (
                 <>
-                  {/* Cartões de Métricas Principais */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
                     <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
                       <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Balanço do Período</p>
                       <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: balancoPeriodo >= 0 ? '#34d399' : '#f87171', margin: 0 }}>{balancoPeriodo.toFixed(2)} €</p>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>Receitas ({totalReceitas.toFixed(2)}€) - Despesas ({totalDespesas.toFixed(2)}€)</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>Receitas ({totalReceitas.toFixed(2)}€) - Desp. ({totalDespesas.toFixed(2)}€)</span>
                     </div>
 
                     <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                      <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Salários Fixos Mensais</p>
+                      <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Salários Fixos Equipa</p>
                       <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#fbbf24', margin: 0 }}>{totalSalariosFixos.toFixed(2)} €</p>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>Custo base da equipa</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>Custo base mensal</span>
                     </div>
 
                     <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                      <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Agendamentos Futuros</p>
-                      <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#60a5fa', margin: 0 }}>{agendamentosFuturosCount}</p>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>Serviços agendados</span>
+                      <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Total de Movimentos</p>
+                      <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#60a5fa', margin: 0 }}>{transacoesFiltradas.length}</p>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>Transações registadas</span>
                     </div>
                   </div>
 
-                  {/* Detalhe / Transações do Período Selecionado no Painel */}
+                  {/* Gráfico Visual de Barras por Categoria */}
                   <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>
-                      Movimentos Financeiros no Período {dataInicioFiltro || dataFimFiltro ? '(Filtrado)' : '(Geral)'}
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '400px', overflowY: 'auto' }}>
-                      {transacoesFiltradas.length === 0 ? (
-                        <p style={{ fontSize: '13px', color: '#94a3b8', textAlign: 'center', padding: '20px' }}>Sem registos financeiros para o intervalo de datas selecionado.</p>
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Distribuição por Categoria</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {Object.keys(porCategoria).length === 0 ? (
+                        <p style={{ fontSize: '13px', color: '#94a3b8' }}>Sem dados suficientes para gerar gráficos no período.</p>
                       ) : (
-                        transacoesFiltradas.map(t => (
-                          <div key={t.id} style={{ backgroundColor: '#1e293b', padding: '12px', borderRadius: '10px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                              <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: '0 0 2px 0' }}>{t.descricao}</p>
-                              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>📅 {t.data}</p>
+                        Object.entries(porCategoria).map(([cat, val], idx) => {
+                          const percentual = totalReceitas > 0 ? Math.min(100, Math.round((val / (totalReceitas + totalDespesas || 1)) * 100)) : 20;
+                          return (
+                            <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                                <span style={{ color: '#fff', fontWeight: 'bold' }}>{cat}</span>
+                                <span style={{ color: '#60a5fa' }}>{val.toFixed(2)} €</span>
+                              </div>
+                              <div style={{ width: '100%', backgroundColor: '#1e293b', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ width: `${percentual}%`, backgroundColor: '#3b82f6', height: '100%' }}></div>
+                              </div>
                             </div>
-                            <span style={{ fontSize: '14px', fontWeight: 'bold', color: t.tipo === 'receita' ? '#34d399' : '#f87171' }}>
-                              {t.tipo === 'receita' ? '+' : '-'}{t.valor.toFixed(2)} €
-                            </span>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                   </div>
@@ -289,39 +321,49 @@ export default function Home() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Ordens de Serviço</h2>
             <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', textAlign: 'center' }}>
-              <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Módulo de OS em desenvolvimento avançado para gestão de pinturas, polimentos e cerâmicos.</p>
+              <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Módulo avançado de fichas de intervenção para polimentos e proteção cerâmica.</p>
             </div>
           </div>
         )}
 
-        {/* Agenda & Feriados */}
+        {/* Agenda, Matrículas & Feriados */}
         {tab === 'agenda' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Agenda de Marcações & Feriados Nacionais</h2>
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Consulte os feriados oficiais de Portugal e faça a gestão dos agendamentos da oficina.</p>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Agenda, Matrículas & Feriados Nacionais</h2>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Reconhecimento automático de veículos por matrícula e calendário oficial de Portugal.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-              {/* Novo Agendamento */}
+              {/* Novo Agendamento com Matrícula Inteligente */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px', height: 'fit-content' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Novo Agendamento</h3>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Novo Agendamento (Matrícula)</h3>
                 <form onSubmit={adicionarAgendamento} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Matrícula (Ex: 00-AA-00)</label>
+                    <input 
+                      type="text" 
+                      placeholder="00-AA-00"
+                      value={novaMatriculaAgend}
+                      onChange={(e) => handleMatriculaChange(e.target.value)}
+                      style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box', textTransform: 'uppercase', fontWeight: 'bold' }}
+                    />
+                  </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Nome do Cliente</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: Carlos Silva"
+                      placeholder="Preenchido autom. se veículo já registado"
                       value={novoClienteAgend}
                       onChange={(e) => setNovoClienteAgend(e.target.value)}
                       style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Veículo & Matrícula</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Modelo do Veículo</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: BMW (00-AA-00)"
+                      placeholder="Ex: BMW Série 3"
                       value={novoVeiculoAgend}
                       onChange={(e) => setNovoVeiculoAgend(e.target.value)}
                       style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
@@ -331,7 +373,7 @@ export default function Home() {
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Serviço</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: Polimento"
+                      placeholder="Ex: Polimento e Vitrificação"
                       value={novoServicoAgend}
                       onChange={(e) => setNovoServicoAgend(e.target.value)}
                       style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
@@ -355,13 +397,13 @@ export default function Home() {
               {/* Lista e Feriados */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Próximos Agendamentos</h3>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Histórico & Agendamentos</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
                     {servicosRealizados.map(s => (
                       <div key={s.id} style={{ backgroundColor: '#1e293b', padding: '12px', borderRadius: '10px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                          <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: '0 0 2px 0' }}>{s.cliente} - {s.servico}</p>
-                          <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>🚗 {s.veiculo} | 📅 {s.data}</p>
+                          <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: '0 0 2px 0' }}>{s.cliente} ({s.matricula})</p>
+                          <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>🚗 {s.veiculo} - {s.servico} | 📅 {s.data}</p>
                         </div>
                         <span style={{ fontSize: '12px', padding: '4px 8px', borderRadius: '6px', backgroundColor: 'rgba(52, 211, 153, 0.1)', color: '#34d399', fontWeight: 'bold' }}>{s.status}</span>
                       </div>
@@ -370,8 +412,8 @@ export default function Home() {
                 </div>
 
                 <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>🇵🇹 Feriados Oficiais em Portugal</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>🇵🇹 Feriados Oficiais de Portugal</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '160px', overflowY: 'auto' }}>
                     {feriadosPortugal.map((f, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '6px 10px', backgroundColor: '#1e293b', borderRadius: '6px' }}>
                         <span style={{ color: '#fff' }}>{f.nome}</span>
@@ -385,21 +427,30 @@ export default function Home() {
           </div>
         )}
 
-        {/* Livro-Caixa & Caixa */}
+        {/* Livro-Caixa & Contabilidade */}
         {tab === 'financeiro' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Livro-Caixa & Balanço Financeiro</h2>
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Registe receitas, despesas e utilize o leitor automático de faturas e talões (PDF ou Foto).</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Livro-Caixa & Contabilidade</h2>
+                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Gestão financeira com leitura automática de faturas e exportação para o contabilista.</p>
+              </div>
+
+              <button 
+                onClick={exportarParaContabilista}
+                style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                📥 Exportar Relatório para Contabilista (CSV)
+              </button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-              {/* Formulário Transação com IA para PDF / Foto */}
+              {/* Formulário com IA e Categorias */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px', height: 'fit-content' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: 0 }}>Nova Transação</h3>
                   
-                  <label style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#34d399', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <label style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#34d399', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                     {aProcessarFoto ? '⌛ A ler...' : '📸 Ler Fatura (PDF/Foto)'}
                     <input type="file" accept="image/*,application/pdf" onChange={handleProcessarFotoFatura} style={{ display: 'none' }} />
                   </label>
@@ -410,7 +461,7 @@ export default function Home() {
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Descrição</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: Compra de panos microfibra"
+                      placeholder="Ex: Produtos de lavagem"
                       value={descTransacao}
                       onChange={(e) => setDescTransacao(e.target.value)}
                       style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
@@ -424,21 +475,35 @@ export default function Home() {
                         onChange={(e) => setTipoTransacao(e.target.value as 'receita' | 'despesa')}
                         style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
                       >
-                        <option value="receita">Receita (Entrada)</option>
-                        <option value="despesa">Despesa (Saída)</option>
+                        <option value="receita">Receita</option>
+                        <option value="despesa">Despesa</option>
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Valor (€)</label>
-                      <input 
-                        type="number" 
-                        step="0.01"
-                        placeholder="0.00"
-                        value={valorTransacao}
-                        onChange={(e) => setValorTransacao(e.target.value)}
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Categoria</label>
+                      <select 
+                        value={categoriaTransacao}
+                        onChange={(e) => setCategoriaTransacao(e.target.value)}
                         style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
-                      />
+                      >
+                        <option value="Polimento">Polimento</option>
+                        <option value="Lavagem">Lavagem</option>
+                        <option value="Cerâmico">Proteção Cerâmica</option>
+                        <option value="Produtos">Produtos / Stock</option>
+                        <option value="Outros">Outros</option>
+                      </select>
                     </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Valor (€)</label>
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="0.00"
+                      value={valorTransacao}
+                      onChange={(e) => setValorTransacao(e.target.value)}
+                      style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                    />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Data</label>
@@ -462,7 +527,7 @@ export default function Home() {
                   {transacoes.map(t => (
                     <div key={t.id} style={{ backgroundColor: '#1e293b', padding: '12px', borderRadius: '10px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
-                        <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: '0 0 2px 0' }}>{t.descricao}</p>
+                        <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: '0 0 2px 0' }}>{t.descricao} <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'normal' }}>[{t.categoria}]</span></p>
                         <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>📅 {t.data}</p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -486,7 +551,7 @@ export default function Home() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Gestão de Funcionários & Salários</h2>
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Controlo de equipa com remuneração fixa ou baseada em comissões.</p>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Controlo de equipa com remuneração fixa ou comissões.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
@@ -507,7 +572,7 @@ export default function Home() {
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Cargo / Especialidade</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: Aplicador PPF"
+                      placeholder="Ex: Detailer"
                       value={novoFuncCargo}
                       onChange={(e) => setNovoFuncCargo(e.target.value)}
                       style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
@@ -515,7 +580,7 @@ export default function Home() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Tipo Remuneração</label>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Remuneração</label>
                       <select 
                         value={tipoRemuneracao}
                         onChange={(e) => setTipoRemuneracao(e.target.value as 'comissao' | 'fixo')}
@@ -526,7 +591,7 @@ export default function Home() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Valor Base</label>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Valor</label>
                       <input 
                         type="number" 
                         value={valorRemuneracao}
