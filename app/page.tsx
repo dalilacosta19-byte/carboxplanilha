@@ -5,7 +5,7 @@ export default function Home() {
   const [tab, setTab] = useState('metricas');
   const [user, setUser] = useState('admin');
 
-  // Estados dos funcionários (com suporte a tipo e valor: 'comissao' ou 'fixo')
+  // Estados dos funcionários
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 35 },
     { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista / Atendimento', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000 },
@@ -16,11 +16,62 @@ export default function Home() {
   const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo'>('comissao');
   const [valorRemuneracao, setValorRemuneracao] = useState('30');
 
-  // Registo de serviços concluídos para cálculo de comissões
+  // Registo de serviços concluídos
   const [servicosRealizados, setServicosRealizados] = useState([
     { id: 1, cliente: 'Carlos Alcantara', veiculo: 'BMW Série 3', servico: 'Polimento Comercial + Vitrificação', valor: 350, funcionarioId: 1, pago: true },
     { id: 2, cliente: 'Ana Rodrigues', veiculo: 'Audi A4', servico: 'Higienização de Interiores', valor: 120, funcionarioId: 1, pago: true },
   ]);
+
+  // Feriados Nacionais de Portugal (Exemplo para 2026)
+  const feriadosPortugal2026 = [
+    { data: '2026-01-01', nome: 'Ano Novo' },
+    { data: '2026-04-03', nome: 'Sexta-Feira Santa' },
+    { data: '2026-04-05', nome: 'Páscoa' },
+    { data: '2026-04-25', nome: 'Dia da Liberdade' },
+    { data: '2026-05-01', nome: 'Dia do Trabalhador' },
+    { data: '2026-06-04', nome: 'Corpo de Deus' },
+    { data: '2026-06-10', nome: 'Dia de Portugal' },
+    { data: '2026-08-15', nome: 'Assunção de Nossa Senhora' },
+    { data: '2026-10-05', nome: 'Implantação da República' },
+    { data: '2026-11-01', nome: 'Dia de Todos os Santos' },
+    { data: '2026-12-01', nome: 'Restauração da Independência' },
+    { data: '2026-12-08', nome: 'Imaculada Conceição' },
+    { data: '2026-12-25', nome: 'Natal' }
+  ];
+
+  // Estado dos agendamentos
+  const [agendamentos, setAgendamentos] = useState([
+    { id: 1, cliente: 'Gonçalo Ribeiro', veiculo: 'Mercedes CLA', servico: 'Polimento de Faróis & Lavagem', data: '2026-09-25', hora: '10:00' },
+    { id: 2, cliente: 'Mariana Costa', veiculo: 'Tesla Model 3', servico: 'Tratamento Cerâmico', data: '2026-09-28', hora: '14:30' }
+  ]);
+
+  const [novoClienteAgend, setNovoClienteAgend] = useState('');
+  const [novoVeiculoAgend, setNovoVeiculoAgend] = useState('');
+  const [novoServicoAgend, setNovoServicoAgend] = useState('');
+  const [novaDataAgend, setNovaDataAgend] = useState('');
+  const [novaHoraAgend, setNovaHoraAgend] = useState('09:00');
+
+  const adicionarAgendamento = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!novoClienteAgend.trim() || !novaDataAgend) return;
+    const novo = {
+      id: Date.now(),
+      cliente: novoClienteAgend,
+      veiculo: novoVeiculoAgend || 'Viatura',
+      servico: novoServicoAgend || 'Estética Automotiva',
+      data: novaDataAgend,
+      hora: novaHoraAgend
+    };
+    setAgendamentos([...agendamentos, novo]);
+    setNovoClienteAgend('');
+    setNovoVeiculoAgend('');
+    setNovoServicoAgend('');
+    setNovaDataAgend('');
+  };
+
+  const removerAgendamento = (id: number) => {
+    setAgendamentos(agendamentos.filter(a => a.id !== id));
+  };
 
   const adicionarFuncionario = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +93,6 @@ export default function Home() {
     setFuncionarios(funcionarios.filter(f => f.id !== id));
   };
 
-  // Cálculo total de custos com pessoal (Salários fixos + Comissões devidas)
   const totalSalariosFixos = funcionarios
     .filter(f => f.tipoRemuneracao === 'fixo')
     .reduce((acc, f) => acc + f.valorPctOuFixo, 0);
@@ -147,8 +197,8 @@ export default function Home() {
                 </p>
               </div>
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Equipa Ativa</p>
-                <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#a78bfa', margin: 0 }}>{funcionarios.length}</p>
+                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Agendamentos Futuros</p>
+                <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#a78bfa', margin: 0 }}>{agendamentos.length}</p>
               </div>
             </div>
           </div>
@@ -165,9 +215,113 @@ export default function Home() {
 
         {tab === 'agenda' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Agenda & Feriados (Portugal)</h2>
-            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', textAlign: 'center', color: '#94a3b8' }}>
-              Módulo de agenda com feriados nacionais.
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Agenda de Marcações & Feriados Nacionais</h2>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Consulte os feriados oficiais de Portugal e faça a gestão dos agendamentos da oficina.</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+              {/* Adicionar / Lista de Agendamentos */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Novo Agendamento</h3>
+                  <form onSubmit={adicionarAgendamento} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Nome do Cliente</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Carlos Silva"
+                        value={novoClienteAgend}
+                        onChange={(e) => setNovoClienteAgend(e.target.value)}
+                        style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Veículo & Matrícula</label>
+                        <input 
+                          type="text" 
+                          placeholder="Ex: BMW (00-AA-00)"
+                          value={novoVeiculoAgend}
+                          onChange={(e) => setNovoVeiculoAgend(e.target.value)}
+                          style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Serviço</label>
+                        <input 
+                          type="text" 
+                          placeholder="Ex: Polimento"
+                          value={novoServicoAgend}
+                          onChange={(e) => setNovoServicoAgend(e.target.value)}
+                          style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Data</label>
+                        <input 
+                          type="date" 
+                          value={novaDataAgend}
+                          onChange={(e) => setNovaDataAgend(e.target.value)}
+                          style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Hora</label>
+                        <input 
+                          type="time" 
+                          value={novaHoraAgend}
+                          onChange={(e) => setNovaHoraAgend(e.target.value)}
+                          style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+                    <button 
+                      type="submit" 
+                      style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '6px' }}
+                    >
+                      Agendar Cliente
+                    </button>
+                  </form>
+                </div>
+
+                <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Próximas Marcações</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {agendamentos.map(a => (
+                      <div key={a.id} style={{ backgroundColor: '#1e293b', padding: '12px', borderRadius: '10px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: '0 0 2px 0' }}>{a.cliente} ({a.veiculo})</p>
+                          <p style={{ fontSize: '12px', color: '#60a5fa', margin: '0 0 4px 0' }}>{a.servico}</p>
+                          <p style={{ fontSize: '11px', color: '#fbbf24', margin: 0 }}>📅 {a.data} às {a.hora}</p>
+                        </div>
+                        <button 
+                          onClick={() => removerAgendamento(a.id)}
+                          style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          Concluir / Remover
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Feriados Oficiais em Portugal */}
+              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px', height: 'fit-content' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>🇵🇹 Feriados Nacionais (Portugal)</h3>
+                <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 16px 0' }}>Dias em que a oficina estará encerrada ou com horário especial.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px', overflowY: 'auto' }}>
+                  {feriadosPortugal2026.map((f, idx) => (
+                    <div key={idx} style={{ backgroundColor: '#1e293b', padding: '10px 14px', borderRadius: '8px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                      <span style={{ color: '#fff', fontWeight: '500' }}>{f.nome}</span>
+                      <span style={{ color: '#34d399', fontSize: '12px', backgroundColor: 'rgba(52, 211, 153, 0.1)', padding: '2px 8px', borderRadius: '6px' }}>{f.data}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -176,7 +330,7 @@ export default function Home() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Livro-Caixa & Financeiro</h2>
             <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', textAlign: 'center', color: '#94a3b8' }}>
-              Módulo de lançamentos financeiros.
+              Módulo financeiro em desenvolvimento.
             </div>
           </div>
         )}
