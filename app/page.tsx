@@ -3,14 +3,12 @@
 import React, { useState } from 'react';
 
 export default function CarboxPlanilhaApp() {
-  // Estado de Autenticação (Simulada para iniciar limpo)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [userRole, setUserRole] = useState('admin'); // admin, gerente, funcionario
+  const [userRole, setUserRole] = useState('admin');
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Função de Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === 'admin' && password === '1234') {
@@ -33,7 +31,6 @@ export default function CarboxPlanilhaApp() {
     setPassword('');
   };
 
-  // Se não estiver autenticado, mostra o ecrã de Login
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -80,10 +77,8 @@ export default function CarboxPlanilhaApp() {
     );
   }
 
-  // Painel Principal após autenticação
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
-      {/* Barra Superior */}
       <header className="bg-slate-900 text-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-3">
@@ -104,7 +99,6 @@ export default function CarboxPlanilhaApp() {
         </div>
       </header>
 
-      {/* Menu de Navegação */}
       <nav className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 flex space-x-6 overflow-x-auto">
           <button
@@ -150,7 +144,6 @@ export default function CarboxPlanilhaApp() {
         </div>
       </nav>
 
-      {/* Conteúdo Dinâmico por Aba */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-6">
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
@@ -176,7 +169,7 @@ export default function CarboxPlanilhaApp() {
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <h3 className="text-md font-semibold text-slate-700 mb-3">Bem-vindo à CARBOXPLANILHA</h3>
               <p className="text-sm text-slate-600">
-                O sistema está estruturado para gerir a estética automotiva com cálculo de comissões líquidas (deduzindo custos de produtos e serviços terceirizados como pintura), controlo de faturas, agenda com feriados em Portugal e registo de matrículas.
+                Sistema integrado de estética automotiva em Portugal com cálculo automático de comissões líquidas.
               </p>
             </div>
           </div>
@@ -191,16 +184,16 @@ export default function CarboxPlanilhaApp() {
               </button>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center py-12 text-slate-400">
-              Módulo de OS em preparação. Aqui constarão a busca por matrícula, horário de saída, registo de danos (fotografias), pagamento (MBWay, Dinheiro, Empresa) e dedução de custos de pintura/produtos.
+              Módulo de OS em preparação.
             </div>
           </div>
         )}
 
         {activeTab === 'agenda' && (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Agenda & Calendário</h2>
+            <h2 className="text-xl font-bold text-slate-800">Agenda & Feriados</h2>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center py-12 text-slate-400">
-              Módulo de Agenda com suporte a cores por estado (Veio, Cancelou, Avaliação, Remarcou) e feriados nacionais de Portugal.
+              Módulo de Agenda com feriados de Portugal.
             </div>
           </div>
         )}
@@ -209,7 +202,7 @@ export default function CarboxPlanilhaApp() {
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-slate-800">Livro-Caixa & Financeiro</h2>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center py-12 text-slate-400">
-              Módulo de lançamentos manuais, entradas, saídas, controlo de faturas de materiais e balanço real da empresa.
+              Módulo de lançamentos e balanço real.
             </div>
           </div>
         )}
@@ -218,7 +211,7 @@ export default function CarboxPlanilhaApp() {
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-slate-800">Gestão de Funcionários & Comissões</h2>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center py-12 text-slate-400">
-              Módulo de comissões calculadas sobre o valor líquido (após dedução de produtos e fornecedores terceirizados).
+              Módulo de comissões calculadas sobre o valor líquido.
             </div>
           </div>
         )}
