@@ -31,9 +31,9 @@ export default function Home() {
   const [novoServicoAgend, setNovoServicoAgend] = useState('');
   const [novaDataAgend, setNovaDataAgend] = useState('');
 
-  // Estados de Ordens de Serviço (OS)
+  // Estados de Ordens de Serviço (OS) com Desconto
   const [ordensServico, setOrdensServico] = useState([
-    { id: 101, cliente: 'Carlos Silva', veiculo: 'BMW Série 3', matricula: '00-AA-00', servico: 'Polimento de 2 Passos + Cerâmico', observacoes: 'Riscos ligeiros no para-choques traseiro.', valor: 350.00, status: 'Em Execução', data: '2026-06-01' }
+    { id: 101, cliente: 'Carlos Silva', veiculo: 'BMW Série 3', matricula: '00-AA-00', servico: 'Polimento de 2 Passos + Cerâmico', observacoes: 'Riscos ligeiros no para-choques traseiro.', valorOriginal: 380.00, desconto: 30.00, valorFinal: 350.00, status: 'Em Execução', data: '2026-06-01' }
   ]);
   const [osCliente, setOsCliente] = useState('');
   const [osVeiculo, setOsVeiculo] = useState('');
@@ -41,6 +41,7 @@ export default function Home() {
   const [osServico, setOsServico] = useState('');
   const [osObs, setOsObs] = useState('');
   const [osValor, setOsValor] = useState('');
+  const [osDesconto, setOsDesconto] = useState('0');
   const [osStatus, setOsStatus] = useState('Em Execução');
 
   // Estados do Financeiro & Faturas IA
@@ -132,6 +133,10 @@ export default function Home() {
   const criarOrdemServico = (e: React.FormEvent) => {
     e.preventDefault();
     if (!osCliente || !osMatricula || !osServico) return;
+    const valorOrig = Number(osValor) || 0;
+    const desc = Number(osDesconto) || 0;
+    const valorFin = Math.max(0, valorOrig - desc);
+
     const novaOS = {
       id: Date.now(),
       cliente: osCliente,
@@ -139,7 +144,9 @@ export default function Home() {
       matricula: osMatricula,
       servico: osServico,
       observacoes: osObs || 'Nenhuma observação registada à entrada.',
-      valor: Number(osValor) || 0,
+      valorOriginal: valorOrig,
+      desconto: desc,
+      valorFinal: valorFin,
       status: osStatus,
       data: new Date().toISOString().split('T')[0]
     };
@@ -150,6 +157,7 @@ export default function Home() {
     setOsServico('');
     setOsObs('');
     setOsValor('');
+    setOsDesconto('0');
   };
 
   const imprimirFichaOS = (os: any) => {
@@ -165,11 +173,8 @@ export default function Home() {
             h1 { font-size: 20px; color: #1e3a8a; margin-bottom: 4px; }
             p { font-size: 13px; color: #444; margin-top: 0; }
             .box { border: 1px solid #ccc; padding: 15px; border-radius: 6px; margin-top: 15px; }
-            .grid { display: flex; gap: 20px; margin-top: 15px; }
-            .col { flex: 1; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }
-            th { background-color: #f3f4f6; }
+            .valores { margin-top: 10px; font-size: 14px; }
+            .total { font-size: 18px; font-weight: bold; color: #059669; margin-top: 5px; }
             .assinatura { margin-top: 50px; display: flex; justify-content: space-between; }
             .linha-assinatura { width: 40%; border-top: 1px solid #333; text-align: center; padding-top: 5px; font-size: 12px; }
           </style>
@@ -192,8 +197,10 @@ export default function Home() {
           </div>
 
           <div class="box">
-            <h3>Orçamento / Valor</h3>
-            <p style="font-size: 18px; font-weight: bold; color: #059669;">Total: ${os.valor.toFixed(2)} €</p>
+            <h3>Resumo de Valores</h3>
+            <p class="valores">Subtotal: ${os.valorOriginal.toFixed(2)} €</p>
+            <p class="valores" style="color: #dc2626;">Desconto Aplicado: -${os.desconto.toFixed(2)} €</p>
+            <p class="total">Total Final a Pagar: ${os.valorFinal.toFixed(2)} €</p>
           </div>
 
           <div class="assinatura">
@@ -483,16 +490,15 @@ export default function Home() {
           </div>
         )}
 
-        {/* Módulo Completo de Ordens de Serviço (OS) */}
+        {/* Módulo de Ordens de Serviço (OS) com Desconto */}
         {tab === 'ordem-servico' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Ordens de Serviço (OS) & Fichas de Intervenção</h2>
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Crie fichas detalhadas por matrícula, registe danos à entrada e imprima o documento para o cliente.</p>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Crie fichas detalhadas, aplique descontos e imprima a ficha em PDF para o cliente.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
-              {/* Formulário Nova OS */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px', height: 'fit-content' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Criar Nova Ordem de Serviço</h3>
                 <form onSubmit={criarOrdemServico} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -548,7 +554,7 @@ export default function Home() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Valor (€)</label>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Valor Original (€)</label>
                       <input 
                         type="number" 
                         step="0.01"
@@ -559,17 +565,28 @@ export default function Home() {
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Estado</label>
-                      <select 
-                        value={osStatus}
-                        onChange={(e) => setOsStatus(e.target.value)}
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Desconto (€)</label>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        placeholder="0.00"
+                        value={osDesconto}
+                        onChange={(e) => setOsDesconto(e.target.value)}
                         style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
-                      >
-                        <option value="Em Execução">Em Execução</option>
-                        <option value="Concluído">Concluído</option>
-                        <option value="Pendente">Pendente</option>
-                      </select>
+                      />
                     </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Estado da OS</label>
+                    <select 
+                      value={osStatus}
+                      onChange={(e) => setOsStatus(e.target.value)}
+                      style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
+                    >
+                      <option value="Em Execução">Em Execução</option>
+                      <option value="Concluído">Concluído</option>
+                      <option value="Pendente">Pendente</option>
+                    </select>
                   </div>
                   <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '6px' }}>
                     Emitir Ordem de Serviço
@@ -577,10 +594,9 @@ export default function Home() {
                 </form>
               </div>
 
-              {/* Lista de Ordens de Serviço */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Histórico de Ordens de Serviço</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '520px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '550px', overflowY: 'auto' }}>
                   {ordensServico.map(os => (
                     <div key={os.id} style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '12px', border: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -595,8 +611,11 @@ export default function Home() {
                       <p style={{ fontSize: '13px', color: '#cbd5e1', margin: '4px 0', borderLeft: '2px solid #3b82f6', paddingLeft: '8px' }}>
                         <b>Serviço:</b> {os.servico}
                       </p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#34d399' }}>{os.valor.toFixed(2)} €</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#94a3b8' }}>
+                        <span>Subtotal: {os.valorOriginal.toFixed(2)}€ | Desconto: <span style={{ color: '#f87171' }}>-{os.desconto.toFixed(2)}€</span></span>
+                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#34d399' }}>Total: {os.valorFinal.toFixed(2)} €</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
                         <button 
                           onClick={() => imprimirFichaOS(os)}
                           style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
