@@ -58,11 +58,9 @@ export default function Home() {
     { data: '2026-12-25', nome: 'Natal' }
   ];
 
-  // Funções de Apoio com Inteligência de Matrícula
   const handleMatriculaChange = (matriculaInput: string) => {
     const matriculaLimpa = matriculaInput.toUpperCase();
     setNovaMatriculaAgend(matriculaLimpa);
-    // Procurar se o carro já esteve na oficina
     const historicoAnterior = servicosRealizados.find(s => s.matricula.toUpperCase() === matriculaLimpa);
     if (historicoAnterior) {
       setNovoClienteAgend(historicoAnterior.cliente);
@@ -145,7 +143,6 @@ export default function Home() {
     }, 1500);
   };
 
-  // Exportar Relatório para Contabilidade (CSV / AT)
   const exportarParaContabilista = () => {
     let csvContent = "data:text/csv;charset=utf-8,ID;Data;Tipo;Categoria;Descricao;Valor(EUR)\n";
     transacoes.forEach(t => {
@@ -163,14 +160,13 @@ export default function Home() {
   const menuItems = [
     { id: 'metricas', label: '📊 Painel & Gráficos' },
     { id: 'ordem-servico', label: '🚗 Ordens de Serviço' },
-    { id: 'agenda', label: '📅 Agenda, Matrículas & Feriados' },
+    { id: 'agenda', label: '📅 Agenda & Matrículas' },
     { id: 'financeiro', label: '💰 Livro-Caixa & Contabilidade' },
     { id: 'funcionarios', label: '👥 Funcionários & Salários' },
   ];
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#020617', color: '#f8fafc', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Topo / Header */}
       <header style={{ backgroundColor: '#0f172a', borderBottom: '1px solid #1e293b', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>CARBOX PLANILHA</h1>
@@ -182,7 +178,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Navegação por Abas */}
       <nav style={{ backgroundColor: '#0f172a', padding: '0 24px', display: 'flex', gap: '8px', borderBottom: '1px solid #1e293b', overflowX: 'auto' }}>
         {menuItems.map(item => (
           <button
@@ -190,7 +185,6 @@ export default function Home() {
             onClick={() => setTab(item.id)}
             style={{
               padding: '14px 16px',
-              borderRadius: '0px',
               fontSize: '14px',
               fontWeight: '500',
               cursor: 'pointer',
@@ -206,10 +200,8 @@ export default function Home() {
         ))}
       </nav>
 
-      {/* Conteúdo Principal */}
       <main style={{ flex: 1, padding: '24px', maxWidth: '1200px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         
-        {/* Painel & Métricas com Gráficos Visuais */}
         {tab === 'metricas' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
@@ -218,7 +210,6 @@ export default function Home() {
                 <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Análise financeira detalhada por período e categorias de serviços.</p>
               </div>
 
-              {/* Seletor de Datas Personalizado */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '12px 16px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 'bold' }}>📅 Filtrar Período:</span>
                 <input 
@@ -245,7 +236,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Cálculos e Gráficos Dinâmicos */}
             {(() => {
               const transacoesFiltradas = transacoes.filter(t => {
                 if (dataInicioFiltro && t.data < dataInicioFiltro) return false;
@@ -258,7 +248,6 @@ export default function Home() {
               const balancoPeriodo = totalReceitas - totalDespesas;
               const totalSalariosFixos = funcionarios.reduce((acc, f) => acc + (f.tipoRemuneracao === 'fixo' ? f.valorPctOuFixo : 0), 0);
 
-              // Agrupamento por Categoria para Gráfico Visual
               const porCategoria: { [key: string]: number } = {};
               transacoesFiltradas.forEach(t => {
                 porCategoria[t.categoria] = (porCategoria[t.categoria] || 0) + t.valor;
@@ -286,7 +275,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Gráfico Visual de Barras por Categoria */}
                   <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
                     <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Distribuição por Categoria</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -316,7 +304,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Ordens de Serviço */}
         {tab === 'ordem-servico' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Ordens de Serviço</h2>
@@ -326,18 +313,16 @@ export default function Home() {
           </div>
         )}
 
-        {/* Agenda, Matrículas & Feriados */}
         {tab === 'agenda' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Agenda, Matrículas & Feriados Nacionais</h2>
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Reconhecimento automático de veículos por matrícula e calendário oficial de Portugal.</p>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Agenda & Reconhecimento por Matrícula</h2>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Insira a matrícula para preencher automaticamente o histórico do veículo e consulte feriados em Portugal.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-              {/* Novo Agendamento com Matrícula Inteligente */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px', height: 'fit-content' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Novo Agendamento (Matrícula)</h3>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Novo Agendamento</h3>
                 <form onSubmit={adicionarAgendamento} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Matrícula (Ex: 00-AA-00)</label>
@@ -353,7 +338,7 @@ export default function Home() {
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Nome do Cliente</label>
                     <input 
                       type="text" 
-                      placeholder="Preenchido autom. se veículo já registado"
+                      placeholder="Preenchido automaticamente"
                       value={novoClienteAgend}
                       onChange={(e) => setNovoClienteAgend(e.target.value)}
                       style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
@@ -373,7 +358,7 @@ export default function Home() {
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Serviço</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: Polimento e Vitrificação"
+                      placeholder="Ex: Polimento"
                       value={novoServicoAgend}
                       onChange={(e) => setNovoServicoAgend(e.target.value)}
                       style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
@@ -394,7 +379,6 @@ export default function Home() {
                 </form>
               </div>
 
-              {/* Lista e Feriados */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Histórico & Agendamentos</h3>
@@ -412,7 +396,7 @@ export default function Home() {
                 </div>
 
                 <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>🇵🇹 Feriados Oficiais de Portugal</h3>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>🇵🇹 Feriados Nacionais de Portugal</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '160px', overflowY: 'auto' }}>
                     {feriadosPortugal.map((f, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '6px 10px', backgroundColor: '#1e293b', borderRadius: '6px' }}>
@@ -427,29 +411,26 @@ export default function Home() {
           </div>
         )}
 
-        {/* Livro-Caixa & Contabilidade */}
         {tab === 'financeiro' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
                 <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Livro-Caixa & Contabilidade</h2>
-                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Gestão financeira com leitura automática de faturas e exportação para o contabilista.</p>
+                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Gestão financeira com leitura de faturas e exportação de relatórios.</p>
               </div>
 
               <button 
                 onClick={exportarParaContabilista}
                 style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                📥 Exportar Relatório para Contabilista (CSV)
+                📥 Exportar para Contabilista (CSV)
               </button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-              {/* Formulário com IA e Categorias */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px', height: 'fit-content' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: 0 }}>Nova Transação</h3>
-                  
                   <label style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#34d399', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                     {aProcessarFoto ? '⌛ A ler...' : '📸 Ler Fatura (PDF/Foto)'}
                     <input type="file" accept="image/*,application/pdf" onChange={handleProcessarFotoFatura} style={{ display: 'none' }} />
@@ -461,7 +442,7 @@ export default function Home() {
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Descrição</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: Produtos de lavagem"
+                      placeholder="Ex: Produtos"
                       value={descTransacao}
                       onChange={(e) => setDescTransacao(e.target.value)}
                       style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '10px', borderRadius: '8px', boxSizing: 'border-box' }}
@@ -488,8 +469,8 @@ export default function Home() {
                       >
                         <option value="Polimento">Polimento</option>
                         <option value="Lavagem">Lavagem</option>
-                        <option value="Cerâmico">Proteção Cerâmica</option>
-                        <option value="Produtos">Produtos / Stock</option>
+                        <option value="Cerâmico">Cerâmico</option>
+                        <option value="Produtos">Produtos</option>
                         <option value="Outros">Outros</option>
                       </select>
                     </div>
@@ -520,7 +501,6 @@ export default function Home() {
                 </form>
               </div>
 
-              {/* Lista de Transações */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 16px 0' }}>Histórico Geral de Caixa</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto' }}>
@@ -546,7 +526,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Funcionários & Salários */}
         {tab === 'funcionarios' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
