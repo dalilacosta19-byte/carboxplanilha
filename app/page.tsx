@@ -7,13 +7,13 @@ export default function Home() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md text-white">
-          <h1 className="text-2xl font-bold text-center mb-2 text-blue-400">CARBOX PLANILHA</h1>
-          <p className="text-sm text-slate-400 text-center mb-6">Gestão de Estética Automotiva</p>
+      <div style={{ minHeight: '100vh', backgroundColor: '#020617', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
+        <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '400px', color: '#fff', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', textAlign: 'center', marginBottom: '8px', color: '#60a5fa' }}>CARBOX PLANILHA</h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', textAlign: 'center', marginBottom: '24px' }}>Gestão de Estética Automotiva</p>
           <button 
             onClick={() => setUser('admin')} 
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg shadow-blue-600/30"
+            style={{ width: '100%', backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '12px', borderRadius: '12px', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(37,99,235,0.4)' }}
           >
             Entrar como Administrador
           </button>
@@ -23,23 +23,23 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div style={{ minHeight: '100vh', backgroundColor: '#020617', color: '#f8fafc', fontFamily: 'sans-serif', display: 'flex', flexDirection: 'column' }}>
       {/* Cabeçalho */}
-      <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-md">
-        <div className="flex items-center space-x-3">
-          <div className="bg-blue-600 text-white p-2 rounded-lg font-bold text-lg shadow-md shadow-blue-600/40">CBX</div>
+      <header style={{ backgroundColor: '#0f172a', borderBottom: '1px solid #1e293b', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ backgroundColor: '#2563eb', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '16px' }}>CBX</div>
           <div>
-            <h1 className="text-lg font-bold tracking-wide">CARBOX PLANILHA</h1>
-            <p className="text-xs text-slate-400">Portugal • Estética Automotiva</p>
+            <h1 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0 }}>CARBOX PLANILHA</h1>
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Portugal • Estética Automotiva</p>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <span className="text-sm bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 text-blue-400 font-medium">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{ fontSize: '14px', backgroundColor: '#1e293b', padding: '6px 12px', borderRadius: '20px', border: '1px solid #334155', color: '#60a5fa' }}>
             👤 {user}
           </span>
           <button 
             onClick={() => setUser('')} 
-            className="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg transition"
+            style={{ fontSize: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer' }}
           >
             Sair
           </button>
@@ -47,7 +47,7 @@ export default function Home() {
       </header>
 
       {/* Menu de Abas */}
-      <nav className="bg-slate-900/60 border-b border-slate-800 px-6 flex space-x-2 overflow-x-auto py-3">
+      <nav style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', borderBottom: '1px solid #1e293b', padding: '12px 24px', display: 'flex', gap: '8px', overflowX: 'auto' }}>
         {[
           { id: 'metricas', label: '📊 Painel & Métricas' },
           { id: 'os', label: '🔧 Ordens de Serviço' },
@@ -58,11 +58,18 @@ export default function Home() {
           <button
             key={item.id}
             onClick={() => setTab(item.id)}
-            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition whitespace-nowrap ${
-              tab === item.id
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
+            style={{
+              padding: '10px 16px',
+              borderRadius: '12px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              border: 'none',
+              whiteSpace: 'nowrap',
+              backgroundColor: tab === item.id ? '#2563eb' : 'transparent',
+              color: tab === item.id ? '#fff' : '#94a3b8',
+              boxShadow: tab === item.id ? '0 10px 15px -3px rgba(37,99,235,0.3)' : 'none'
+            }}
           >
             {item.label}
           </button>
@@ -70,71 +77,71 @@ export default function Home() {
       </nav>
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
+      <main style={{ flex: 1, padding: '24px', maxWidth: '1200px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         {tab === 'metricas' && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-white">Painel Principal</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                <p className="text-xs text-slate-400 uppercase font-semibold">Faturamento Real (Mês)</p>
-                <p className="text-2xl font-extrabold text-emerald-400 mt-2">0,00 €</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Painel Principal</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
+                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Faturamento Real (Mês)</p>
+                <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#34d399', margin: 0 }}>0,00 €</p>
               </div>
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                <p className="text-xs text-slate-400 uppercase font-semibold">Serviços "A Receber"</p>
-                <p className="text-2xl font-extrabold text-amber-400 mt-2">0,00 €</p>
+              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
+                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Serviços "A Receber"</p>
+                <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#fbbf24', margin: 0 }}>0,00 €</p>
               </div>
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                <p className="text-xs text-slate-400 uppercase font-semibold">OS Concluídas Hoje</p>
-                <p className="text-2xl font-extrabold text-blue-400 mt-2">0</p>
+              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
+                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>OS Concluídas Hoje</p>
+                <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#60a5fa', margin: 0 }}>0</p>
               </div>
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                <p className="text-xs text-slate-400 uppercase font-semibold">Faturas a Pagar</p>
-                <p className="text-2xl font-extrabold text-red-400 mt-2">0,00 €</p>
+              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px' }}>
+                <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Faturas a Pagar</p>
+                <p style={{ fontSize: '24px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>0,00 €</p>
               </div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
-              <h3 className="text-lg font-semibold text-white mb-2">Bem-vindo à CARBOXPLANILHA</h3>
-              <p className="text-sm text-slate-400">Sistema integrado de estética automotiva em Portugal com cálculo automático de comissões líquidas.</p>
+            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '24px', borderRadius: '16px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 'semibold', color: '#fff', marginTop: 0 }}>Bem-vindo à CARBOXPLANILHA</h3>
+              <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: 0 }}>Sistema integrado de estética automotiva em Portugal com cálculo automático de comissões líquidas.</p>
             </div>
           </div>
         )}
 
         {tab === 'os' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-white">Ordens de Serviço (OS)</h2>
-              <button className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-md shadow-blue-600/30">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Ordens de Serviço (OS)</h2>
+              <button style={{ backgroundColor: '#2563eb', color: '#fff', fontSize: '14px', fontWeight: 'semibold', padding: '10px 16px', borderRadius: '12px', border: 'none', cursor: 'pointer' }}>
                 + Nova Ordem de Serviço
               </button>
             </div>
-            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl text-center text-slate-400">
+            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', textAlign: 'center', color: '#94a3b8' }}>
               Nenhuma OS registada no momento. Clique no botão acima para começar.
             </div>
           </div>
         )}
 
         {tab === 'agenda' && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-white">Agenda & Feriados</h2>
-            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl text-center text-slate-400">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Agenda & Feriados</h2>
+            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', textAlign: 'center', color: '#94a3b8' }}>
               Módulo de Agenda com feriados de Portugal integrado.
             </div>
           </div>
         )}
 
         {tab === 'financeiro' && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-white">Livro-Caixa & Financeiro</h2>
-            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl text-center text-slate-400">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px'}}}}
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Livro-Caixa & Financeiro</h2>
+            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', textAlign: 'center', color: '#94a3b8' }}>
               Módulo de lançamentos e balanço real financeiro.
             </div>
           </div>
         )}
 
         {tab === 'comissoes' && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-white">Gestão de Funcionários & Comissões</h2>
-            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl text-center text-slate-400">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Gestão de Funcionários & Comissões</h2>
+            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '32px', borderRadius: '16px', textAlign: 'center', color: '#94a3b8' }}>
               Módulo de comissões calculadas sobre o valor líquido.
             </div>
           </div>
