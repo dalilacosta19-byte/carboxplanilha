@@ -143,9 +143,95 @@ export default function Home() {
     }, 1500);
   };
 
-  // Exportar Relatório em PDF Direto (via Print do Browser)
-  const exportarParaPDF = () => {
-    window.print();
+  // Gerar Relatório PDF Filtrado pelo Período Selecionado
+  const exportarRelatorioPDF = () => {
+    const transacoesFiltradas = transacoes.filter(t => {
+      if (dataInicioFiltro && t.data < dataInicioFiltro) return false;
+      if (dataFimFiltro && t.data > dataFimFiltro) return false;
+      return true;
+    });
+
+    const totalReceitas = transacoesFiltradas.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + t.valor, 0);
+    const totalDespesas = transacoesFiltradas.filter(t => t.tipo === 'despesa').reduce((acc, t) => acc + t.valor, 0);
+    const balancoFinal = totalReceitas - totalDespesas;
+
+    const periodoTexto = (dataInicioFiltro || dataFimFiltro) 
+      ? `Período: ${dataInicioFiltro || 'Início'} até ${dataFimFiltro || 'Hoje'}` 
+      : 'Período: Histórico Geral Completo';
+
+    const janelaPrint = window.open('', '_blank');
+    if (!janelaPrint) return;
+
+    janelaPrint.document.write(`
+      <html>
+        <head>
+          <title>Relatório Financeiro - Carbox Planilha</title>
+          <style>
+            body { font-family: Arial, sans-serif; color: #111; padding: 30px; margin: 0; }
+            h1 { font-size: 20px; color: #1e3a8a; margin-bottom: 4px; }
+            p { font-size: 12px; color: #555; margin-top: 0; }
+            .resumo { display: flex; gap: 20px; margin: 20px 0; }
+            .card { border: 1px solid #ccc; padding: 15px; border-radius: 6px; flex: 1; }
+            .card h3 { margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase; color: #555; }
+            .card p { margin: 0; font-size: 18px; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; font-size: 12px; }
+            th { background-color: #f3f4f6; color: #1f2937; }
+            .receita { color: #059669; font-weight: bold; }
+            .despesa { color: #dc2626; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h1>CARBOX PLANILHA - RELATÓRIO PARA CONTABILIDADE</h1>
+          <p>${periodoTexto} | Emitido em: ${new Date().toLocaleDateString('pt-PT')} | Estética Automotiva Portugal</p>
+          
+          <div class="resumo">
+            <div class="card">
+              <h3>Total Receitas</h3>
+              <p class="receita">+${totalReceitas.toFixed(2)} €</p>
+            </div>
+            <div class="card">
+              <h3>Total Despesas</h3>
+              <p class="despesa">-${totalDespesas.toFixed(2)} €</p>
+            </div>
+            <div class="card">
+              <h3>Balanço Líquido</h3>
+              <p>${balancoFinal.toFixed(2)} €</p>
+            </div>
+          </div>
+
+          <h3>Movimentos Detalhados do Livro-Caixa</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Categoria</th>
+                <th>Descrição</th>
+                <th>Valor (€)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${transacoesFiltradas.length === 0 ? `
+                <tr><td colspan="5" style="text-align:center; color:#777;">Sem registos no período selecionado.</td></tr>
+              ` : transacoesFiltradas.map(t => `
+                <tr>
+                  <td>${t.data}</td>
+                  <td><span class="${t.tipo}">${t.tipo.toUpperCase()}</span></td>
+                  <td>${t.categoria}</td>
+                  <td>${t.descricao}</td>
+                  <td class="${t.tipo}">${t.tipo === 'receita' ? '+' : '-'}${t.valor.toFixed(2)} €</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `);
+    janelaPrint.document.close();
   };
 
   const menuItems = [
@@ -407,15 +493,34 @@ export default function Home() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
                 <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>Livro-Caixa & Contabilidade</h2>
-                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Gestão financeira com leitura de faturas e exportação de relatórios em PDF.</p>
+                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Gestão financeira com leitura de faturas e relatório PDF filtrado para o contabilista.</p>
               </div>
 
-              <button 
-                onClick={exportarParaPDF}
-                style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                🖨️ Imprimir / Guardar Relatório (PDF)
-              </button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 'bold' }}>Período PDF:</span>
+                  <input 
+                    type="date" 
+                    value={dataInicioFiltro}
+                    onChange={(e) => setDataInicioFiltro(e.target.value)}
+                    style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '4px 6px', borderRadius: '4px', fontSize: '11px' }}
+                  />
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>a</span>
+                  <input 
+                    type="date" 
+                    value={dataFimFiltro}
+                    onChange={(e) => setDataFimFiltro(e.target.value)}
+                    style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '4px 6px', borderRadius: '4px', fontSize: '11px' }}
+                  />
+                </div>
+
+                <button 
+                  onClick={exportarRelatorioPDF}
+                  style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  📄 Gerar PDF Filtrado
+                </button>
+              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
