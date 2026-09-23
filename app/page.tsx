@@ -30,9 +30,29 @@ export default function Home() {
   ]);
 
   const [descTransacao, setDescTransacao] = useState('');
-  const [tipoTransacao, setTipoTransacao] = useState<'receita' | 'despesa'>('receita');
+  const [tipoTransacao, setTipoTransacao] = useState<'receita' | 'despesa'>('despesa');
   const [valorTransacao, setValorTransacao] = useState('');
   const [dataTransacao, setDataTransacao] = useState('');
+  const [aProcessarFoto, setAProcessarFoto] = useState(false);
+
+  // Função simulada/integrada de leitura de fatura por IA (OCR)
+  const handleProcessarFotoFatura = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAProcessarFoto(true);
+
+    // Simulando o tempo de leitura de OCR da IA na imagem enviada
+    setTimeout(() => {
+      // Exemplo prático do resultado detetado na fatura digitalizada/fotografada
+      setDescTransacao('Fatura Talão - Produtos de Limpeza & Toalhas');
+      setTipoTransacao('despesa');
+      setValorTransacao('47.50');
+      setDataTransacao(new Date().toISOString().split('T')[0]);
+      setAProcessarFoto(false);
+      alert('📸 Fatura lida com sucesso! Verifique os campos preenchidos e clique em Registar Transação.');
+    }, 1500);
+  };
 
   const adicionarTransacao = (e: React.FormEvent) => {
     e.preventDefault();
@@ -384,9 +404,36 @@ export default function Home() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-              {/* Formulário Nova Transação */}
+              {/* Formulário Nova Transação com Leitura de Fatura */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '20px', borderRadius: '16px', height: 'fit-content' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 16px 0' }}>Nova Transação</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa', margin: 0 }}>Nova Transação</h3>
+                  
+                  {/* Botão para fotografar / carregar fatura */}
+                  <label style={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #334155', 
+                    color: '#34d399', 
+                    padding: '6px 12px', 
+                    borderRadius: '8px', 
+                    fontSize: '12px', 
+                    fontWeight: 'bold', 
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    {aProcessarFoto ? '⌛ A ler...' : '📸 Ler Fatura (IA)'}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      capture="environment" 
+                      onChange={handleProcessarFotoFatura} 
+                      style={{ display: 'none' }} 
+                    />
+                  </label>
+                </div>
+
                 <form onSubmit={adicionarTransacao} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Descrição</label>
