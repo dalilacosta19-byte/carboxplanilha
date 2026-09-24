@@ -207,7 +207,6 @@ export default function Home() {
     setFuncionarios(funcionarios.filter(f => f.id !== id));
   };
 
-  // Processar submissão (se for agendamento guarda na agenda, se for OS gera PDF)
   const lidarComSubmissaoRegisto = (e: React.FormEvent) => {
     e.preventDefault();
     if (!osCliente) {
@@ -233,7 +232,6 @@ export default function Home() {
       return;
     }
 
-    // Caso seja Ordem de Serviço, gera o PDF oficial
     if (!osMatricula) {
       alert('Para Ordem de Serviço, por favor preencha a Matrícula.');
       return;
@@ -322,13 +320,15 @@ export default function Home() {
             .badge-box { border: 1px solid #999; padding: 3px 10px; font-weight: bold; background: #f5f5f5; }
             .header-container { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
             
-            .carbox-logo { display: inline-flex; align-items: baseline; font-family: Arial, sans-serif; }
-            .carbox-text-car { font-size: 28px; font-weight: bold; color: #4a4a4a; letter-spacing: -0.5px; }
-            .carbox-text-box { font-size: 28px; font-weight: 900; color: #4a4a4a; position: relative; }
-            .carbox-x-container { position: relative; display: inline-block; }
-            .carbox-arrow { position: absolute; top: -14px; right: -18px; width: 34px; height: 34px; border: 4px solid #d4af37; border-radius: 50% 50% 0 50%; transform: rotate(45deg); border-bottom-color: transparent; border-left-color: transparent; }
-            .carbox-arrow::after { content: ''; position: absolute; bottom: -2px; right: -6px; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #d4af37; transform: rotate(-45deg); }
-            
+            /* LOGÓTIPO EXATO IDÊNTICO À IMAGEM DE REFERÊNCIA */
+            .carbox-logo-container { display: inline-block; }
+            .carbox-main-row { display: flex; align-items: baseline; }
+            .carbox-gold-text { font-family: Arial, sans-serif; font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #f3e792 0%, #c59b27 50%, #b8860b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
+            .carbox-black-text { font-family: Arial, sans-serif; font-size: 32px; font-weight: 900; color: #111; letter-spacing: -0.5px; }
+            .carbox-double-seven { position: relative; display: inline-flex; align-items: center; margin-left: 2px; }
+            .carbox-sevens-svg { width: 44px; height: 38px; }
+            .carbox-subtext { font-family: Arial, sans-serif; font-size: 9px; font-weight: bold; letter-spacing: 5px; color: #b8860b; margin-top: -2px; margin-left: 38px; }
+
             .doc-title-box { text-align: right; }
             .doc-title-box h2 { font-size: 22px; margin: 0 0 4px 0; color: #111; text-transform: uppercase; letter-spacing: 0.5px; }
             .doc-title-box p { font-size: 12px; margin: 2px 0; color: #555; }
@@ -363,11 +363,29 @@ export default function Home() {
 
           <div class="header-container">
             <div>
-              <div class="carbox-logo">
-                <span class="carbox-text-car">Car</span>
-                <span class="carbox-text-box">Bo<span class="carbox-x-container">X<div class="carbox-arrow"></div></span></span>
+              <div class="carbox-logo-container">
+                <div class="carbox-main-row">
+                  <span class="carbox-gold-text">CAR</span>
+                  <span class="carbox-black-text">BO</span>
+                  <span class="carbox-black-text" style="position:relative;">X</span>
+                  <div style="display:inline-block; margin-left:-2px; vertical-align:top;">
+                    <svg width="36" height="34" viewBox="0 0 100 90" style="overflow:visible;">
+                      <path d="M10,15 L85,15 L70,45 L35,45 L25,75 L60,75" fill="none" stroke="url(#goldGrad)" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M30,0 L95,0 L80,30 L45,30 L35,60 L70,60" fill="none" stroke="url(#goldGrad)" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+                      <defs>
+                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#fae17d" />
+                          <stop offset="50%" stop-color="#d4af37" />
+                          <stop offset="100%" stop-color="#996515" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                </div>
+                <div class="carbox-subtext">DETAILING</div>
               </div>
             </div>
+
             <div class="doc-title-box">
               <h2>${tipoDocumentoGerar}</h2>
               <p><b>Data de Emissão:</b> ${dataHoje}</p>
@@ -529,17 +547,19 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
       
-      {/* HEADER */}
+      {/* HEADER COM LOGÓTIPO IDÊNTICO À MARCA */}
       <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'baseline', fontFamily: 'Arial, sans-serif' }}>
-            <span style={{ fontSize: '22px', fontWeight: 'bold', color: '#cbd5e1' }}>Car</span>
-            <span style={{ fontSize: '22px', fontWeight: '900', color: '#fff', position: 'relative' }}>
-              Bo<span style={{ position: 'relative', display: 'inline-block' }}>X<div style={{ position: 'absolute', top: '-10px', right: '-12px', width: '24px', height: '24px', border: '3px solid #d4af37', borderRadius: '50% 50% 0 50%', transform: 'rotate(45deg)', borderBottomColor: 'transparent', borderLeftColor: 'transparent' }}></div></span>
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <span style={{ fontSize: '24px', fontWeight: 'bold', background: 'linear-gradient(135deg, #f3e792 0%, #c59b27 50%, #b8860b 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CAR</span>
+              <span style={{ fontSize: '24px', fontWeight: '900', color: '#fff' }}>BOX</span>
+              <span style={{ fontSize: '20px', fontWeight: '900', color: '#d4af37', marginLeft: '4px' }}>77</span>
+            </div>
+            <p style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '4px', color: '#d4af37', margin: 0 }}>DETAILING</p>
           </div>
           <div>
-            <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{dadosEmpresa.nome}</h1>
+            <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{dadosEmpresa.nome}</h1>
             <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Estética Automotiva de Alta Performance • Cascais</p>
           </div>
         </div>
@@ -708,7 +728,6 @@ export default function Home() {
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '950px' }}>
                 <form onSubmit={lidarComSubmissaoRegisto} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   
-                  {/* SELETOR DO TIPO DE REGISTO */}
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>Selecione o Tipo de Ação:</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
@@ -786,7 +805,6 @@ export default function Home() {
                     <input type="text" placeholder="Ex: Renault Captur" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                   </div>
 
-                  {/* CAMPOS DE DATA E HORA PARA AGENDAMENTO */}
                   {tipoRegistroOS !== 'os' && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
                       <div>
