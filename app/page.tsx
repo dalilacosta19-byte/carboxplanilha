@@ -16,13 +16,15 @@ export default function Home() {
   const [dataInicioFiltro, setDataInicioFiltro] = useState('');
   const [dataFimFiltro, setDataFimFiltro] = useState('');
 
+  // Adicionada a opção de diária nos funcionários
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 },
     { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000 },
+    { id: 3, nome: 'Ricardo Costa', cargo: 'Polidor Externo', tipoRemuneracao: 'diaria', valorPctOuFixo: 75 },
   ]);
   const [novoFuncNome, setNovoFuncNome] = useState('');
   const [novoFuncCargo, setNovoFuncCargo] = useState('');
-  const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo'>('comissao');
+  const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
   const [valorRemuneracao, setValorRemuneracao] = useState('30');
 
   const [servicosRealizados, setServicosRealizados] = useState([
@@ -358,7 +360,7 @@ export default function Home() {
           ))}
         </nav>
 
-        {/* CONTEÚDO PRINCIPAL (Fontes maiores e visíveis) */}
+        {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '36px 44px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
           {/* ABA 1: VEÍCULOS NO PÁTIO */}
@@ -602,12 +604,12 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS */}
+          {/* ABA 6: FUNCIONÁRIOS (Com suporte a Diária) */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Funcionários</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Controlo de equipa com salários e comissões.</p>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Controlo de equipa com salários fixos, comissões e diárias.</p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '28px' }}>
@@ -619,7 +621,8 @@ export default function Home() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                       <select value={tipoRemuneracao} onChange={(e) => setTipoRemuneracao(e.target.value as any)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }}>
                         <option value="comissao">Comissão (%)</option>
-                        <option value="fixo">Fixo (€)</option>
+                        <option value="fixo">Salário Fixo (€)</option>
+                        <option value="diaria">Diária (€)</option>
                       </select>
                       <input type="number" value={valorRemuneracao} onChange={(e) => setValorRemuneracao(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
                     </div>
@@ -634,7 +637,11 @@ export default function Home() {
                       <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
                         <div>
                           <p style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{f.nome} ({f.cargo})</p>
-                          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>{f.tipoRemuneracao === 'fixo' ? `Fixo: ${f.valorPctOuFixo}€` : `Comissão: ${f.valorPctOuFixo}%`}</p>
+                          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+                            {f.tipoRemuneracao === 'fixo' && `Salário Fixo: ${f.valorPctOuFixo}€`}
+                            {f.tipoRemuneracao === 'comissao' && `Comissão: ${f.valorPctOuFixo}%`}
+                            {f.tipoRemuneracao === 'diaria' && `Diária: ${f.valorPctOuFixo}€ / dia`}
+                          </p>
                         </div>
                         <button onClick={() => removerFuncionario(f.id)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>✕</button>
                       </div>
