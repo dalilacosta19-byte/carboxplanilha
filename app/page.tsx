@@ -5,7 +5,6 @@ export default function Home() {
   const [tab, setTab] = useState('pateo');
   const [user, setUser] = useState('admin');
 
-  // Dados oficiais atualizados da CARBOX 77
   const [dadosEmpresa, setDadosEmpresa] = useState({
     nome: 'Carbox77 Detailing Unipessoal Lda',
     nif: '513401890',
@@ -14,8 +13,11 @@ export default function Home() {
     email: 'carbox77detailing@gmail.com'
   });
 
+  // Filtros Avançados para o Livro-Caixa
   const [dataInicioFiltro, setDataInicioFiltro] = useState('');
   const [dataFimFiltro, setDataFimFiltro] = useState('');
+  const [mesFiltro, setMesFiltro] = useState('');
+  const [matriculaFiltro, setMatriculaFiltro] = useState('');
 
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 },
@@ -71,8 +73,8 @@ export default function Home() {
   const [osStatus, setOsStatus] = useState('Em Execução');
 
   const [transacoes, setTransacoes] = useState([
-    { id: 1, descricao: 'Sinal OS #101 (Porsche 911)', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-06-01' },
-    { id: 2, descricao: 'Compra Película PPF', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: '2026-06-01' }
+    { id: 1, descricao: 'Sinal OS #101 (Porsche 911)', matricula: '0KM-7700', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-06-01' },
+    { id: 2, descricao: 'Compra Película PPF', matricula: '0KM-7700', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: '2026-06-01' }
   ]);
 
   const feriadosPortugal = [
@@ -136,12 +138,14 @@ export default function Home() {
     const sinal = Number(osSinal) || 0;
     const custos = Number(osCustos) || 0;
     const restante = Math.max(0, valorFin - sinal);
+    const matriculaU = osMatricula.toUpperCase();
+    const dataHoje = new Date().toISOString().split('T')[0];
 
     const novaOS = {
       id: Date.now(),
       cliente: osCliente,
       veiculo: osVeiculo || 'Desconhecido',
-      matricula: osMatricula.toUpperCase(),
+      matricula: matriculaU,
       servico: osServico,
       observacoes: osObs || 'Sem observações registadas.',
       funcionariosAtgados: osFuncionarios,
@@ -153,7 +157,7 @@ export default function Home() {
       contaRecebimentoSinal: sinal > 0 ? osContaRecebimento : 'Nenhum',
       restanteAPagar: restante,
       status: osStatus,
-      data: new Date().toISOString().split('T')[0]
+      data: dataHoje
     };
 
     setOrdensServico([novaOS, ...ordensServico]);
@@ -161,22 +165,24 @@ export default function Home() {
     if (sinal > 0) {
       setTransacoes(prev => [{
         id: Date.now(),
-        descricao: `Sinal OS #${novaOS.id} (${osMatricula}) via ${osContaRecebimento}`,
+        descricao: `Sinal OS #${novaOS.id} (${matriculaU}) via ${osContaRecebimento}`,
+        matricula: matriculaU,
         categoria: 'Serviço',
         tipo: 'receita' as const,
         valor: sinal,
-        data: new Date().toISOString().split('T')[0]
+        data: dataHoje
       }, ...prev]);
     }
 
     if (custos > 0) {
       setTransacoes(prev => [{
         id: Date.now() + 1,
-        descricao: `Custos/Peças OS #${novaOS.id} (${osMatricula})`,
+        descricao: `Custos/Peças OS #${novaOS.id} (${matriculaU})`,
+        matricula: matriculaU,
         categoria: 'Produtos/Peças',
         tipo: 'despesa' as const,
         valor: custos,
-        data: new Date().toISOString().split('T')[0]
+        data: dataHoje
       }, ...prev]);
     }
 
@@ -196,15 +202,17 @@ export default function Home() {
   const atualizarStatusOS = (id: number, novoStatus: string) => {
     setOrdensServico(ordensServico.map(os => {
       if (os.id === id) {
+        const dataHoje = new Date().toISOString().split('T')[0];
         if (novoStatus === 'Pronto / Entregue' && os.restanteAPagar > 0) {
           const saldo = os.restanteAPagar;
           setTransacoes(prev => [{
             id: Date.now(),
             descricao: `Liquidação Final OS #${os.id} (${os.cliente})`,
+            matricula: os.matricula,
             categoria: 'Serviço',
             tipo: 'receita' as const,
             valor: saldo,
-            data: new Date().toISOString().split('T')[0]
+            data: dataHoje
           }, ...prev]);
           return { ...os, status: novoStatus, sinalPago: os.sinalPago + saldo, restanteAPagar: 0 };
         }
@@ -259,13 +267,20 @@ export default function Home() {
   const exportarRelatorioPDF = () => {
     const w = window.open('', '_blank');
     if (!w) return;
-    const filtradas = transacoes.filter(t => (!dataInicioFiltro || t.data >= dataInicioFiltro) && (!dataFimFiltro || t.data <= dataFimFiltro));
+    const filtradas = transacoes.filter(t => {
+      const matchInicio = !dataInicioFiltro || t.data >= dataInicioFiltro;
+      const matchFim = !dataFimFiltro || t.data <= dataFimFiltro;
+      const matchMes = !mesFiltro || t.data.startsWith(mesFiltro);
+      const matchMatricula = !matriculaFiltro || (t.matricula && t.matricula.toUpperCase().includes(matriculaFiltro.toUpperCase()));
+      return matchInicio && matchFim && matchMes && matchMatricula;
+    });
+
     const rec = filtradas.filter(t => t.tipo === 'receita').reduce((a, b) => a + b.valor, 0);
     const desp = filtradas.filter(t => t.tipo === 'despesa').reduce((a, b) => a + b.valor, 0);
 
     w.document.write(`
       <html>
-        <head><title>Relatório Contabilidade - ${dadosEmpresa.nome}</title>
+        <head><title>Relatório Livro-Caixa - ${dadosEmpresa.nome}</title>
         <style>body{font-family:Arial;padding:30px;color:#111;} h1{color:#d4af37;}</style>
         </head>
         <body>
@@ -274,8 +289,8 @@ export default function Home() {
           <p style="font-size: 16px;">Receitas: <b>+${rec.toFixed(2)}€</b> | Despesas: <b style="color:red;">-${desp.toFixed(2)}€</b> | Líquido: <b>${(rec - desp).toFixed(2)}€</b></p>
           <hr/>
           <table width="100%" border="1" cellspacing="0" cellpadding="10" style="border-collapse:collapse;font-size:14px;">
-            <tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr>
-            ${filtradas.map(t => `<tr><td>${t.data}</td><td>${t.tipo.toUpperCase()}</td><td>${t.categoria}</td><td>${t.descricao}</td><td>${t.valor.toFixed(2)}€</td></tr>`).join('')}
+            <tr><th>Data</th><th>Matrícula</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr>
+            ${filtradas.map(t => `<tr><td>${t.data}</td><td>${t.matricula || '-'}</td><td>${t.tipo.toUpperCase()}</td><td>${t.categoria}</td><td>${t.descricao}</td><td>${t.valor.toFixed(2)}€</td></tr>`).join('')}
           </table>
           <script>window.onload = function() { window.print(); }</script>
         </body>
@@ -574,32 +589,60 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 5: LIVRO-CAIXA */}
+          {/* ABA 5: LIVRO-CAIXA COM FILTROS POR MÊS E MATRÍCULA */}
           {tab === 'financeiro' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                   <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Livro-Caixa</h2>
-                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Registo financeiro integrado com sinais e despesas.</p>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Registo financeiro com filtros por mês, datas e matrícula.</p>
                 </div>
                 <button onClick={exportarRelatorioPDF} style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
                   📄 Gerar Relatório PDF
                 </button>
               </div>
 
+              {/* BARRA DE FILTROS AVANÇADOS */}
+              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '20px', borderRadius: '16px', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+                <div style={{ flex: '1', minWidth: '200px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>🔍 Filtrar por Matrícula / Veículo</label>
+                  <input type="text" placeholder="Ex: 0KM-7700" value={matriculaFiltro} onChange={(e) => setMatriculaFiltro(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '14px', textTransform: 'uppercase' }} />
+                </div>
+                <div style={{ flex: '1', minWidth: '180px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>📅 Filtrar por Mês (Ano-Mês)</label>
+                  <input type="month" value={mesFiltro} onChange={(e) => setMesFiltro(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '14px' }} />
+                </div>
+                {(matriculaFiltro || mesFiltro) && (
+                  <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                    <button onClick={() => { setMatriculaFiltro(''); setMesFiltro(''); }} style={{ backgroundColor: '#222b45', color: '#f87171', border: 'none', padding: '11px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
+                      Limpar Filtros ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '500px', overflowY: 'auto' }}>
-                  {transacoes.map(t => (
-                    <div key={t.id} style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>{t.descricao} <span style={{ fontSize: '13px', color: '#60a5fa' }}>[{t.categoria}]</span></p>
-                        <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>📅 {t.data}</p>
+                  {transacoes
+                    .filter(t => {
+                      const matchMes = !mesFiltro || t.data.startsWith(mesFiltro);
+                      const matchMatricula = !matriculaFiltro || (t.matricula && t.matricula.toUpperCase().includes(matriculaFiltro.toUpperCase()));
+                      return matchMes && matchMatricula;
+                    })
+                    .map(t => (
+                      <div key={t.id} style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '0 0 4px 0' }}>
+                            {t.descricao} <span style={{ fontSize: '13px', color: '#60a5fa' }}>[{t.categoria}]</span>
+                            {t.matricula && <span style={{ marginLeft: '8px', backgroundColor: '#131722', border: '1px solid #222b45', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', color: '#d4af37' }}>🚗 {t.matricula}</span>}
+                          </p>
+                          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>📅 {t.data}</p>
+                        </div>
+                        <span style={{ fontSize: '17px', fontWeight: 'bold', color: t.tipo === 'receita' ? '#34d399' : '#f87171' }}>
+                          {t.tipo === 'receita' ? '+' : '-'}{t.valor.toFixed(2)} €
+                        </span>
                       </div>
-                      <span style={{ fontSize: '17px', fontWeight: 'bold', color: t.tipo === 'receita' ? '#34d399' : '#f87171' }}>
-                        {t.tipo === 'receita' ? '+' : '-'}{t.valor.toFixed(2)} €
-                      </span>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>
