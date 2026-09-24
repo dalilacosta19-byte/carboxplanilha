@@ -6,11 +6,15 @@ export default function Home() {
   const [user, setUser] = useState('admin');
 
   const [dadosEmpresa, setDadosEmpresa] = useState({
-    nome: 'Carbox77 Detailing Unipessoal Lda',
-    nif: '513401890',
-    morada: 'Pavilhão Guilherme Pinto Basto, R. da Torre, 2750-748 Cascais',
+    nome: 'CARBOX77 DETAILING, UNIPESSOAL LDA',
+    nif: 'Rascunho',
+    morada: 'Rua da Torre, Pavilhão Guilherme Pinto Basto, 2750-748 Cascais, Portugal',
     telefone: '+351 211 515 449',
-    email: 'carbox77detailing@gmail.com'
+    email: 'carbox77detailing@gmail.com',
+    capitalSocial: '50000,00',
+    conservatoria: 'Registo Comercial de Lisboa',
+    iban: 'PT50 0033 0000 4546 1405 9370 5',
+    swift: 'BCOPTPL'
   });
 
   const [dataInicioFiltro, setDataInicioFiltro] = useState('');
@@ -31,13 +35,13 @@ export default function Home() {
   // Agenda integrada
   const [agendamentos, setAgendamentos] = useState([
     { id: 1, tipo: 'Agendamento', cliente: 'Carlos Silva', contacto: '+351 911 222 333', veiculo: 'Porsche 911 Turbo', matricula: '0KM-7700', servico: 'PPF Frontal + Vitrificação', data: '2026-06-01', hora: '09:30', status: 'Agendado' },
-    { id: 2, tipo: 'Orçamento', cliente: 'Maria Santos', contacto: '+351 922 333 444', veiculo: 'BMW M4', matricula: 'AA-99-BB', servico: 'Polimento Comercial', data: '2026-06-10', hora: '14:00', status: 'Orçamento Pendente' }
+    { id: 2, tipo: 'Orçamento', cliente: 'Carla Monteiro', contacto: '+351 922 333 444', veiculo: 'Renault Captur', matricula: 'AZ-91-GI', servico: 'Limpeza Detalhada + PPF', data: '2026-09-23', hora: '14:00', status: 'Orçamento Pendente' }
   ]);
 
   // Navegação do Calendário
   const [anoAtualCal, setAnoAtualCal] = useState(2026);
-  const [mesAtualCal, setMesAtualCal] = useState(5);
-  const [diaSelecionadoCal, setDiaSelecionadoCal] = useState('2026-06-01');
+  const [mesAtualCal, setMesAtualCal] = useState(8); // Setembro (0-indexed)
+  const [diaSelecionadoCal, setDiaSelecionadoCal] = useState('2026-09-23');
 
   // Formulário OS / Agendamento / Orçamento
   const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('os');
@@ -47,18 +51,21 @@ export default function Home() {
   const [osMatricula, setOsMatricula] = useState('');
   const [osObs, setOsObs] = useState('');
 
-  // Múltiplos serviços com técnicos e valores individuais
+  // Múltiplos serviços com técnicos, valores e descontos individuais
   const [listaItensServico, setListaItensServico] = useState([
-    { id: 1, descricao: '', funcionario: '', valor: '' }
+    { id: 1, descricao: '', funcionario: '', valor: '', desconto: '' }
   ]);
 
-  const [osCustos, setOsCustos] = useState('0');
-  const [osDesconto, setOsDesconto] = useState('0');
+  // Múltiplos custos detalhados (ex: pintor, peças, produto...)
+  const [listaCustosDetalhados, setListaCustosDetalhados] = useState([
+    { id: 1, descricao: '', valor: '' }
+  ]);
+
   const [osSinal, setOsSinal] = useState('0');
   const [osContaRecebimentoSinal, setOsContaRecebimentoSinal] = useState('MB WAY');
   const [osContaRecebimentoFinal, setOsContaRecebimentoFinal] = useState('MB WAY');
   
-  const [osDataAgend, setOsDataAgend] = useState('2026-06-01');
+  const [osDataAgend, setOsDataAgend] = useState('2026-09-23');
   const [osHoraAgend, setOsHoraAgend] = useState('09:00');
 
   // Estados para autocompletar sugestões
@@ -69,43 +76,44 @@ export default function Home() {
     'Vitrificação Cerâmica Completa (Paint Protection)',
     'PPF (Paint Protection Film) Frontal',
     'PPF Completo Carroçaria',
+    'Aplicação de PPF nos Black Piano',
     'Polimento de Correção (2 Passos)',
     'Polimento Comercial / Brilho',
-    'Lavagem Detalhada Premium',
+    'Limpeza Detalhada Premium',
+    'Fusion Coating',
     'Higienização de Interiores & Bancos em Pele',
-    'Restauro de Faróis',
-    'Tratamento de Vidros / Impermeabilização',
-    'Limpeza e Descontaminação de Jantes'
+    'Restauro de Faróis'
   ];
 
   const [ordensServico, setOrdensServico] = useState([
     { 
       id: 101, 
-      cliente: 'Carlos Silva', 
-      contacto: '+351 911 222 333',
-      veiculo: 'Porsche 911 Turbo', 
-      matricula: '0KM-7700', 
+      cliente: 'Carla Monteiro', 
+      contacto: '+351 922 333 444',
+      veiculo: 'Renault Captur', 
+      matricula: 'AZ-91-GI', 
       servicosDetalhes: [
-        { descricao: 'PPF Frontal', funcionario: 'João Silva', valor: 800.00 },
-        { descricao: 'Vitrificação Completa', funcionario: 'Ricardo Costa', valor: 400.00 }
+        { descricao: 'Limpeza Detalhada', funcionario: 'João Silva', valor: 120.00, desconto: 120.00 },
+        { descricao: 'Aplicação de PPF nos Black Piano', funcionario: 'Kevin', valor: 400.00, desconto: 0.00 },
+        { descricao: 'Fusion Coating', funcionario: 'Ricardo Costa', valor: 900.00, desconto: 0.00 }
       ],
-      servico: 'PPF Frontal + Vitrificação Completa',
-      observacoes: 'Inspeção rigorosa à chegada. Sem riscos prévios.', 
-      custosPecas: 150.00, 
-      valorOriginal: 1200.00, 
-      desconto: 50.00, 
-      valorFinal: 1150.00, 
+      servico: 'Limpeza Detalhada + PPF Black Piano + Fusion Coating',
+      observacoes: 'Renault Captur matrícula AZ-91-GI. IVA - regime de isenção.', 
+      custosDetalhados: [{ descricao: 'Película PPF', valor: 150.00 }], 
+      valorOriginal: 1420.00, 
+      descontoTotal: 120.00, 
+      valorFinal: 1300.00, 
       sinalPago: 300.00,
       contaRecebimentoSinal: 'MB WAY',
-      restanteAPagar: 850.00,
+      restanteAPagar: 1000.00,
       status: 'Em Execução', 
-      data: '2026-06-01' 
+      data: '2026-09-23' 
     }
   ]);
 
   const [transacoes, setTransacoes] = useState([
-    { id: 1, descricao: 'Sinal OS #101 (Porsche 911)', matricula: '0KM-7700', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-06-01' },
-    { id: 2, descricao: 'Compra Película PPF', matricula: '0KM-7700', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: '2026-06-01' }
+    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-09-23' },
+    { id: 2, descricao: 'Compra Película PPF', matricula: 'AZ-91-GI', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: '2026-09-23' }
   ]);
 
   const feriadosPortugal = [
@@ -155,7 +163,7 @@ export default function Home() {
   };
 
   const adicionarLinhaServico = () => {
-    setListaItensServico([...listaItensServico, { id: Date.now(), descricao: '', funcionario: '', valor: '' }]);
+    setListaItensServico([...listaItensServico, { id: Date.now(), descricao: '', funcionario: '', valor: '', desconto: '' }]);
   };
 
   const removerLinhaServico = (index: number) => {
@@ -169,8 +177,23 @@ export default function Home() {
     setListaItensServico(novaLista);
   };
 
-  const calcularValorTotalServicos = () => {
-    return listaItensServico.reduce((acc, item) => acc + (Number(item.valor) || 0), 0);
+  const adicionarLinhaCusto = () => {
+    setListaCustosDetalhados([...listaCustosDetalhados, { id: Date.now(), descricao: '', valor: '' }]);
+  };
+
+  const removerLinhaCusto = (index: number) => {
+    if (listaCustosDetalhados.length === 1) return;
+    setListaCustosDetalhados(listaCustosDetalhados.filter((_, i) => i !== index));
+  };
+
+  const atualizarItemCusto = (index: number, campo: string, valor: string) => {
+    const novaLista = [...listaCustosDetalhados];
+    (novaLista[index] as any)[campo] = valor;
+    setListaCustosDetalhados(novaLista);
+  };
+
+  const calcularTotalCustos = () => {
+    return listaCustosDetalhados.reduce((acc, item) => acc + (Number(item.valor) || 0), 0);
   };
 
   const adicionarFuncionario = (e: React.FormEvent) => {
@@ -204,19 +227,27 @@ export default function Home() {
     const dataHoje = new Date().toISOString().split('T')[0];
 
     if (tipoRegistroOS === 'os') {
-      const somaServicos = calcularValorTotalServicos();
-      const valorOrig = somaServicos > 0 ? somaServicos : 0;
-      const desc = Number(osDesconto) || 0;
-      const valorFin = Math.max(0, valorOrig - desc);
-      const sinal = Number(osSinal) || 0;
-      const custos = Number(osCustos) || 0;
-      const restante = Math.max(0, valorFin - sinal);
+      let valorOrig = 0;
+      let totalDesc = 0;
 
-      const servicosDetalhesArray = listaItensServico.map(i => ({ 
-        descricao: i.descricao || 'Serviço Geral', 
-        funcionario: i.funcionario || 'Não atribuído', 
-        valor: Number(i.valor) || 0 
-      }));
+      const servicosDetalhesArray = listaItensServico.map(i => {
+        const val = Number(i.valor) || 0;
+        const desc = Number(i.desconto) || 0;
+        valorOrig += val;
+        totalDesc += desc;
+        return { 
+          descricao: i.descricao || 'Serviço Geral', 
+          funcionario: i.funcionario || 'Não atribuído', 
+          valor: val,
+          desconto: desc
+        };
+      });
+
+      const valorFin = Math.max(0, valorOrig - totalDesc);
+      const sinal = Number(osSinal) || 0;
+      const restante = Math.max(0, valorFin - sinal);
+      const custosArray = listaCustosDetalhados.filter(c => c.descricao && Number(c.valor) > 0).map(c => ({ descricao: c.descricao, valor: Number(c.valor) }));
+      const totalCustosNum = calcularTotalCustos();
 
       const novaOS = {
         id: Date.now(),
@@ -226,10 +257,10 @@ export default function Home() {
         matricula: matriculaU,
         servicosDetalhes: servicosDetalhesArray,
         servico: servicosDetalhesArray.map(s => s.descricao).join(' + '),
-        observacoes: osObs || 'Sem observações registadas.',
-        custosPecas: custos,
+        observacoes: osObs || `${osVeiculo} matrícula ${matriculaU}.`,
+        custosDetalhados: custosArray,
         valorOriginal: valorOrig,
-        desconto: desc,
+        descontoTotal: totalDesc,
         valorFinal: valorFin,
         sinalPago: sinal,
         contaRecebimentoSinal: sinal > 0 ? osContaRecebimentoSinal : 'Nenhum',
@@ -252,17 +283,17 @@ export default function Home() {
         }, ...prev]);
       }
 
-      if (custos > 0) {
+      custosArray.forEach((custo, cIdx) => {
         setTransacoes(prev => [{
-          id: Date.now() + 1,
-          descricao: `Custos/Peças OS #${novaOS.id} (${matriculaU})`,
+          id: Date.now() + 10 + cIdx,
+          descricao: `Custo (${custo.descricao}) OS #${novaOS.id} (${matriculaU})`,
           matricula: matriculaU,
-          categoria: 'Produtos/Peças',
+          categoria: 'Produtos/Peças/Pintor',
           tipo: 'despesa' as const,
-          valor: custos,
+          valor: custo.valor,
           data: dataHoje
         }, ...prev]);
-      }
+      });
 
       alert('Ordem de Serviço criada com sucesso!');
     } else if (tipoRegistroOS === 'agendamento') {
@@ -299,10 +330,9 @@ export default function Home() {
     setOsContacto('');
     setOsVeiculo('');
     setOsMatricula('');
-    setListaItensServico([{ id: Date.now(), descricao: '', funcionario: '', valor: '' }]);
+    setListaItensServico([{ id: Date.now(), descricao: '', funcionario: '', valor: '', desconto: '' }]);
+    setListaCustosDetalhados([{ id: Date.now(), descricao: '', valor: '' }]);
     setOsObs('');
-    setOsCustos('0');
-    setOsDesconto('0');
     setOsSinal('0');
   };
 
@@ -329,42 +359,131 @@ export default function Home() {
     }));
   };
 
-  const imprimirFichaOS = (os: any) => {
+  const imprimirPDFOficialCarbox = (os: any, tipoDocumento: 'ORÇAMENTO' | 'ORDEM DE SERVIÇO') => {
     const w = window.open('', '_blank');
     if (!w) return;
+
     w.document.write(`
       <html>
-        <head><title>OS #${os.id} - ${dadosEmpresa.nome}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
-          .header { border-bottom: 2px solid #d4af37; padding-bottom: 10px; display: flex; justify-content: space-between; }
-          h1 { color: #d4af37; margin: 0; font-size: 20px; }
-          .box { background: #f9f9f9; border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin: 15px 0; }
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          th, td { border: 1px solid #ccc; padding: 10px; font-size: 14px; text-align: left; }
-          th { background: #111; color: #d4af37; }
-        </style>
+        <head>
+          <title>${tipoDocumento} #${os.id} - ${dadosEmpresa.nome}</title>
+          <style>
+            body { font-family: Helvetica, Arial, sans-serif; color: #111; padding: 40px; background: #fff; margin: 0; }
+            .header-container { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 20px; margin-bottom: 25px; }
+            .logo-area { display: flex; align-items: center; gap: 12px; }
+            .logo-box { background: #111; color: #d4af37; font-weight: 900; font-size: 26px; padding: 10px 18px; border-radius: 6px; letter-spacing: 1px; }
+            .doc-title-box { text-align: right; }
+            .doc-title-box h2 { font-size: 24px; margin: 0 0 6px 0; color: #111; text-transform: uppercase; }
+            .doc-title-box p { font-size: 13px; margin: 2px 0; color: #555; }
+            .company-details { font-size: 11px; color: #444; line-height: 1.5; margin-bottom: 25px; }
+            .client-box { border: 1px solid #ccc; padding: 14px; border-radius: 6px; margin-bottom: 25px; background: #fcfcfc; display: flex; justify-content: space-between; font-size: 13px; }
+            table.items-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+            table.items-table th { background: #111; color: #fff; font-size: 12px; text-transform: uppercase; padding: 10px; text-align: left; }
+            table.items-table td { border-bottom: 1px solid #ddd; padding: 12px 10px; font-size: 13px; }
+            .summary-container { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; }
+            .bank-info { font-size: 12px; color: #333; line-height: 1.6; }
+            .totals-box { width: 320px; font-size: 13px; }
+            .totals-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+            .totals-row.final { font-size: 16px; font-weight: bold; color: #111; border-top: 2px solid #111; border-bottom: none; padding-top: 10px; margin-top: 5px; }
+            .obs-box { margin-top: 25px; font-size: 12px; color: #444; background: #f4f4f4; padding: 12px; border-radius: 4px; }
+            .footer-note { margin-top: 40px; font-size: 10px; text-align: center; color: #777; border-top: 1px solid #eee; padding-top: 15px; }
+          </style>
         </head>
         <body>
-          <div class="header">
-            <div><h1>${dadosEmpresa.nome}</h1><p>${dadosEmpresa.morada} | NIF: ${dadosEmpresa.nif} | Tel: ${dadosEmpresa.telefone}</p></div>
-            <div style="text-align: right;"><b>OS Nº:</b> #${os.id}<br/><b>Data:</b> ${os.data}</div>
+          <div class="header-container">
+            <div class="logo-area">
+              <div class="logo-box">CARBOX<span style="color:#d4af37">7</span></div>
+            </div>
+            <div class="doc-title-box">
+              <h2>${tipoDocumento}</h2>
+              <p><b>Nº Documento:</b> #${os.id}</p>
+              <p><b>Data de Emissão:</b> ${os.data}</p>
+            </div>
           </div>
-          <div class="box">
-            <p><b>Cliente:</b> ${os.cliente} | <b>Contacto:</b> ${os.contacto || 'N/D'}</p>
-            <p><b>Viatura:</b> ${os.veiculo} | <b>Matrícula:</b> ${os.matricula}</p>
-            <p><b>Status:</b> ${os.status}</p>
+
+          <div class="company-details">
+            <b>${dadosEmpresa.nome}</b><br/>
+            ${dadosEmpresa.morada}<br/>
+            <b>E-mail:</b> ${dadosEmpresa.email} | <b>NIF:</b> ${dadosEmpresa.nif}<br/>
+            <b>Capital Social:</b> ${dadosEmpresa.capitalSocial} | <b>Conservatória:</b> ${dadosEmpresa.conservatoria}
           </div>
-          <table>
-            <tr><th>Serviço Solicitado</th><th>Técnico Responsável</th><th>Valor</th></tr>
-            ${os.servicosDetalhes ? os.servicosDetalhes.map((s: any) => `<tr><td><b>${s.descricao}</b></td><td>${s.funcionario}</td><td>${s.valor.toFixed(2)}€</td></tr>`).join('') : `<tr><td colspan="3">${os.servico}</td></tr>`}
+
+          <div class="client-box">
+            <div>
+              <b>Cliente:</b> ${os.cliente}<br/>
+              <b>Contacto:</b> ${os.contacto || 'N/D'}
+            </div>
+            <div style="text-align: right;">
+              <b>Viatura:</b> ${os.veiculo}<br/>
+              <b>Matrícula:</b> ${os.matricula}
+            </div>
+          </div>
+
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Serviço / Descrição</th>
+                <th>Técnico</th>
+                <th>Preço Unit.</th>
+                <th>Quant.</th>
+                <th>Desconto</th>
+                <th>Total c/ IVA</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${os.servicosDetalhes ? os.servicosDetalhes.map((s: any) => `
+                <tr>
+                  <td><b>${s.descricao}</b></td>
+                  <td>${s.funcionario}</td>
+                  <td>${s.valor.toFixed(2)}€</td>
+                  <td>1,0</td>
+                  <td>${s.desconto ? s.desconto.toFixed(2) + '€' : '0,00€'}</td>
+                  <td><b>${(s.valor - (s.desconto || 0)).toFixed(2)}€</b></td>
+                </tr>
+              `).join('') : `
+                <tr>
+                  <td colspan="6">${os.servico}</td>
+                </tr>
+              `}
+            </tbody>
           </table>
-          <div style="margin-top: 20px; text-align: right; font-size: 15px;">
-            <p>Subtotal: ${os.valorOriginal.toFixed(2)}€ | Desconto: -${os.desconto.toFixed(2)}€</p>
-            <p style="color: #059669;">Sinal Pago: -${os.sinalPago.toFixed(2)}€ (${os.contaRecebimentoSinal})</p>
-            <h3 style="color: #d4af37;">Restante a Pagar: ${os.restanteAPagar.toFixed(2)}€</h3>
+
+          <div class="summary-container">
+            <div class="bank-info">
+              <b>Transferência Bancária:</b><br/>
+              <b>IBAN:</b> ${dadosEmpresa.iban}<br/>
+              <b>SWIFT/BIC:</b> ${dadosEmpresa.swift}
+            </div>
+
+            <div class="totals-box">
+              <div class="totals-row">
+                <span>Total Bruto:</span>
+                <span>${os.valorOriginal.toFixed(2)}€</span>
+              </div>
+              <div class="totals-row">
+                <span>Desconto Total:</span>
+                <span>-${os.descontoTotal.toFixed(2)}€</span>
+              </div>
+              <div class="totals-row">
+                <span>Sinal Pago (${os.contaRecebimentoSinal}):</span>
+                <span style="color: #059669;">-${os.sinalPago.toFixed(2)}€</span>
+              </div>
+              <div class="totals-row final">
+                <span>Total a Pagar:</span>
+                <span>${os.restanteAPagar.toFixed(2)}€</span>
+              </div>
+            </div>
           </div>
-          <script>window.onload = function() { window.print(); }</script>
+
+          ${os.observacoes ? `<div class="obs-box"><b>Observações:</b> ${os.observacoes}</div>` : ''}
+
+          <div class="footer-note">
+            Este documento não serve de factura • Documento processado por computador
+          </div>
+
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
         </body>
       </html>
     `);
@@ -393,7 +512,7 @@ export default function Home() {
         <body>
           <h1>${dadosEmpresa.nome} - Relatório Financeiro</h1>
           <p>NIF: ${dadosEmpresa.nif} | Tel: ${dadosEmpresa.telefone}</p>
-          <p style="font-size: 16px;">Receitas: <b>+${rec.toFixed(2)}€</b> | Despesas: <b style="color:red;">-${desp.toFixed(2)}€</b> | Líquido: <b>${(rec - desp).toFixed(2)}€</b></p>
+          <p style="font-size: 16px;">Receitas: <b>+${rec.toFixed(2)}€</b> | Despesas/Custos: <b style="color:red;">-${desp.toFixed(2)}€</b> | Líquido: <b>${(rec - desp).toFixed(2)}€</b></p>
           <hr/>
           <table width="100%" border="1" cellspacing="0" cellpadding="10" style="border-collapse:collapse;font-size:14px;">
             <tr><th>Data</th><th>Matrícula</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr>
@@ -438,9 +557,14 @@ export default function Home() {
       
       {/* HEADER */}
       <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#d4af37', margin: 0, letterSpacing: '0.5px' }}>{dadosEmpresa.nome}</h1>
-          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>Estética Automotiva de Alta Performance • Cascais • NIF: {dadosEmpresa.nif}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ backgroundColor: '#111', color: '#d4af37', fontWeight: 900, fontSize: '20px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #d4af37' }}>
+            CARBOX<span style={{ color: '#fff' }}>7</span>
+          </div>
+          <div>
+            <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0, letterSpacing: '0.5px' }}>{dadosEmpresa.nome}</h1>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '2px 0 0 0' }}>Estética Automotiva de Alta Performance • Cascais</p>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
@@ -512,7 +636,7 @@ export default function Home() {
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '20px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
                 <div>
                   <p style={{ fontSize: '15px', color: '#fff', fontWeight: 'bold', margin: '0 0 4px 0' }}>💳 Forma de Pagamento para Liquidação Final:</p>
-                  <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>Esta opção será aplicada quando alterar o status de uma OS para "Pronto / Entregue".</p>
+                  <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>Aplicada quando altera o status de uma OS para "Pronto / Entregue".</p>
                 </div>
                 <select 
                   value={osContaRecebimentoFinal}
@@ -555,12 +679,20 @@ export default function Home() {
                           <p style={{ margin: '0 0 4px 0', color: '#d4af37', fontWeight: 'bold', fontSize: '14px' }}>Serviços e Técnicos:</p>
                           {os.servicosDetalhes ? (
                             os.servicosDetalhes.map((s: any, idx: number) => (
-                              <p key={idx} style={{ margin: '2px 0', color: '#cbd5e1', fontSize: '14px' }}>• {s.descricao} (<span style={{ color: '#60a5fa' }}>{s.funcionario}</span>) - <b>{s.valor.toFixed(2)}€</b></p>
+                              <p key={idx} style={{ margin: '2px 0', color: '#cbd5e1', fontSize: '14px' }}>• {s.descricao} (<span style={{ color: '#60a5fa' }}>{s.funcionario}</span>) - <b>{(s.valor - (s.desconto || 0)).toFixed(2)}€</b> {s.desconto > 0 && <span style={{ color: '#f87171', fontSize: '12px' }}>(Desc: {s.desconto.toFixed(2)}€)</span>}</p>
                             ))
                           ) : (
                             <p style={{ margin: 0, color: '#cbd5e1' }}>{(os as any).servico}</p>
                           )}
                         </div>
+                        {os.custosDetalhados && os.custosDetalhados.length > 0 && (
+                          <div style={{ borderTop: '1px dashed #222b45', paddingTop: '6px', marginTop: '4px' }}>
+                            <p style={{ margin: '0 0 2px 0', color: '#f87171', fontWeight: 'bold', fontSize: '13px' }}>Custos (Pintor / Peças / Produtos):</p>
+                            {os.custosDetalhados.map((c: any, cIdx: number) => (
+                              <p key={cIdx} style={{ margin: '1px 0', color: '#94a3b8', fontSize: '13px' }}>• {c.descricao}: <b>{c.valor.toFixed(2)}€</b></p>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '15px', borderTop: '1px solid #1e2235', paddingTop: '14px' }}>
@@ -574,9 +706,12 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button onClick={() => imprimirFichaOS(os)} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
-                          🖨️ Imprimir OS (PDF)
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                        <button onClick={() => imprimirPDFOficialCarbox(os, 'ORÇAMENTO')} style={{ backgroundColor: '#c084fc', color: '#090a0f', border: 'none', padding: '10px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
+                          📄 Imprimir Orçamento
+                        </button>
+                        <button onClick={() => imprimirPDFOficialCarbox(os, 'ORDEM DE SERVIÇO')} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
+                          🖨️ Imprimir OS
                         </button>
                       </div>
                     </div>
@@ -618,7 +753,7 @@ export default function Home() {
                       <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#34d399', margin: 0 }}>+{rec.toFixed(2)} €</p>
                     </div>
                     <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
-                      <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Despesas / Custos</p>
+                      <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Custos / Despesas</p>
                       <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>-{desp.toFixed(2)} €</p>
                     </div>
                   </div>
@@ -627,12 +762,12 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 3: NOVA ORDEM DE SERVIÇO / AGENDAMENTO / ORÇAMENTO COM INTELIGÊNCIA */}
+          {/* ABA 3: NOVA ORDEM DE SERVIÇO / AGENDAMENTO / ORÇAMENTO COM DESCONTO E CUSTOS DETALHADOS */}
           {tab === 'ordem-servico' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Registo Inteligente de Trabalho</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Seleção automática de clientes existentes, múltiplos serviços e técnicos.</p>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Múltiplos serviços, descontos por serviço, custos detalhados (pintor, peças, etc.) e técnicos.</p>
               </div>
 
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '950px' }}>
@@ -707,31 +842,31 @@ export default function Home() {
                       <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>
                         Matrícula {tipoRegistroOS === 'agendamento' || tipoRegistroOS === 'orcamento' ? <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(Opcional)</span> : ''}
                       </label>
-                      <input type="text" placeholder="Ex: 0KM-7700" value={osMatricula} onChange={(e) => handleOsMatriculaChange(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '16px' }} />
+                      <input type="text" placeholder="Ex: AZ-91-GI" value={osMatricula} onChange={(e) => handleOsMatriculaChange(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '16px' }} />
                     </div>
                   </div>
 
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Viatura</label>
-                    <input type="text" placeholder="Ex: Porsche 911 Turbo" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                    <input type="text" placeholder="Ex: Renault Captur" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                   </div>
 
-                  {/* MÚLTIPLOS SERVIÇOS INTELIGENTES COM TÉCNICO E VALOR */}
+                  {/* MÚLTIPLOS SERVIÇOS COM TÉCNICO, VALOR E DESCONTO INDIVIDUAL */}
                   <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <label style={{ fontSize: '15px', color: '#d4af37', fontWeight: 'bold' }}>🛠️ Serviços de Estética Automotiva, Técnicos e Valores:</label>
+                      <label style={{ fontSize: '15px', color: '#d4af37', fontWeight: 'bold' }}>🛠️ Serviços, Técnicos, Valores e Descontos:</label>
                       <button type="button" onClick={adicionarLinhaServico} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
                         + Adicionar Outro Serviço
                       </button>
                     </div>
 
                     {listaItensServico.map((item, index) => (
-                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 40px', gap: '10px', alignItems: 'center', position: 'relative' }}>
+                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1fr 40px', gap: '10px', alignItems: 'center', position: 'relative' }}>
                         
                         <div style={{ position: 'relative' }}>
                           <input 
                             type="text" 
-                            placeholder="Nome do serviço (ex: Vitrificação)" 
+                            placeholder="Nome do serviço" 
                             value={item.descricao} 
                             onChange={(e) => {
                               atualizarItemServico(index, 'descricao', e.target.value);
@@ -767,21 +902,21 @@ export default function Home() {
                           )}
                         </div>
 
-                        {/* Técnico com Seta de Seleção */}
-                        <div style={{ position: 'relative' }}>
+                        {/* Técnico */}
+                        <div>
                           <select 
                             value={item.funcionario} 
                             onChange={(e) => atualizarItemServico(index, 'funcionario', e.target.value)}
                             style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px', appearance: 'auto', cursor: 'pointer' }}
                           >
-                            <option value="">👤 Selecionar Técnico...</option>
+                            <option value="">👤 Técnico...</option>
                             {funcionarios.map(f => (
-                              <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>
+                              <option key={f.id} value={f.nome}>{f.nome}</option>
                             ))}
                           </select>
                         </div>
 
-                        {/* Valor do Serviço */}
+                        {/* Valor */}
                         <div>
                           <input 
                             type="number" 
@@ -793,6 +928,18 @@ export default function Home() {
                           />
                         </div>
 
+                        {/* Desconto do Serviço */}
+                        <div>
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            placeholder="Desc. (€)" 
+                            value={item.desconto} 
+                            onChange={(e) => atualizarItemServico(index, 'desconto', e.target.value)} 
+                            style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#f87171', fontWeight: 'bold', padding: '12px', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }} 
+                          />
+                        </div>
+
                         {/* Botão Remover */}
                         <div>
                           {listaItensServico.length > 1 && (
@@ -800,6 +947,41 @@ export default function Home() {
                           )}
                         </div>
 
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CUSTOS DETALHADOS (Ex: Pintor, Peças, Produto...) */}
+                  <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label style={{ fontSize: '15px', color: '#f87171', fontWeight: 'bold' }}>💸 Custos (Pintor / Peças / Produtos / Outros):</label>
+                      <button type="button" onClick={adicionarLinhaCusto} style={{ backgroundColor: '#991b1b', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
+                        + Adicionar Custo
+                      </button>
+                    </div>
+
+                    {listaCustosDetalhados.map((custo, index) => (
+                      <div key={custo.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 40px', gap: '10px', alignItems: 'center' }}>
+                        <input 
+                          type="text" 
+                          placeholder="Descrição do custo (ex: Pintor externo, Película PPF, Produto XPTO)" 
+                          value={custo.descricao} 
+                          onChange={(e) => atualizarItemCusto(index, 'descricao', e.target.value)}
+                          style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }} 
+                        />
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="Valor (€)" 
+                          value={custo.valor} 
+                          onChange={(e) => atualizarItemCusto(index, 'valor', e.target.value)} 
+                          style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#f87171', fontWeight: 'bold', padding: '12px', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }} 
+                        />
+                        <div>
+                          {listaCustosDetalhados.length > 1 && (
+                            <button type="button" onClick={() => removerLinhaCusto(index)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>✕</button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -818,34 +1000,29 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* CAMPOS FINANCEIROS EXTRAS PARA ORDEM DE SERVIÇO */}
+                  {/* SINAL DE ENTRADA PARA ORDEM DE SERVIÇO */}
                   {tipoRegistroOS === 'os' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Custos (Peças) (€)</label>
-                        <input type="number" step="0.01" value={osCustos} onChange={(e) => setOsCustos(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '14px', color: '#f87171', marginBottom: '8px', fontWeight: 'bold' }}>Desconto (€)</label>
-                        <input type="number" step="0.01" value={osDesconto} onChange={(e) => setOsDesconto(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '14px', color: '#34d399', marginBottom: '8px', fontWeight: 'bold' }}>Sinal Entrada (€)</label>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <input type="number" step="0.01" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
-                          <select 
-                            value={osContaRecebimentoSinal} 
-                            onChange={(e) => setOsContaRecebimentoSinal(e.target.value)}
-                            style={{ backgroundColor: '#090a0f', color: '#34d399', border: '1px solid #222b45', padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
-                          >
-                            <option value="MB WAY">MB WAY</option>
-                            <option value="Dinheiro">Dinheiro</option>
-                            <option value="Empresa / Transferência">Empresa / Transferência</option>
-                          </select>
-                        </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#34d399', marginBottom: '8px', fontWeight: 'bold' }}>Sinal Entrada (€)</label>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <input type="number" step="0.01" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                        <select 
+                          value={osContaRecebimentoSinal} 
+                          onChange={(e) => setOsContaRecebimentoSinal(e.target.value)}
+                          style={{ backgroundColor: '#090a0f', color: '#34d399', border: '1px solid #222b45', padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                          <option value="MB WAY">MB WAY</option>
+                          <option value="Dinheiro">Dinheiro</option>
+                          <option value="Empresa / Transferência">Empresa / Transferência</option>
+                        </select>
                       </div>
                     </div>
                   )}
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Observações do Documento</label>
+                    <textarea placeholder="Ex: Renault Captur matrícula AZ-91-GI. IVA - regime de isenção." value={osObs} onChange={(e) => setOsObs(e.target.value)} rows={3} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '15px' }} />
+                  </div>
 
                   <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', fontWeight: 'bold', padding: '16px', borderRadius: '10px', border: 'none', cursor: 'pointer', marginTop: '12px', fontSize: '17px' }}>
                     {tipoRegistroOS === 'os' ? 'Criar Ordem de Serviço' : tipoRegistroOS === 'agendamento' ? 'Confirmar Agendamento' : 'Guardar Pedido de Orçamento'}
@@ -987,7 +1164,7 @@ export default function Home() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                   <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Livro-Caixa</h2>
-                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Registo financeiro com filtros por mês, datas e matrícula.</p>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Registo financeiro com receitas e custos detalhados.</p>
                 </div>
                 <button onClick={exportarRelatorioPDF} style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
                   📄 Gerar Relatório PDF
@@ -997,7 +1174,7 @@ export default function Home() {
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '20px', borderRadius: '16px', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
                 <div style={{ flex: '1', minWidth: '200px' }}>
                   <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>🔍 Filtrar por Matrícula / Veículo</label>
-                  <input type="text" placeholder="Ex: 0KM-7700" value={matriculaFiltro} onChange={(e) => setMatriculaFiltro(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '14px', textTransform: 'uppercase' }} />
+                  <input type="text" placeholder="Ex: AZ-91-GI" value={matriculaFiltro} onChange={(e) => setMatriculaFiltro(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '14px', textTransform: 'uppercase' }} />
                 </div>
                 <div style={{ flex: '1', minWidth: '180px' }}>
                   <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>📅 Filtrar por Mês (Ano-Mês)</label>
@@ -1091,13 +1268,13 @@ export default function Home() {
           {tab === 'config' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '800px' }}>
               <div>
-                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>⚙️ Dados da Empresa</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Informações oficiais impressas nos documentos.</p>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>⚙️ Dados Oficiais da Empresa</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Informações apresentadas nos orçamentos e ordens de serviço em PDF.</p>
               </div>
 
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Nome Comercial</label>
+                  <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Nome Comercial / Razão Social</label>
                   <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -1111,12 +1288,28 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Morada</label>
+                  <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Morada Completa</label>
                   <input type="text" value={dadosEmpresa.morada} onChange={(e) => setDadosEmpresa({...dadosEmpresa, morada: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Email</label>
-                  <input type="text" value={dadosEmpresa.email} onChange={(e) => setDadosEmpresa({...dadosEmpresa, email: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Capital Social</label>
+                    <input type="text" value={dadosEmpresa.capitalSocial} onChange={(e) => setDadosEmpresa({...dadosEmpresa, capitalSocial: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Conservatória</label>
+                    <input type="text" value={dadosEmpresa.conservatoria} onChange={(e) => setDadosEmpresa({...dadosEmpresa, conservatoria: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>IBAN</label>
+                    <input type="text" value={dadosEmpresa.iban} onChange={(e) => setDadosEmpresa({...dadosEmpresa, iban: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>SWIFT / BIC</label>
+                    <input type="text" value={dadosEmpresa.swift} onChange={(e) => setDadosEmpresa({...dadosEmpresa, swift: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                  </div>
                 </div>
               </div>
             </div>
