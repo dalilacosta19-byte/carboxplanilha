@@ -64,7 +64,10 @@ export default function Home() {
 
   const [osSinal, setOsSinal] = useState('300.00');
   const [osContaRecebimentoSinal, setOsContaRecebimentoSinal] = useState('MB WAY');
-  const [osContaRecebimentoFinal, setOsContaRecebimentoFinal] = useState('MB WAY');
+  
+  // Estado para modal de edição de serviços no pátio
+  const [osEmEdicao, setOsEmEdicao] = useState<any | null>(null);
+  const [contaFinalMetodo, setContaFinalMetodo] = useState('MB WAY');
 
   // Estados para autocompletar sugestões
   const [mostrarSugestoesCliente, setMostrarSugestoesCliente] = useState(false);
@@ -94,15 +97,17 @@ export default function Home() {
         { descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: 400.00, desconto: 0.00 },
         { descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: 900.00, desconto: 0.00 }
       ],
-      servico: 'Limpeza Detalhada + PPF Black Piano + Fusion Coating',
+      ivaTaxa: '23',
       observacoes: 'Renault Captur matrícula AZ-91-GI.', 
       custosDetalhados: [{ descricao: 'Película PPF', valor: 150.00 }], 
-      valorOriginal: 1420.00, 
+      valorBruto: 1420.00, 
       descontoTotal: 120.00, 
-      valorFinal: 1300.00, 
+      subtotal: 1300.00,
+      valorIva: 299.00,
+      valorFinal: 1599.00, 
       sinalPago: 300.00,
       contaRecebimentoSinal: 'MB WAY',
-      restanteAPagar: 1000.00,
+      restanteAPagar: 1299.00,
       status: 'Em Execução', 
       data: '2026-09-23' 
     }
@@ -263,11 +268,14 @@ export default function Home() {
         veiculo: osVeiculo || 'Renault Captur',
         matricula: matriculaU,
         servicosDetalhes: servicosDetalhesArray,
+        ivaTaxa: osIvaTaxa,
         servico: servicosDetalhesArray.map(s => s.descricao).join(' + '),
         observacoes: osObs || `${osVeiculo} matrícula ${matriculaU}.`,
         custosDetalhados: custosArray,
-        valorOriginal: valorBruto,
+        valorBruto,
         descontoTotal: totalDesc,
+        subtotal,
+        valorIva,
         valorFinal: valorFinalComIva,
         sinalPago: sinal,
         contaRecebimentoSinal: sinal > 0 ? osContaRecebimentoSinal : 'Nenhum',
@@ -452,26 +460,50 @@ export default function Home() {
   };
 
   const atualizarStatusOS = (id: number, novoStatus: string) => {
+    const osEncontrada = ordensServico.find(o => o.id === id);
+    if (!osEncontrada) return;
+
+    if (novoStatus === 'Pronto / Entregue' && osEncontrada.restanteAPagar > 0) {
+      // Abre prompt visual para escolher método de pagamento do restante
+      setOsEmEdicao(osEncontrada);
+      return;
+    }
+
+    setOrdensServico(ordensServico.map(os => os.id === id ? { ...os, status: novoStatus } : os));
+  };
+
+  const confirmarFinalizacaoComPagamento = (osId: number) => {
+    const osObj = ordensServico.find(o => o.id === osId);
+    if (!osObj) return;
+
+    const saldo = osObj.restanteAPagar;
+    const dataHoje = new Date().toISOString().split('T')[0];
+
+    if (saldo > 0) {
+      setTransacoes(prev => [{
+        id: Date.now(),
+        descricao: `Liquidação Final OS #${osObj.id} (${osObj.cliente}) via ${contaFinalMetodo}`,
+        matricula: osObj.matricula,
+        categoria: 'Serviço',
+        tipo: 'receita' as const,
+        valor: saldo,
+        data: dataHoje
+      }, ...prev]);
+    }
+
     setOrdensServico(ordensServico.map(os => {
-      if (os.id === id) {
-        const dataHoje = new Date().toISOString().split('T')[0];
-        if (novoStatus === 'Pronto / Entregue' && os.restanteAPagar > 0) {
-          const saldo = os.restanteAPagar;
-          setTransacoes(prev => [{
-            id: Date.now(),
-            descricao: `Liquidação Final OS #${os.id} (${os.cliente}) via ${osContaRecebimentoFinal}`,
-            matricula: os.matricula,
-            categoria: 'Serviço',
-            tipo: 'receita' as const,
-            valor: saldo,
-            data: dataHoje
-          }, ...prev]);
-          return { ...os, status: novoStatus, sinalPago: os.sinalPago + saldo, restanteAPagar: 0 };
-        }
-        return { ...os, status: novoStatus };
+      if (os.id === osId) {
+        return {
+          ...os,
+          status: 'Pronto / Entregue',
+          sinalPago: os.sinalPago + saldo,
+          restanteAPagar: 0
+        };
       }
       return os;
     }));
+
+    setOsEmEdicao(null);
   };
 
   const menuItems = [
@@ -610,20 +642,24 @@ export default function Home() {
                       <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', fontSize: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #1e2235' }}>
                         <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente} {os.contacto && <span style={{ color: '#94a3b8', fontSize: '13px' }}>({os.contacto})</span>}</p>
                         <div>
-                          <p style={{ margin: '0 0 4px 0', color: '#d4af37', fontWeight: 'bold', fontSize: '14px' }}>Serviços e Descontos:</p>
-                          {os.servicosDetalhes ? (
-                            os.servicosDetalhes.map((s: any, idx: number) => (
-                              <p key={idx} style={{ margin: '2px 0', color: '#cbd5e1', fontSize: '14px' }}>• {s.descricao} - <b>{(s.valor - (s.desconto || 0)).toFixed(2)}€</b> {s.desconto > 0 && <span style={{ color: '#f87171', fontSize: '12px' }}>(Desc: {s.desconto.toFixed(2)}€)</span>}</p>
-                            ))
-                          ) : (
-                            <p style={{ margin: 0, color: '#cbd5e1' }}>{(os as any).servico}</p>
-                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <p style={{ margin: 0, color: '#d4af37', fontWeight: 'bold', fontSize: '14px' }}>Serviços e Descontos:</p>
+                            <button 
+                              onClick={() => setOsEmEdicao(os)}
+                              style={{ backgroundColor: 'rgba(37, 99, 235, 0.2)', color: '#60a5fa', border: '1px solid rgba(37, 99, 235, 0.4)', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                            >
+                              ✏️ Adicionar / Modificar Serviços
+                            </button>
+                          </div>
+                          {os.servicosDetalhes && os.servicosDetalhes.map((s: any, idx: number) => (
+                            <p key={idx} style={{ margin: '2px 0', color: '#cbd5e1', fontSize: '14px' }}>• {s.descricao} - <b>{(s.valor - (s.desconto || 0)).toFixed(2)}€</b> {s.desconto > 0 && <span style={{ color: '#f87171', fontSize: '12px' }}>(Desc: {s.desconto.toFixed(2)}€)</span>}</p>
+                          ))}
                         </div>
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '15px', borderTop: '1px solid #1e2235', paddingTop: '14px' }}>
                         <div>
-                          <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span><br/>
+                          <span style={{ color: '#94a3b8' }}>Total c/ IVA: <b>{os.valorFinal.toFixed(2)}€</b></span><br/>
                           <span style={{ color: '#34d399' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b></span>
                         </div>
                         <div style={{ textAlign: 'right' }}>
@@ -634,6 +670,143 @@ export default function Home() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* MODAL DE LIQUIDAÇÃO FINAL OU EDIÇÃO DE SERVIÇOS NO PÁTIO */}
+          {osEmEdicao && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+              <div style={{ backgroundColor: '#131722', border: '1px solid #d4af37', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '90vh', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>
+                    {osEmEmEdicaoRestanteCheck(osEmEdicao) ? '💰 Liquidar Restante e Finalizar OS' : '✏️ Modificar Serviços - Registo #' + osEmEdicao.id}
+                  </h3>
+                  <button onClick={() => setOsEmEdicao(null)} style={{ background: 'none', border: 'none', color: '#f87171', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+                </div>
+
+                {/* Se estiver a liquidar o restante */}
+                {osEmEdicao.restanteAPagar > 0 && osEmEdicao.status !== 'Pronto / Entregue' && (
+                  <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <p style={{ margin: 0, color: '#cbd5e1', fontSize: '15px' }}>O cliente vai liquidar o valor restante de <b style={{ color: '#f87171', fontSize: '18px' }}>{osEmEdicao.restanteAPagar.toFixed(2)} €</b>.</p>
+                    
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>Método de Pagamento:</label>
+                      <select 
+                        value={contaFinalMetodo} 
+                        onChange={(e) => setContaFinalMetodo(e.target.value)}
+                        style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#34d399', padding: '14px', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold' }}
+                      >
+                        <option value="MB WAY">MB WAY</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Empresa / Transferência">Empresa / Transferência</option>
+                      </select>
+                    </div>
+
+                    <button 
+                      onClick={() => confirmarFinalizacaoComPagamento(osEmEdicao.id)}
+                      style={{ backgroundColor: '#34d399', color: '#090a0f', fontWeight: 'bold', padding: '14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '16px', marginTop: '10px' }}
+                    >
+                      ✅ Confirmar Recebimento e Marcar como Pronto / Entregue
+                    </button>
+                  </div>
+                )}
+
+                {/* Edição de serviços adicionais */}
+                <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <p style={{ margin: 0, color: '#d4af37', fontWeight: 'bold', fontSize: '15px' }}>🛠️ Acrescentar ou Alterar Serviços:</p>
+                  
+                  {osEmEdicao.servicosDetalhes.map((s: any, sIdx: number) => (
+                    <div key={sIdx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 40px', gap: '8px', alignItems: 'center' }}>
+                      <input 
+                        type="text" 
+                        value={s.descricao} 
+                        onChange={(e) => {
+                          const novaLista = [...osEmEdicao.servicosDetalhes];
+                          novaLista[sIdx].descricao = e.target.value;
+                          setOsEmEdicao({...osEmEdicao, servicosDetalhes: novaLista});
+                        }}
+                        style={{ backgroundColor: '#131722', border: '1px solid #222b45', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '14px' }}
+                      />
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        value={s.valor} 
+                        onChange={(e) => {
+                          const val = Number(e.target.value) || 0;
+                          const novaLista = [...osEmEdicao.servicosDetalhes];
+                          novaLista[sIdx].valor = val;
+                          setOsEmEdicao({...osEmEdicao, servicosDetalhes: novaLista});
+                        }}
+                        style={{ backgroundColor: '#131722', border: '1px solid #222b45', color: '#34d399', padding: '10px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold' }}
+                      />
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        value={s.desconto} 
+                        onChange={(e) => {
+                          const desc = Number(e.target.value) || 0;
+                          const novaLista = [...osEmEdicao.servicosDetalhes];
+                          novaLista[sIdx].desconto = desc;
+                          setOsEmEdicao({...osEmEdicao, servicosDetalhes: novaLista});
+                        }}
+                        style={{ backgroundColor: '#131722', border: '1px solid #222b45', color: '#f87171', padding: '10px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold' }}
+                      />
+                      <button 
+                        onClick={() => {
+                          const novaLista = osEmEdicao.servicosDetalhes.filter((_: any, i: number) => i !== sIdx);
+                          setOsEmEdicao({...osEmEdicao, servicosDetalhes: novaLista});
+                        }}
+                        style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+
+                  <button 
+                    onClick={() => {
+                      const novaLista = [...osEmEdicao.servicosDetalhes, { descricao: 'Novo Serviço Adicional', funcionario: 'Não atribuído', valor: 0, desconto: 0 }];
+                      setOsEmEdicao({...osEmEdicao, servicosDetalhes: novaLista});
+                    }}
+                    style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    + Adicionar Nova Linha de Serviço
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      // Recalcular totais
+                      let bruto = 0;
+                      let descTotal = 0;
+                      osEmEdicao.servicosDetalhes.forEach((s: any) => {
+                        bruto += Number(s.valor) || 0;
+                        descTotal += Number(s.desconto) || 0;
+                      });
+                      const sub = Math.max(0, bruto - descTotal);
+                      const ivaVal = osEmEdicao.ivaTaxa === '23' ? sub * 0.23 : 0;
+                      const final = sub + ivaVal;
+                      const restanteCalc = Math.max(0, final - osEmEdicao.sinalPago);
+
+                      const atualizado = {
+                        ...osEmEdicao,
+                        valorBruto: bruto,
+                        descontoTotal: descTotal,
+                        subtotal: sub,
+                        valorIva: ivaVal,
+                        valorFinal: final,
+                        restanteAPagar: restanteCalc
+                      };
+
+                      setOrdensServico(ordensServico.map(o => o.id === atualizado.id ? atualizado : o));
+                      setOsEmEdicao(null);
+                      alert('Serviços atualizados com sucesso!');
+                    }}
+                    style={{ backgroundColor: '#d4af37', color: '#090a0f', fontWeight: 'bold', padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}
+                  >
+                    💾 Guardar Alterações na OS
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1136,4 +1309,8 @@ export default function Home() {
       </div>
     </div>
   );
+}
+
+function osEmEmEdicaoRestanteCheck(os: any) {
+  return os && os.restanteAPagar > 0;
 }
