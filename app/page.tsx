@@ -55,7 +55,9 @@ export default function Home() {
   const [osCustos, setOsCustos] = useState('0');
   const [osDesconto, setOsDesconto] = useState('0');
   const [osSinal, setOsSinal] = useState('0');
-  const [osContaRecebimento, setOsContaRecebimento] = useState('MB WAY');
+  const [osContaRecebimentoSinal, setOsContaRecebimentoSinal] = useState('MB WAY');
+  const [osContaRecebimentoFinal, setOsContaRecebimentoFinal] = useState('MB WAY');
+  
   const [osDataAgend, setOsDataAgend] = useState('2026-06-01');
   const [osHoraAgend, setOsHoraAgend] = useState('09:00');
 
@@ -203,7 +205,7 @@ export default function Home() {
 
     if (tipoRegistroOS === 'os') {
       const somaServicos = calcularValorTotalServicos();
-      const valorOrig = somaServicos > 0 ? somaServicos : (Number(osValorInput) || 0);
+      const valorOrig = somaServicos > 0 ? somaServicos : 0;
       const desc = Number(osDesconto) || 0;
       const valorFin = Math.max(0, valorOrig - desc);
       const sinal = Number(osSinal) || 0;
@@ -230,7 +232,7 @@ export default function Home() {
         desconto: desc,
         valorFinal: valorFin,
         sinalPago: sinal,
-        contaRecebimentoSinal: sinal > 0 ? osContaRecebimento : 'Nenhum',
+        contaRecebimentoSinal: sinal > 0 ? osContaRecebimentoSinal : 'Nenhum',
         restanteAPagar: restante,
         status: 'Em Execução',
         data: dataHoje
@@ -241,7 +243,7 @@ export default function Home() {
       if (sinal > 0) {
         setTransacoes(prev => [{
           id: Date.now(),
-          descricao: `Sinal OS #${novaOS.id} (${matriculaU}) via ${osContaRecebimento}`,
+          descricao: `Sinal OS #${novaOS.id} (${matriculaU}) via ${osContaRecebimentoSinal}`,
           matricula: matriculaU,
           categoria: 'Serviço',
           tipo: 'receita' as const,
@@ -304,8 +306,6 @@ export default function Home() {
     setOsSinal('0');
   };
 
-  const [osValorInput, setOsValorInput] = useState('');
-
   const atualizarStatusOS = (id: number, novoStatus: string) => {
     setOrdensServico(ordensServico.map(os => {
       if (os.id === id) {
@@ -314,7 +314,7 @@ export default function Home() {
           const saldo = os.restanteAPagar;
           setTransacoes(prev => [{
             id: Date.now(),
-            descricao: `Liquidação Final OS #${os.id} (${os.cliente})`,
+            descricao: `Liquidação Final OS #${os.id} (${os.cliente}) via ${osContaRecebimentoFinal}`,
             matricula: os.matricula,
             categoria: 'Serviço',
             tipo: 'receita' as const,
@@ -361,7 +361,7 @@ export default function Home() {
           </table>
           <div style="margin-top: 20px; text-align: right; font-size: 15px;">
             <p>Subtotal: ${os.valorOriginal.toFixed(2)}€ | Desconto: -${os.desconto.toFixed(2)}€</p>
-            <p style="color: #059669;">Sinal Pago: -${os.sinalPago.toFixed(2)}€</p>
+            <p style="color: #059669;">Sinal Pago: -${os.sinalPago.toFixed(2)}€ (${os.contaRecebimentoSinal})</p>
             <h3 style="color: #d4af37;">Restante a Pagar: ${os.restanteAPagar.toFixed(2)}€</h3>
           </div>
           <script>window.onload = function() { window.print(); }</script>
@@ -508,6 +508,23 @@ export default function Home() {
                 </button>
               </div>
 
+              {/* SELETOR DA FORMA DE PAGAMENTO FINAL AO LIQUIDAR */}
+              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '20px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+                <div>
+                  <p style={{ fontSize: '15px', color: '#fff', fontWeight: 'bold', margin: '0 0 4px 0' }}>💳 Forma de Pagamento para Liquidação Final:</p>
+                  <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>Esta opção será aplicada quando alterar o status de uma OS para "Pronto / Entregue".</p>
+                </div>
+                <select 
+                  value={osContaRecebimentoFinal}
+                  onChange={(e) => setOsContaRecebimentoFinal(e.target.value)}
+                  style={{ backgroundColor: '#090a0f', color: '#34d399', border: '1px solid #222b45', padding: '12px 18px', borderRadius: '10px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  <option value="MB WAY">MB WAY</option>
+                  <option value="Dinheiro">Dinheiro</option>
+                  <option value="Empresa / Transferência">Empresa / Transferência</option>
+                </select>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
                 {ordensServico.map(os => {
                   const badge = getBadgeStyle(os.status);
@@ -549,7 +566,7 @@ export default function Home() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '15px', borderTop: '1px solid #1e2235', paddingTop: '14px' }}>
                         <div>
                           <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span><br/>
-                          <span style={{ color: '#34d399' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b></span>
+                          <span style={{ color: '#34d399' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b> <span style={{ fontSize: '12px', color: '#94a3b8' }}>({os.contaRecebimentoSinal})</span></span>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                           <span style={{ color: '#94a3b8' }}>Falta Pagar:</span><br/>
@@ -814,7 +831,18 @@ export default function Home() {
                       </div>
                       <div>
                         <label style={{ display: 'block', fontSize: '14px', color: '#34d399', marginBottom: '8px', fontWeight: 'bold' }}>Sinal Entrada (€)</label>
-                        <input type="number" step="0.01" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input type="number" step="0.01" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                          <select 
+                            value={osContaRecebimentoSinal} 
+                            onChange={(e) => setOsContaRecebimentoSinal(e.target.value)}
+                            style={{ backgroundColor: '#090a0f', color: '#34d399', border: '1px solid #222b45', padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
+                          >
+                            <option value="MB WAY">MB WAY</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Empresa / Transferência">Empresa / Transferência</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
                   )}
