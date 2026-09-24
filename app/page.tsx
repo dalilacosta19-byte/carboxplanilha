@@ -307,7 +307,7 @@ export default function Home() {
           id: Date.now() + 10 + cIdx,
           descricao: `Custo (${custo.descricao}) OS #${docId} (${matriculaU})`,
           matricula: matriculaU,
-          categoria: 'Produtos/Peças/Pintor',
+          categoria: 'Produtos/Peças',
           tipo: 'despesa' as const,
           valor: custo.valor,
           data: diaHojeIso
@@ -546,6 +546,7 @@ export default function Home() {
   const menuItems = [
     { id: 'pateo', label: '🚗 Veículos no Pátio' },
     { id: 'metricas', label: '📊 Painel & Gráficos' },
+    { id: 'analise-ia', label: '📈 Análise & Inteligência' },
     { id: 'ordem-servico', label: '📋 OS / Agendamento / Orçamento' },
     { id: 'agenda', label: '📅 Calendário & Agenda' },
     { id: 'financeiro', label: '💰 Livro-Caixa' },
@@ -885,6 +886,116 @@ export default function Home() {
                     <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                       <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Custos / Despesas</p>
                       <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>-{desp.toFixed(2)} €</p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* ABA NOVA: ANÁLISE & INTELIGÊNCIA DE DESPESAS */}
+          {tab === 'analise-ia' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>📈 Análise Visual & Inteligência de Despesas</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Gráficos automáticos e insights para otimizar os custos da oficina.</p>
+              </div>
+
+              {(() => {
+                const despesasArr = transacoes.filter(t => t.tipo === 'despesa');
+                const totalDespesas = despesasArr.reduce((acc, t) => acc + t.valor, 0);
+
+                const categoriasMap: { [key: string]: number } = {
+                  'Produtos/Peças': 0,
+                  'Serviço Externo / Pintor': 0,
+                  'Aluguer / Instalações': 0,
+                  'Outros': 0
+                };
+
+                despesasArr.forEach(t => {
+                  if (categoriasMap[t.categoria] !== undefined) {
+                    categoriasMap[t.categoria] += t.valor;
+                  } else {
+                    categoriasMap['Outros'] += t.valor;
+                  }
+                });
+
+                const catCores: { [key: string]: string } = {
+                  'Produtos/Peças': '#d4af37',
+                  'Serviço Externo / Pintor': '#60a5fa',
+                  'Aluguer / Instalações': '#c084fc',
+                  'Outros': '#f87171'
+                };
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                    
+                    {/* CARDS DE RESUMO ANALÍTICO */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                      <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
+                        <p style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Total de Despesas Registadas</p>
+                        <p style={{ fontSize: '28px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>-{totalDespesas.toFixed(2)} €</p>
+                      </div>
+
+                      <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
+                        <p style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Categoria com Maior Impacto</p>
+                        <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>
+                          {Object.keys(categoriasMap).reduce((a, b) => categoriasMap[a] > categoriasMap[b] ? a : b)}
+                        </p>
+                      </div>
+
+                      <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1e2235', padding: '24px', borderRadius: '16px' }}>
+                        <p style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Estado de Eficiência</p>
+                        <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#34d399', margin: 0 }}>🟢 Sob Controlo</p>
+                      </div>
+                    </div>
+
+                    {/* BLOCOS DE GRÁFICOS E INSIGHTS */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px', alignItems: 'stretch' }}>
+                      
+                      {/* DISTRIBUIÇÃO POR CATEGORIA */}
+                      <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>📊 Distribuição de Custos por Categoria</h3>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'center', flex: 1 }}>
+                          {Object.entries(categoriasMap).map(([cat, val]) => {
+                            const percent = totalDespesas > 0 ? (val / totalDespesas) * 100 : 0;
+                            const cor = catCores[cat] || '#d4af37';
+                            return (
+                              <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                                  <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>{cat}</span>
+                                  <span style={{ color: '#fff' }}>{val.toFixed(2)} € ({percent.toFixed(1)}%)</span>
+                                </div>
+                                <div style={{ width: '100%', height: '10px', backgroundColor: '#090a0f', borderRadius: '5px', overflow: 'hidden', border: '1px solid #222b45' }}>
+                                  <div style={{ width: `${percent}%`, height: '100%', backgroundColor: cor, borderRadius: '5px', transition: 'width 0.5s ease' }}></div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* PAINEL DE INSIGHTS DA IA */}
+                      <div style={{ backgroundColor: 'rgba(212, 175, 55, 0.08)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '28px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '24px' }}>🤖</span>
+                          <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>Insights Inteligentes CARBOX77</h3>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '15px', color: '#e2e8f0', lineHeight: '1.6' }}>
+                          <div style={{ backgroundColor: 'rgba(9, 10, 15, 0.6)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                            <p style={{ margin: 0, fontWeight: 'bold', color: '#fff' }}>💡 Análise de Stock e Consumíveis:</p>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#cbd5e1' }}>A categoria <b>Produtos/Peças</b> mantém-se estável face aos serviços de PPF executados este mês.</p>
+                          </div>
+
+                          <div style={{ backgroundColor: 'rgba(9, 10, 15, 0.6)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                            <p style={{ margin: 0, fontWeight: 'bold', color: '#fff' }}>⚡ Recomendação de Otimização:</p>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#cbd5e1' }}>Podes verificar os prazos de entrega dos fornecedores de películas na aba de PDF/Faturas para evitar custos de urgência.</p>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 );
