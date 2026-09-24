@@ -11,8 +11,6 @@ export default function Home() {
     morada: 'Rua da Torre, Pavilhão Guilherme Pinto Basto, 2750-748 Cascais, Portugal',
     telefone: '+351 211 515 449',
     email: 'carbox77detailing@gmail.com',
-    capitalSocial: '50000,00',
-    conservatoria: 'Registo Comercial de Lisboa',
     iban: 'PT50 0033 0000 4546 1405 9370 5',
     swift: 'BCOPTPL'
   });
@@ -335,7 +333,7 @@ export default function Home() {
         <body>
           <div class="header-container">
             <div>
-              <img src="https://i.ibb.co/30B3v5C/carbox-logo.png" alt="CarBox77 Detailing" style="max-height: 55px; width: auto;" />
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAADgCAMAAACuWf6gAAAAA1BMVEX///+nxBvIAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAASElEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC3AWO3AAEo0g7XAAAAAElFTkSuQmCC" alt="CarBox77 Detailing" style="max-height: 55px; width: auto;" />
             </div>
             <div class="doc-title-box">
               <h2>${tituloDoc}</h2>
@@ -346,10 +344,8 @@ export default function Home() {
           <div class="company-details">
             <b>${dadosEmpresa.nome}</b><br/>
             ${dadosEmpresa.morada}<br/>
-            <b>E-mail:</b> ${dadosEmpresa.email}<br/>
-            <b>NIF:</b> ${dadosEmpresa.nif}<br/>
-            <b>Capital Social:</b> ${dadosEmpresa.capitalSocial}<br/>
-            <b>Conservatória:</b> ${dadosEmpresa.conservatoria}
+            <b>E-mail:</b> ${dadosEmpresa.email} | <b>Telemóvel:</b> ${dadosEmpresa.telefone}<br/>
+            <b>NIF:</b> ${dadosEmpresa.nif}
           </div>
 
           <div class="client-box">
@@ -486,7 +482,7 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
       
-      {/* HEADER */}
+      {/* HEADER DA APLICAÇÃO */}
       <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div>
