@@ -44,7 +44,8 @@ export default function Home() {
   const [osContacto, setOsContacto] = useState('+351 922 333 444');
   const [osVeiculo, setOsVeiculo] = useState('Renault Captur');
   const [osMatricula, setOsMatricula] = useState('AZ-91-GI');
-  const [osObs, setOsObs] = useState('Renault Captur matrícula AZ-91-GI. IVA - regime de isenção.');
+  const [osIvaTaxa, setOsIvaTaxa] = useState<'23' | 'isento'>('23');
+  const [osObs, setOsObs] = useState('Renault Captur matrícula AZ-91-GI.');
 
   const [osDataAgend, setOsDataAgend] = useState('2026-09-23');
   const [osHoraAgend, setOsHoraAgend] = useState('14:00');
@@ -94,7 +95,7 @@ export default function Home() {
         { descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: 900.00, desconto: 0.00 }
       ],
       servico: 'Limpeza Detalhada + PPF Black Piano + Fusion Coating',
-      observacoes: 'Renault Captur matrícula AZ-91-GI. IVA - regime de isenção.', 
+      observacoes: 'Renault Captur matrícula AZ-91-GI.', 
       custosDetalhados: [{ descricao: 'Película PPF', valor: 150.00 }], 
       valorOriginal: 1420.00, 
       descontoTotal: 120.00, 
@@ -227,13 +228,13 @@ export default function Home() {
 
     const tituloDoc = tipoRegistroOS === 'orcamento' ? 'ORÇAMENTO' : tipoDocumentoGerar;
 
-    let valorOrig = 0;
+    let valorBruto = 0;
     let totalDesc = 0;
 
     const servicosDetalhesArray = listaItensServico.map(i => {
       const val = Number(i.valor) || 0;
       const desc = Number(i.desconto) || 0;
-      valorOrig += val;
+      valorBruto += val;
       totalDesc += desc;
       return { 
         descricao: i.descricao || 'Serviço Geral', 
@@ -243,9 +244,12 @@ export default function Home() {
       };
     });
 
-    const valorFin = Math.max(0, valorOrig - totalDesc);
+    const subtotal = Math.max(0, valorBruto - totalDesc);
+    const valorIva = osIvaTaxa === '23' ? subtotal * 0.23 : 0;
+    const valorFinalComIva = subtotal + valorIva;
+    
     const sinal = Number(osSinal) || 0;
-    const restante = Math.max(0, valorFin - sinal);
+    const restante = Math.max(0, valorFinalComIva - sinal);
     const custosArray = listaCustosDetalhados.filter(c => c.descricao && Number(c.valor) > 0).map(c => ({ descricao: c.descricao, valor: Number(c.valor) }));
     const matriculaU = osMatricula ? osMatricula.toUpperCase() : 'SEM MATRÍCULA';
     const dataHoje = new Date().toISOString().split('T')[0];
@@ -260,11 +264,11 @@ export default function Home() {
         matricula: matriculaU,
         servicosDetalhes: servicosDetalhesArray,
         servico: servicosDetalhesArray.map(s => s.descricao).join(' + '),
-        observacoes: osObs || `${osVeiculo} matrícula ${matriculaU}. IVA - regime de isenção.`,
+        observacoes: osObs || `${osVeiculo} matrícula ${matriculaU}.`,
         custosDetalhados: custosArray,
-        valorOriginal: valorOrig,
+        valorOriginal: valorBruto,
         descontoTotal: totalDesc,
-        valorFinal: valorFin,
+        valorFinal: valorFinalComIva,
         sinalPago: sinal,
         contaRecebimentoSinal: sinal > 0 ? osContaRecebimentoSinal : 'Nenhum',
         restanteAPagar: restante,
@@ -328,7 +332,7 @@ export default function Home() {
             
             .summary-container { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px; }
             .bank-info { font-size: 11px; color: #333; line-height: 1.5; }
-            .totals-box { width: 300px; font-size: 12px; }
+            .totals-box { width: 320px; font-size: 12px; }
             .totals-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
             .totals-row.final { font-size: 15px; font-weight: bold; color: #111; border-top: 2px solid #111; border-bottom: none; padding-top: 8px; margin-top: 4px; }
             
@@ -378,24 +382,29 @@ export default function Home() {
                 <th>Item</th>
                 <th>Preço Unit.</th>
                 <th>Quant.</th>
-                <th>Total c/ IVA</th>
+                <th>Total s/ IVA</th>
                 <th>Desc.</th>
                 <th>IVA</th>
                 <th>Total c/ IVA</th>
               </tr>
             </thead>
             <tbody>
-              ${servicosDetalhesArray.map((s) => `
-                <tr>
-                  <td><b>${s.descricao}</b> ${s.funcionario ? `<br/><span style="color:#666; font-size:11px;">Técnico: ${s.funcionario}</span>` : ''}</td>
-                  <td>${s.valor.toFixed(2)}€</td>
-                  <td>1,0</td>
-                  <td>${s.valor.toFixed(2)}€</td>
-                  <td>${s.desconto ? s.desconto.toFixed(2) + '€' : '0,00€'}</td>
-                  <td>23,00%</td>
-                  <td><b>${(s.valor - (s.desconto || 0)).toFixed(2)}€</b></td>
-                </tr>
-              `).join('')}
+              ${servicosDetalhesArray.map((s) => {
+                const itemTotalSemIva = s.valor - (s.desconto || 0);
+                const itemIvaVal = osIvaTaxa === '23' ? itemTotalSemIva * 0.23 : 0;
+                const itemTotalComIva = itemTotalSemIva + itemIvaVal;
+                return `
+                  <tr>
+                    <td><b>${s.descricao}</b> ${s.funcionario ? `<br/><span style="color:#666; font-size:11px;">Técnico: ${s.funcionario}</span>` : ''}</td>
+                    <td>${s.valor.toFixed(2)}€</td>
+                    <td>1,0</td>
+                    <td>${itemTotalSemIva.toFixed(2)}€</td>
+                    <td>${s.desconto ? s.desconto.toFixed(2) + '€' : '0,00€'}</td>
+                    <td>${osIvaTaxa === '23' ? '23,00%' : 'Isento'}</td>
+                    <td><b>${itemTotalComIva.toFixed(2)}€</b></td>
+                  </tr>
+                `;
+              }).join('')}
             </tbody>
           </table>
 
@@ -409,11 +418,19 @@ export default function Home() {
             <div class="totals-box">
               <div class="totals-row">
                 <span>Total Bruto:</span>
-                <span>${valorOrig.toFixed(2)}€</span>
+                <span>${valorBruto.toFixed(2)}€</span>
               </div>
               <div class="totals-row">
                 <span>Desconto Total:</span>
                 <span>-${totalDesc.toFixed(2)}€</span>
+              </div>
+              <div class="totals-row">
+                <span>Total Sem IVA:</span>
+                <span><b>${subtotal.toFixed(2)}€</b></span>
+              </div>
+              <div class="totals-row">
+                <span>IVA (${osIvaTaxa === '23' ? '23%' : 'Isento'}):</span>
+                <span>+${valorIva.toFixed(2)}€</span>
               </div>
               ${sinal > 0 ? `
               <div class="totals-row">
@@ -421,17 +438,13 @@ export default function Home() {
                 <span style="color:#059669;">-${sinal.toFixed(2)}€</span>
               </div>` : ''}
               <div class="totals-row final">
-                <span>Total:</span>
-                <span>${restante.toFixed(2)}€</span>
-              </div>
-              <div style="font-size:11px; color:#555; margin-top:8px; text-align:right;">
-                Total Sem IVA: ${valorFin.toFixed(2)}€<br/>
-                IVA: 0,00€
+                <span>Total Final c/ IVA:</span>
+                <span>${valorFinalComIva.toFixed(2)}€</span>
               </div>
             </div>
           </div>
 
-          ${osObs ? `<div class="obs-box"><b>Observações:</b> ${osObs}</div>` : ''}
+          ${osObs ? `<div class="obs-box"><b>Observações:</b> ${osObs} ${osIvaTaxa === 'isento' ? '<br/>IVA - Regime de isenção.' : ''}</div>` : ''}
         </body>
       </html>
     `);
@@ -741,9 +754,18 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Viatura</label>
-                    <input type="text" placeholder="Ex: Renault Captur" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Viatura</label>
+                      <input type="text" placeholder="Ex: Renault Captur" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>Regime de IVA</label>
+                      <select value={osIvaTaxa} onChange={(e) => setOsIvaTaxa(e.target.value as any)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>
+                        <option value="23">IVA 23% (Normal)</option>
+                        <option value="isento">Isento (0%)</option>
+                      </select>
+                    </div>
                   </div>
 
                   {tipoRegistroOS === 'agendamento' && (
