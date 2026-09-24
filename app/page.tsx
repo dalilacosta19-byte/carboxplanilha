@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [tab, setTab] = useState('pateo');
@@ -15,30 +15,38 @@ export default function Home() {
     swift: 'BCOPTPL'
   });
 
+  // Funcionários com tipos corretos de remuneração (Comissão, Fixo, Diária)
   const [funcionarios, setFuncionarios] = useState([
-    { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 },
-    { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000 },
-    { id: 3, nome: 'Ricardo Costa', cargo: 'Polidor Externo', tipoRemuneracao: 'diaria', valorPctOuFixo: 75 },
-    { id: 4, nome: 'Kevin', cargo: 'Detailer', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 }
+    { id: 1, nome: 'João Silva', tipoRemuneracao: 'comissao', valorRemuneracao: '30' },
+    { id: 2, nome: 'Miguel Santos', tipoRemuneracao: 'fixo', valorRemuneracao: '1000' },
+    { id: 3, nome: 'Ricardo Costa', tipoRemuneracao: 'diaria', valorRemuneracao: '75' },
+    { id: 4, nome: 'Kevin', tipoRemuneracao: 'comissao', valorRemuneracao: '30' }
   ]);
   const [novoFuncNome, setNovoFuncNome] = useState('');
-  const [novoFuncCargo, setNovoFuncCargo] = useState('');
-  const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
-  const [valorRemuneracao, setValorRemuneracao] = useState('30');
+  const [novoFuncTipo, setNovoFuncTipo] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
+  const [novoFuncValor, setNovoFuncValor] = useState('30');
 
-  // Agenda integrada
+  // Data de hoje automática (24 de Setembro de 2026 como base dinâmica)
+  const dataHojeObj = new Date();
+  const anoAtualReal = dataHojeObj.getFullYear();
+  const mesAtualReal = dataHojeObj.getMonth(); // 8 = Setembro
+  const diaHojeIso = dataHojeObj.toISOString().split('T')[0];
+
+  // Agenda integrada com tipos (Serviço vs Orçamento/Avaliação)
   const [agendamentos, setAgendamentos] = useState([
-    { id: 1, tipo: 'Agendamento', cliente: 'Carla Monteiro', contacto: '+351 922 333 444', veiculo: 'Renault Captur', matricula: 'AZ-91-GI', servico: 'Limpeza Detalhada + PPF', data: '2026-09-23', hora: '14:00', status: 'Agendado' }
+    { id: 1, tipo: 'Serviço', cliente: 'Carla Monteiro', contacto: '+351 922 333 444', veiculo: 'Renault Captur', matricula: 'AZ-91-GI', servico: 'Limpeza Detalhada + PPF', data: diaHojeIso, hora: '14:00', status: 'Agendado' },
+    { id: 2, tipo: 'Avaliação / Orçamento', cliente: 'Bernardo Silva', contacto: '+351 911 222 333', veiculo: 'BMW M3', matricula: '45-XX-89', servico: 'Orçamento Polimento e Cerâmica', data: diaHojeIso, hora: '10:30', status: 'Pendente' }
   ]);
 
   // Navegação do Calendário
-  const [anoAtualCal, setAnoAtualCal] = useState(2026);
-  const [mesAtualCal, setMesAtualCal] = useState(8); // Setembro
-  const [diaSelecionadoCal, setDiaSelecionadoCal] = useState('2026-09-23');
+  const [anoAtualCal, setAnoAtualCal] = useState(anoAtualReal);
+  const [mesAtualCal, setMesAtualCal] = useState(mesAtualReal); 
+  const [diaSelecionadoCal, setDiaSelecionadoCal] = useState(diaHojeIso);
 
   // Formulário Unificado (OS / Orçamento / Agendamento)
   const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('orcamento');
   const [tipoDocumentoGerar, setTipoDocumentoGerar] = useState<'ORÇAMENTO' | 'ORDEM DE SERVIÇO'>('ORÇAMENTO');
+  const [tipoAgendamentoForm, setTipoAgendamentoForm] = useState<'Serviço' | 'Avaliação / Orçamento'>('Serviço');
   
   const [osCliente, setOsCliente] = useState('Carla Monteiro');
   const [osContacto, setOsContacto] = useState('+351 922 333 444');
@@ -47,7 +55,7 @@ export default function Home() {
   const [osIvaTaxa, setOsIvaTaxa] = useState<'23' | 'isento'>('23');
   const [osObs, setOsObs] = useState('Renault Captur matrícula AZ-91-GI.');
 
-  const [osDataAgend, setOsDataAgend] = useState('2026-09-23');
+  const [osDataAgend, setOsDataAgend] = useState(diaHojeIso);
   const [osHoraAgend, setOsHoraAgend] = useState('14:00');
 
   // Múltiplos serviços com técnicos, valores e descontos individuais
@@ -65,7 +73,7 @@ export default function Home() {
   const [osSinal, setOsSinal] = useState('300.00');
   const [osContaRecebimentoSinal, setOsContaRecebimentoSinal] = useState('MB WAY');
   
-  // Estado para modal de edição de serviços no pátio
+  // Estado para modal de edição de serviços no pátio ou liquidação
   const [osEmEdicao, setOsEmEdicao] = useState<any | null>(null);
   const [contaFinalMetodo, setContaFinalMetodo] = useState('MB WAY');
 
@@ -109,24 +117,24 @@ export default function Home() {
       contaRecebimentoSinal: 'MB WAY',
       restanteAPagar: 1299.00,
       status: 'Em Execução', 
-      data: '2026-09-23' 
+      data: diaHojeIso 
     }
   ]);
 
   const [transacoes, setTransacoes] = useState([
-    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-09-23' },
-    { id: 2, descricao: 'Compra Película PPF', matricula: 'AZ-91-GI', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: '2026-09-23' }
+    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: diaHojeIso },
+    { id: 2, descricao: 'Compra Película PPF', matricula: 'AZ-91-GI', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: diaHojeIso }
   ]);
 
   const feriadosPortugal = [
-    { data: '2026-01-01', nome: 'Ano Novo' },
-    { data: '2026-04-25', nome: 'Dia da Liberdade' },
-    { data: '2026-05-01', nome: 'Dia do Trabalhador' },
-    { data: '2026-06-10', nome: 'Dia de Portugal' },
-    { data: '2026-08-15', nome: 'Assunção de Nossa Senhora' },
-    { data: '2026-10-05', nome: 'Implantação da República' },
-    { data: '2026-12-01', nome: 'Restauração da Independência' },
-    { data: '2026-12-25', nome: 'Natal' }
+    { data: `${anoAtualCal}-01-01`, nome: 'Ano Novo' },
+    { data: `${anoAtualCal}-04-25`, nome: 'Dia da Liberdade' },
+    { data: `${anoAtualCal}-05-01`, nome: 'Dia do Trabalhador' },
+    { data: `${anoAtualCal}-06-10`, nome: 'Dia de Portugal' },
+    { data: `${anoAtualCal}-08-15`, nome: 'Assunção de Nossa Senhora' },
+    { data: `${anoAtualCal}-10-05`, nome: 'Implantação da República' },
+    { data: `${anoAtualCal}-12-01`, nome: 'Restauração da Independência' },
+    { data: `${anoAtualCal}-12-25`, nome: 'Natal' }
   ];
 
   const clientesCadastrados = Array.from(new Set([
@@ -196,10 +204,10 @@ export default function Home() {
 
   const adicionarFuncionario = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!novoFuncNome || !novoFuncCargo) return;
-    setFuncionarios([...funcionarios, { id: Date.now(), nome: novoFuncNome, cargo: novoFuncCargo, tipoRemuneracao, valorPctOuFixo: Number(valorRemuneracao) || 0 }]);
+    if (!novoFuncNome) return;
+    setFuncionarios([...funcionarios, { id: Date.now(), nome: novoFuncNome, tipoRemuneracao: novoFuncTipo, valorRemuneracao: novoFuncValor }]);
     setNovoFuncNome('');
-    setNovoFuncCargo('');
+    setNovoFuncValor('30');
   };
 
   const removerFuncionario = (id: number) => {
@@ -216,7 +224,7 @@ export default function Home() {
     if (tipoRegistroOS === 'agendamento') {
       const novoAg = {
         id: Date.now(),
-        tipo: 'Agendamento',
+        tipo: tipoAgendamentoForm,
         cliente: osCliente,
         contacto: osContacto || 'Sem contacto',
         veiculo: osVeiculo || 'Renault Captur',
@@ -257,7 +265,6 @@ export default function Home() {
     const restante = Math.max(0, valorFinalComIva - sinal);
     const custosArray = listaCustosDetalhados.filter(c => c.descricao && Number(c.valor) > 0).map(c => ({ descricao: c.descricao, valor: Number(c.valor) }));
     const matriculaU = osMatricula ? osMatricula.toUpperCase() : 'SEM MATRÍCULA';
-    const dataHoje = new Date().toISOString().split('T')[0];
     const docId = Date.now().toString().slice(-4);
 
     if (tipoRegistroOS === 'os') {
@@ -281,7 +288,7 @@ export default function Home() {
         contaRecebimentoSinal: sinal > 0 ? osContaRecebimentoSinal : 'Nenhum',
         restanteAPagar: restante,
         status: 'Em Execução',
-        data: dataHoje
+        data: diaHojeIso
       };
 
       setOrdensServico([novoRegisto, ...ordensServico]);
@@ -294,7 +301,7 @@ export default function Home() {
           categoria: 'Serviço',
           tipo: 'receita' as const,
           valor: sinal,
-          data: dataHoje
+          data: diaHojeIso
         }, ...prev]);
       }
 
@@ -306,7 +313,7 @@ export default function Home() {
           categoria: 'Produtos/Peças/Pintor',
           tipo: 'despesa' as const,
           valor: custo.valor,
-          data: dataHoje
+          data: diaHojeIso
         }, ...prev]);
       });
     }
@@ -362,7 +369,7 @@ export default function Home() {
             </div>
             <div class="doc-title-box">
               <h2>${tituloDoc}</h2>
-              <p><b>Data de Emissão:</b> ${dataHoje}</p>
+              <p><b>Data de Emissão:</b> ${diaHojeIso}</p>
             </div>
           </div>
 
@@ -464,7 +471,6 @@ export default function Home() {
     if (!osEncontrada) return;
 
     if (novoStatus === 'Pronto / Entregue' && osEncontrada.restanteAPagar > 0) {
-      // Abre prompt visual para escolher método de pagamento do restante
       setOsEmEdicao(osEncontrada);
       return;
     }
@@ -477,7 +483,6 @@ export default function Home() {
     if (!osObj) return;
 
     const saldo = osObj.restanteAPagar;
-    const dataHoje = new Date().toISOString().split('T')[0];
 
     if (saldo > 0) {
       setTransacoes(prev => [{
@@ -487,7 +492,7 @@ export default function Home() {
         categoria: 'Serviço',
         tipo: 'receita' as const,
         valor: saldo,
-        data: dataHoje
+        data: diaHojeIso
       }, ...prev]);
     }
 
@@ -551,6 +556,9 @@ export default function Home() {
         </div>
 
         <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+          <div style={{ backgroundColor: '#131722', padding: '8px 16px', borderRadius: '10px', border: '1px solid #222b45', color: '#d4af37', fontSize: '14px', fontWeight: 'bold' }}>
+            📅 Hoje: {dataHojeObj.toLocaleDateString('pt-PT')}
+          </div>
           <div style={{ display: 'flex', backgroundColor: '#131722', padding: '6px', borderRadius: '10px', border: '1px solid #222b45' }}>
             <button onClick={() => setUser('admin')} style={{ backgroundColor: user === 'admin' ? '#d4af37' : 'transparent', color: user === 'admin' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Admin</button>
             <button onClick={() => setUser('funcionario')} style={{ backgroundColor: user === 'funcionario' ? '#d4af37' : 'transparent', color: user === 'funcionario' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Equipa</button>
@@ -680,12 +688,11 @@ export default function Home() {
               <div style={{ backgroundColor: '#131722', border: '1px solid #d4af37', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '90vh', overflowY: 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>
-                    {osEmEmEdicaoRestanteCheck(osEmEdicao) ? '💰 Liquidar Restante e Finalizar OS' : '✏️ Modificar Serviços - Registo #' + osEmEdicao.id}
+                    {osEmEdicao.restanteAPagar > 0 ? '💰 Liquidar Restante e Finalizar OS' : '✏️ Modificar Serviços - Registo #' + osEmEdicao.id}
                   </h3>
                   <button onClick={() => setOsEmEdicao(null)} style={{ background: 'none', border: 'none', color: '#f87171', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
                 </div>
 
-                {/* Se estiver a liquidar o restante */}
                 {osEmEdicao.restanteAPagar > 0 && osEmEdicao.status !== 'Pronto / Entregue' && (
                   <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <p style={{ margin: 0, color: '#cbd5e1', fontSize: '15px' }}>O cliente vai liquidar o valor restante de <b style={{ color: '#f87171', fontSize: '18px' }}>{osEmEdicao.restanteAPagar.toFixed(2)} €</b>.</p>
@@ -712,7 +719,6 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Edição de serviços adicionais */}
                 <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <p style={{ margin: 0, color: '#d4af37', fontWeight: 'bold', fontSize: '15px' }}>🛠️ Acrescentar ou Alterar Serviços:</p>
                   
@@ -776,7 +782,6 @@ export default function Home() {
 
                   <button 
                     onClick={() => {
-                      // Recalcular totais
                       let bruto = 0;
                       let descTotal = 0;
                       osEmEdicao.servicosDetalhes.forEach((s: any) => {
@@ -876,6 +881,16 @@ export default function Home() {
                       <select value={tipoDocumentoGerar} onChange={(e) => setTipoDocumentoGerar(e.target.value as any)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '15px' }}>
                         <option value="ORÇAMENTO">Orçamento Oficial</option>
                         <option value="ORDEM DE SERVIÇO">Ordem de Serviço Oficial</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {tipoRegistroOS === 'agendamento' && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>Categoria do Agendamento:</label>
+                      <select value={tipoAgendamentoForm} onChange={(e) => setTipoAgendamentoForm(e.target.value as any)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold' }}>
+                        <option value="Serviço">🟢 Serviço (Execução)</option>
+                        <option value="Avaliação / Orçamento">🟣 Avaliação / Orçamento</option>
                       </select>
                     </div>
                   )}
@@ -1115,8 +1130,8 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário de Agendamentos & Orçamentos</h2>
-                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Selecione um dia no calendário para ver todas as marcações.</p>
+                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário de Agendamentos & Avaliações</h2>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Selecione um dia no calendário para ver as marcações (Verde = Serviço, Roxo = Avaliação/Orçamento).</p>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', backgroundColor: '#131722', padding: '10px 16px', borderRadius: '12px', border: '1px solid #1e2235' }}>
@@ -1161,7 +1176,8 @@ export default function Home() {
                       const dataStr = `${anoAtualCal}-${mesFormatado}-${diaFormatado}`;
 
                       const feriadoDia = feriadosPortugal.find(f => f.data === dataStr);
-                      const temAgendamento = agendamentos.some(ag => ag.data === dataStr);
+                      const agsDoDia = agendamentos.filter(ag => ag.data === dataStr);
+                      const isHoje = dataStr === diaHojeIso;
                       const isSelecionado = diaSelecionadoCal === dataStr;
 
                       return (
@@ -1169,8 +1185,8 @@ export default function Home() {
                           key={diaNum}
                           onClick={() => setDiaSelecionadoCal(dataStr)}
                           style={{ 
-                            backgroundColor: isSelecionado ? '#d4af37' : feriadoDia ? 'rgba(239, 68, 68, 0.15)' : temAgendamento ? 'rgba(37, 99, 235, 0.2)' : '#090a0f',
-                            border: feriadoDia ? '1px solid rgba(239, 68, 68, 0.5)' : temAgendamento ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid #222b45',
+                            backgroundColor: isSelecionado ? '#d4af37' : isHoje ? 'rgba(212, 175, 55, 0.2)' : feriadoDia ? 'rgba(239, 68, 68, 0.15)' : '#090a0f',
+                            border: isHoje ? '2px solid #d4af37' : feriadoDia ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid #222b45',
                             borderRadius: '12px',
                             padding: '16px 8px',
                             textAlign: 'center',
@@ -1185,7 +1201,23 @@ export default function Home() {
                         >
                           <span style={{ fontSize: '18px', fontWeight: 'bold', color: isSelecionado ? '#090a0f' : feriadoDia ? '#f87171' : '#fff' }}>{diaNum}</span>
                           {feriadoDia && <span style={{ fontSize: '10px', color: '#f87171', display: 'block', marginTop: '2px' }}>{feriadoDia.nome}</span>}
-                          {temAgendamento && !feriadoDia && <span style={{ width: '6px', height: '6px', backgroundColor: '#60a5fa', borderRadius: '50%', marginTop: '4px' }}></span>}
+                          
+                          {agsDoDia.length > 0 && (
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+                              {agsDoDia.map((ag, aIdx) => (
+                                <span 
+                                  key={aIdx} 
+                                  style={{ 
+                                    width: '8px', 
+                                    height: '8px', 
+                                    borderRadius: '50%', 
+                                    backgroundColor: ag.tipo === 'Avaliação / Orçamento' ? '#c084fc' : '#34d399' 
+                                  }} 
+                                  title={ag.tipo}
+                                ></span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1208,17 +1240,21 @@ export default function Home() {
                     ) : (
                       agendamentos
                         .filter(ag => ag.data === diaSelecionadoCal)
-                        .map(ag => (
-                          <div key={ag.id} style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '10px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '11px', fontWeight: 'bold', color: ag.tipo === 'Orçamento' ? '#c084fc' : '#60a5fa', backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>{ag.tipo}</span>
-                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#d4af37' }}>🕒 {ag.hora}</span>
+                        .map(ag => {
+                          const corTipo = ag.tipo === 'Avaliação / Orçamento' ? '#c084fc' : '#34d399';
+                          const bgTipo = ag.tipo === 'Avaliação / Orçamento' ? 'rgba(192, 132, 252, 0.15)' : 'rgba(52, 211, 153, 0.15)';
+                          return (
+                            <div key={ag.id} style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '10px', border: `1px solid ${corTipo}`, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 'bold', color: corTipo, backgroundColor: bgTipo, padding: '2px 8px', borderRadius: '4px' }}>{ag.tipo}</span>
+                                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#d4af37' }}>🕒 {ag.hora}</span>
+                              </div>
+                              <p style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', margin: '2px 0 0 0' }}>{ag.veiculo} <span style={{ fontSize: '12px', color: '#94a3b8' }}>({ag.matricula})</span></p>
+                              <p style={{ fontSize: '13px', color: '#cbd5e1', margin: 0 }}><b>Cliente:</b> {ag.cliente} ({ag.contacto})</p>
+                              <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}><b>Detalhe:</b> {ag.servico}</p>
                             </div>
-                            <p style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', margin: '2px 0 0 0' }}>{ag.veiculo} <span style={{ fontSize: '12px', color: '#94a3b8' }}>({ag.matricula})</span></p>
-                            <p style={{ fontSize: '13px', color: '#cbd5e1', margin: 0 }}><b>Cliente:</b> {ag.cliente} ({ag.contacto})</p>
-                            <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}><b>Serviço:</b> {ag.servico}</p>
-                          </div>
-                        ))
+                          );
+                        })
                     )}
                   </div>
                 </div>
@@ -1255,30 +1291,52 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS */}
+          {/* ABA 6: FUNCIONÁRIOS (COM DIÁRIA, FIXO E PORCENTAGEM) */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
-                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Funcionários</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Controlo de equipa e técnicos.</p>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Funcionários & Remuneração</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Controlo de equipa por Diária, Salário Fixo ou Porcentagem.</p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '28px' }}>
                 <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 18px 0' }}>Novo Funcionário</h3>
                   <form onSubmit={adicionarFuncionario} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <input type="text" placeholder="Nome" value={novoFuncNome} onChange={(e) => setNovoFuncNome(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
-                    <input type="text" placeholder="Cargo" value={novoFuncCargo} onChange={(e) => setNovoFuncCargo(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
-                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Guardar</button>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Colaborador</label>
+                      <input type="text" placeholder="Ex: João Silva" value={novoFuncNome} onChange={(e) => setNovoFuncNome(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px' }}>Tipo de Remuneração</label>
+                      <select value={novoFuncTipo} onChange={(e) => setNovoFuncTipo(e.target.value as any)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }}>
+                        <option value="comissao">Porcentagem / Comissão (%)</option>
+                        <option value="fixo">Salário Fixo (€)</option>
+                        <option value="diaria">Diária (€)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px' }}>{novoFuncTipo === 'comissao' ? 'Percentagem (%)' : 'Valor (€)'}</label>
+                      <input type="number" step="0.01" value={novoFuncValor} onChange={(e) => setNovoFuncValor(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#34d399', fontWeight: 'bold', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    </div>
+
+                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Guardar Funcionário</button>
                   </form>
                 </div>
 
                 <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '0 0 18px 0' }}>Equipa</h3>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '0 0 18px 0' }}>Equipa Registada</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {funcionarios.map(f => (
                       <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
-                        <p style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{f.nome} ({f.cargo})</p>
+                        <div>
+                          <p style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#fff' }}>{f.nome}</p>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#d4af37' }}>
+                            {f.tipoRemuneracao === 'comissao' ? `Comissão: ${f.valorRemuneracao}%` : f.tipoRemuneracao === 'fixo' ? `Salário Fixo: ${f.valorRemuneracao}€` : `Diária: ${f.valorRemuneracao}€`}
+                          </p>
+                        </div>
                         <button onClick={() => removerFuncionario(f.id)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>✕</button>
                       </div>
                     ))}
@@ -1309,8 +1367,4 @@ export default function Home() {
       </div>
     </div>
   );
-}
-
-function osEmEmEdicaoRestanteCheck(os: any) {
-  return os && os.restanteAPagar > 0;
 }
