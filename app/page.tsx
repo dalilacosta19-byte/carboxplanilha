@@ -44,7 +44,7 @@ export default function Home() {
   const [diaSelecionadoCal, setDiaSelecionadoCal] = useState('2026-09-23');
 
   // Formulário Unificado (OS / Orçamento / Agendamento)
-  const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('os');
+  const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('orcamento');
   const [tipoDocumentoGerar, setTipoDocumentoGerar] = useState<'ORÇAMENTO' | 'ORDEM DE SERVIÇO'>('ORÇAMENTO');
   
   const [osCliente, setOsCliente] = useState('Carla Monteiro');
@@ -214,10 +214,11 @@ export default function Home() {
       return;
     }
 
-    if (tipoRegistroOS === 'agendamento' || tipoRegistroOS === 'orcamento') {
+    // Se for apenas Agendamento puro, guarda na agenda
+    if (tipoRegistroOS === 'agendamento') {
       const novoAg = {
         id: Date.now(),
-        tipo: tipoRegistroOS === 'agendamento' ? 'Agendamento' : 'Orçamento',
+        tipo: 'Agendamento',
         cliente: osCliente,
         contacto: osContacto || 'Sem contacto',
         veiculo: osVeiculo || 'Renault Captur',
@@ -225,17 +226,15 @@ export default function Home() {
         servico: listaItensServico[0]?.descricao || 'Estética Geral',
         data: osDataAgend,
         hora: osHoraAgend,
-        status: tipoRegistroOS === 'agendamento' ? 'Agendado' : 'Orçamento Pendente'
+        status: 'Agendado'
       };
       setAgendamentos([...agendamentos, novoAg]);
-      alert(`${tipoRegistroOS === 'agendamento' ? 'Agendamento' : 'Pedido de Orçamento'} guardado com sucesso na Agenda!`);
+      alert('Agendamento guardado com sucesso na Agenda!');
       return;
     }
 
-    if (!osMatricula) {
-      alert('Para Ordem de Serviço, por favor preencha a Matrícula.');
-      return;
-    }
+    // Se for Orçamento ou Ordem de Serviço, gera e imprime o PDF oficial
+    const tituloDoc = tipoRegistroOS === 'orcamento' ? 'ORÇAMENTO' : tipoDocumentoGerar;
 
     let valorOrig = 0;
     let totalDesc = 0;
@@ -257,55 +256,57 @@ export default function Home() {
     const sinal = Number(osSinal) || 0;
     const restante = Math.max(0, valorFin - sinal);
     const custosArray = listaCustosDetalhados.filter(c => c.descricao && Number(c.valor) > 0).map(c => ({ descricao: c.descricao, valor: Number(c.valor) }));
-    const matriculaU = osMatricula.toUpperCase();
+    const matriculaU = osMatricula ? osMatricula.toUpperCase() : 'SEM MATRÍCULA';
     const dataHoje = new Date().toISOString().split('T')[0];
     const docId = Date.now().toString().slice(-4);
 
-    const novoRegisto = {
-      id: Number(docId),
-      cliente: osCliente,
-      contacto: osContacto,
-      veiculo: osVeiculo || 'Renault Captur',
-      matricula: matriculaU,
-      servicosDetalhes: servicosDetalhesArray,
-      servico: servicosDetalhesArray.map(s => s.descricao).join(' + '),
-      observacoes: osObs || `${osVeiculo} matrícula ${matriculaU}. IVA - regime de isenção.`,
-      custosDetalhados: custosArray,
-      valorOriginal: valorOrig,
-      descontoTotal: totalDesc,
-      valorFinal: valorFin,
-      sinalPago: sinal,
-      contaRecebimentoSinal: sinal > 0 ? osContaRecebimentoSinal : 'Nenhum',
-      restanteAPagar: restante,
-      status: 'Em Execução',
-      data: dataHoje
-    };
-
-    setOrdensServico([novoRegisto, ...ordensServico]);
-
-    if (sinal > 0) {
-      setTransacoes(prev => [{
-        id: Date.now(),
-        descricao: `Sinal OS #${docId} (${matriculaU}) via ${osContaRecebimentoSinal}`,
+    if (tipoRegistroOS === 'os') {
+      const novoRegisto = {
+        id: Number(docId),
+        cliente: osCliente,
+        contacto: osContacto,
+        veiculo: osVeiculo || 'Renault Captur',
         matricula: matriculaU,
-        categoria: 'Serviço',
-        tipo: 'receita' as const,
-        valor: sinal,
+        servicosDetalhes: servicosDetalhesArray,
+        servico: servicosDetalhesArray.map(s => s.descricao).join(' + '),
+        observacoes: osObs || `${osVeiculo} matrícula ${matriculaU}. IVA - regime de isenção.`,
+        custosDetalhados: custosArray,
+        valorOriginal: valorOrig,
+        descontoTotal: totalDesc,
+        valorFinal: valorFin,
+        sinalPago: sinal,
+        contaRecebimentoSinal: sinal > 0 ? osContaRecebimentoSinal : 'Nenhum',
+        restanteAPagar: restante,
+        status: 'Em Execução',
         data: dataHoje
-      }, ...prev]);
+      };
+
+      setOrdensServico([novoRegisto, ...ordensServico]);
+
+      if (sinal > 0) {
+        setTransacoes(prev => [{
+          id: Date.now(),
+          descricao: `Sinal OS #${docId} (${matriculaU}) via ${osContaRecebimentoSinal}`,
+          matricula: matriculaU,
+          categoria: 'Serviço',
+          tipo: 'receita' as const,
+          valor: sinal,
+          data: dataHoje
+        }, ...prev]);
+      }
+
+      custosArray.forEach((custo, cIdx) => {
+        setTransacoes(prev => [{
+          id: Date.now() + 10 + cIdx,
+          descricao: `Custo (${custo.descricao}) OS #${docId} (${matriculaU})`,
+          matricula: matriculaU,
+          categoria: 'Produtos/Peças/Pintor',
+          tipo: 'despesa' as const,
+          valor: custo.valor,
+          data: dataHoje
+        }, ...prev]);
+      });
     }
-
-    custosArray.forEach((custo, cIdx) => {
-      setTransacoes(prev => [{
-        id: Date.now() + 10 + cIdx,
-        descricao: `Custo (${custo.descricao}) OS #${docId} (${matriculaU})`,
-        matricula: matriculaU,
-        categoria: 'Produtos/Peças/Pintor',
-        tipo: 'despesa' as const,
-        valor: custo.valor,
-        data: dataHoje
-      }, ...prev]);
-    });
 
     const w = window.open('', '_blank');
     if (!w) return;
@@ -313,20 +314,17 @@ export default function Home() {
     w.document.write(`
       <html>
         <head>
-          <title>${tipoDocumentoGerar} #${docId} - ${dadosEmpresa.nome}</title>
+          <title>${tituloDoc} #${docId} - ${dadosEmpresa.nome}</title>
           <style>
             body { font-family: Helvetica, Arial, sans-serif; color: #111; padding: 40px; background: #fff; margin: 0; }
             .top-bar { display: flex; justify-content: flex-end; gap: 15px; margin-bottom: 10px; font-size: 11px; }
             .badge-box { border: 1px solid #999; padding: 3px 10px; font-weight: bold; background: #f5f5f5; }
             .header-container { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
             
-            /* LOGÓTIPO EXATO IDÊNTICO À IMAGEM DE REFERÊNCIA */
             .carbox-logo-container { display: inline-block; }
             .carbox-main-row { display: flex; align-items: baseline; }
             .carbox-gold-text { font-family: Arial, sans-serif; font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #f3e792 0%, #c59b27 50%, #b8860b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
             .carbox-black-text { font-family: Arial, sans-serif; font-size: 32px; font-weight: 900; color: #111; letter-spacing: -0.5px; }
-            .carbox-double-seven { position: relative; display: inline-flex; align-items: center; margin-left: 2px; }
-            .carbox-sevens-svg { width: 44px; height: 38px; }
             .carbox-subtext { font-family: Arial, sans-serif; font-size: 9px; font-weight: bold; letter-spacing: 5px; color: #b8860b; margin-top: -2px; margin-left: 38px; }
 
             .doc-title-box { text-align: right; }
@@ -387,7 +385,7 @@ export default function Home() {
             </div>
 
             <div class="doc-title-box">
-              <h2>${tipoDocumentoGerar}</h2>
+              <h2>${tituloDoc}</h2>
               <p><b>Data de Emissão:</b> ${dataHoje}</p>
             </div>
           </div>
@@ -734,11 +732,11 @@ export default function Home() {
                       <button type="button" onClick={() => setTipoRegistroOS('os')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'os' ? '2px solid #2563eb' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'os' ? 'rgba(37, 99, 235, 0.2)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
                         📋 Ordem de Serviço (PDF)
                       </button>
+                      <button type="button" onClick={() => setTipoRegistroOS('orcamento')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'orcamento' ? '2px solid #d4af37' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'orcamento' ? 'rgba(212, 175, 55, 0.2)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                        📄 Pedido Orçamento (PDF)
+                      </button>
                       <button type="button" onClick={() => setTipoRegistroOS('agendamento')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'agendamento' ? '2px solid #60a5fa' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'agendamento' ? 'rgba(96, 165, 250, 0.2)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
                         📅 Agendamento
-                      </button>
-                      <button type="button" onClick={() => setTipoRegistroOS('orcamento')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'orcamento' ? '2px solid #d4af37' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'orcamento' ? 'rgba(212, 175, 55, 0.2)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
-                        📄 Pedido Orçamento
                       </button>
                     </div>
                   </div>
@@ -805,7 +803,7 @@ export default function Home() {
                     <input type="text" placeholder="Ex: Renault Captur" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                   </div>
 
-                  {tipoRegistroOS !== 'os' && (
+                  {tipoRegistroOS === 'agendamento' && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>Data do Agendamento</label>
@@ -967,7 +965,7 @@ export default function Home() {
                   </div>
 
                   <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', fontWeight: 'bold', padding: '16px', borderRadius: '10px', border: 'none', cursor: 'pointer', marginTop: '12px', fontSize: '17px' }}>
-                    {tipoRegistroOS === 'os' ? '🖨️ Gerar e Imprimir PDF Oficial' : tipoRegistroOS === 'agendamento' ? '📅 Guardar Agendamento na Agenda' : '📄 Guardar Pedido de Orçamento'}
+                    {tipoRegistroOS === 'os' ? '🖨️ Gerar e Imprimir Ordem de Serviço' : tipoRegistroOS === 'orcamento' ? '🖨️ Gerar e Imprimir Orçamento PDF' : '📅 Guardar Agendamento na Agenda'}
                   </button>
                 </form>
               </div>
