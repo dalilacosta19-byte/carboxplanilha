@@ -30,8 +30,8 @@ export default function Home() {
 
   // Agenda integrada com Orçamentos e Agendamentos
   const [agendamentos, setAgendamentos] = useState([
-    { id: 1, tipo: 'Agendamento', cliente: 'Carlos Silva', veiculo: 'Porsche 911 Turbo', matricula: '0KM-7700', servico: 'PPF Frontal + Vitrificação', data: '2026-06-01', hora: '09:30', status: 'Agendado' },
-    { id: 2, tipo: 'Orçamento', cliente: 'Maria Santos', veiculo: 'BMW M4', matricula: 'AA-99-BB', servico: 'Polimento Comercial', data: '2026-06-10', hora: '14:00', status: 'Orçamento Pendente' }
+    { id: 1, tipo: 'Agendamento', cliente: 'Carlos Silva', contacto: '+351 911 222 333', veiculo: 'Porsche 911 Turbo', matricula: '0KM-7700', servico: 'PPF Frontal + Vitrificação', data: '2026-06-01', hora: '09:30', status: 'Agendado' },
+    { id: 2, tipo: 'Orçamento', cliente: 'Maria Santos', contacto: '+351 922 333 444', veiculo: 'BMW M4', matricula: 'AA-99-BB', servico: 'Polimento Comercial', data: '2026-06-10', hora: '14:00', status: 'Orçamento Pendente' }
   ]);
 
   // Navegação do Calendário
@@ -42,6 +42,7 @@ export default function Home() {
   // Formulário OS / Agendamento / Orçamento
   const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('os');
   const [osCliente, setOsCliente] = useState('');
+  const [osContacto, setOsContacto] = useState('');
   const [osVeiculo, setOsVeiculo] = useState('');
   const [osMatricula, setOsMatricula] = useState('');
   const [osServico, setOsServico] = useState('');
@@ -59,6 +60,7 @@ export default function Home() {
     { 
       id: 101, 
       cliente: 'Carlos Silva', 
+      contacto: '+351 911 222 333',
       veiculo: 'Porsche 911 Turbo', 
       matricula: '0KM-7700', 
       servico: 'PPF Frontal + Vitrificação Completa', 
@@ -99,6 +101,7 @@ export default function Home() {
     if (historico) {
       setOsCliente(historico.cliente);
       setOsVeiculo(historico.veiculo);
+      if (historico.contacto) setOsContacto(historico.contacto);
     }
   };
 
@@ -125,12 +128,27 @@ export default function Home() {
   // Processar criação unificada (OS, Agendamento ou Orçamento)
   const processarRegistoUnificado = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!osCliente || !osMatricula || !osServico) {
-      alert('Por favor, preencha os campos obrigatórios (Matrícula, Cliente e Serviço).');
-      return;
+
+    // Validações específicas por tipo
+    if (tipoRegistroOS === 'os') {
+      if (!osCliente || !osMatricula || !osServico) {
+        alert('Para Ordem de Serviço, preencha Cliente, Matrícula e Serviço.');
+        return;
+      }
+    } else if (tipoRegistroOS === 'agendamento') {
+      if (!osCliente) {
+        alert('Por favor, preencha pelo menos o nome do cliente.');
+        return;
+      }
+    } else {
+      // Orçamento: muito flexível
+      if (!osCliente && !osServico) {
+        alert('Insira pelo menos o nome do cliente ou o serviço pretendido para o orçamento.');
+        return;
+      }
     }
 
-    const matriculaU = osMatricula.toUpperCase();
+    const matriculaU = osMatricula ? osMatricula.toUpperCase() : 'SEM MATRÍCULA';
     const dataHoje = new Date().toISOString().split('T')[0];
 
     if (tipoRegistroOS === 'os') {
@@ -144,6 +162,7 @@ export default function Home() {
       const novaOS = {
         id: Date.now(),
         cliente: osCliente,
+        contacto: osContacto,
         veiculo: osVeiculo || 'Desconhecido',
         matricula: matriculaU,
         servico: osServico,
@@ -192,9 +211,10 @@ export default function Home() {
         id: Date.now(),
         tipo: 'Agendamento',
         cliente: osCliente,
+        contacto: osContacto || 'Sem contacto',
         veiculo: osVeiculo || 'Desconhecido',
-        matricula: matriculaU,
-        servico: osServico,
+        matricula: osMatricula ? osMatricula.toUpperCase() : 'N/D',
+        servico: osServico || 'Estética Geral',
         data: osDataAgend,
         hora: osHoraAgend,
         status: 'Agendado'
@@ -204,10 +224,11 @@ export default function Home() {
       setAgendamentos([...agendamentos, {
         id: Date.now(),
         tipo: 'Orçamento',
-        cliente: osCliente,
+        cliente: osCliente || 'Cliente Balcão',
+        contacto: osContacto || 'Sem contacto',
         veiculo: osVeiculo || 'Desconhecido',
-        matricula: matriculaU,
-        servico: osServico,
+        matricula: osMatricula ? osMatricula.toUpperCase() : 'N/D',
+        servico: osServico || 'Orçamento Geral',
         data: osDataAgend,
         hora: osHoraAgend,
         status: 'Orçamento Pendente'
@@ -216,6 +237,7 @@ export default function Home() {
     }
 
     setOsCliente('');
+    setOsContacto('');
     setOsVeiculo('');
     setOsMatricula('');
     setOsServico('');
@@ -272,7 +294,7 @@ export default function Home() {
             <div style="text-align: right;"><b>OS Nº:</b> #${os.id}<br/><b>Data:</b> ${os.data}</div>
           </div>
           <div class="box">
-            <p><b>Cliente:</b> ${os.cliente}</p>
+            <p><b>Cliente:</b> ${os.cliente} | <b>Contacto:</b> ${os.contacto || 'N/D'}</p>
             <p><b>Viatura:</b> ${os.veiculo} | <b>Matrícula:</b> ${os.matricula}</p>
             <p><b>Status:</b> ${os.status} | <b>Equipa:</b> ${os.funcionariosAtgados.join(', ') || 'Nenhum'}</p>
           </div>
@@ -455,7 +477,7 @@ export default function Home() {
                       </div>
 
                       <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', fontSize: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #1e2235' }}>
-                        <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente}</p>
+                        <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente} {os.contacto && <span style={{ color: '#94a3b8', fontSize: '13px' }}>({os.contacto})</span>}</p>
                         <p style={{ margin: 0, color: '#f1f5f9' }}><b>Serviço:</b> {os.servico}</p>
                         <p style={{ margin: 0, color: '#cbd5e1' }}><b>Técnico(s):</b> {os.funcionariosAtgados.join(', ') || 'Nenhum'}</p>
                       </div>
@@ -529,7 +551,7 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Registo de Trabalho</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Cadastre o cliente, a viatura e escolha se é Ordem de Serviço, Agendamento ou Orçamento.</p>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Escolha se pretende abrir Ordem de Serviço, Agendamento ou Pedido de Orçamento.</p>
               </div>
 
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '900px' }}>
@@ -551,10 +573,12 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Matrícula</label>
-                      <input type="text" placeholder="0KM-7700" value={osMatricula} onChange={(e) => handleOsMatriculaChange(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '16px' }} />
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>
+                        Matrícula {tipoRegistroOS === 'agendamento' || tipoRegistroOS === 'orcamento' ? <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(Opcional)</span> : ''}
+                      </label>
+                      <input type="text" placeholder="Ex: 0KM-7700" value={osMatricula} onChange={(e) => handleOsMatriculaChange(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', textTransform: 'uppercase', fontWeight: 'bold', fontSize: '16px' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Cliente</label>
@@ -564,20 +588,25 @@ export default function Home() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Contacto / Telefone</label>
+                      <input type="text" placeholder="Ex: +351 911 222 333" value={osContacto} onChange={(e) => setOsContacto(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                    </div>
+                    <div>
                       <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Viatura</label>
                       <input type="text" placeholder="Ex: Porsche 911" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                     </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Serviço</label>
-                      <input type="text" placeholder="Ex: Vitrificação" value={osServico} onChange={(e) => setOsServico(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
-                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Serviço</label>
+                    <input type="text" placeholder="Ex: Vitrificação Completa" value={osServico} onChange={(e) => setOsServico(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                   </div>
 
                   {/* CAMPOS ESPECÍFICOS PARA AGENDAMENTO OU ORÇAMENTO */}
                   {tipoRegistroOS !== 'os' && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Data do Agendamento</label>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Data</label>
                         <input type="date" value={osDataAgend} onChange={(e) => setOsDataAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '15px', boxSizing: 'border-box' }} />
                       </div>
                       <div>
@@ -744,8 +773,8 @@ export default function Home() {
                               <span style={{ fontSize: '12px', fontWeight: 'bold', color: ag.tipo === 'Orçamento' ? '#c084fc' : '#60a5fa', backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>{ag.tipo}</span>
                               <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#d4af37' }}>🕒 {ag.hora}</span>
                             </div>
-                            <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '4px 0 0 0' }}>{ag.veiculo} ({ag.matricula})</p>
-                            <p style={{ fontSize: '14px', color: '#cbd5e1', margin: 0 }}><b>Cliente:</b> {ag.cliente}</p>
+                            <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '4px 0 0 0' }}>{ag.veiculo} <span style={{ fontSize: '13px', color: '#94a3b8' }}>({ag.matricula})</span></p>
+                            <p style={{ fontSize: '14px', color: '#cbd5e1', margin: 0 }}><b>Cliente:</b> {ag.cliente} {ag.contacto && <span style={{ color: '#94a3b8' }}>• Tel: {ag.contacto}</span>}</p>
                             <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}><b>Serviço:</b> {ag.servico}</p>
                           </div>
                         ))
