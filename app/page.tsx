@@ -15,7 +15,6 @@ export default function Home() {
     swift: 'BCOPTPL'
   });
 
-  // Funcionários com tipos corretos de remuneração (Comissão, Fixo, Diária)
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', tipoRemuneracao: 'comissao', valorRemuneracao: '30' },
     { id: 2, nome: 'Miguel Santos', tipoRemuneracao: 'fixo', valorRemuneracao: '1000' },
@@ -26,24 +25,20 @@ export default function Home() {
   const [novoFuncTipo, setNovoFuncTipo] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
   const [novoFuncValor, setNovoFuncValor] = useState('30');
 
-  // Data de hoje automática (24 de Setembro de 2026 como base dinâmica)
   const dataHojeObj = new Date();
   const anoAtualReal = dataHojeObj.getFullYear();
-  const mesAtualReal = dataHojeObj.getMonth(); // 8 = Setembro
+  const mesAtualReal = dataHojeObj.getMonth();
   const diaHojeIso = dataHojeObj.toISOString().split('T')[0];
 
-  // Agenda integrada com tipos (Serviço vs Orçamento/Avaliação)
   const [agendamentos, setAgendamentos] = useState([
     { id: 1, tipo: 'Serviço', cliente: 'Carla Monteiro', contacto: '+351 922 333 444', veiculo: 'Renault Captur', matricula: 'AZ-91-GI', servico: 'Limpeza Detalhada + PPF', data: diaHojeIso, hora: '14:00', status: 'Agendado' },
     { id: 2, tipo: 'Avaliação / Orçamento', cliente: 'Bernardo Silva', contacto: '+351 911 222 333', veiculo: 'BMW M3', matricula: '45-XX-89', servico: 'Orçamento Polimento e Cerâmica', data: diaHojeIso, hora: '10:30', status: 'Pendente' }
   ]);
 
-  // Navegação do Calendário
   const [anoAtualCal, setAnoAtualCal] = useState(anoAtualReal);
   const [mesAtualCal, setMesAtualCal] = useState(mesAtualReal); 
   const [diaSelecionadoCal, setDiaSelecionadoCal] = useState(diaHojeIso);
 
-  // Formulário Unificado (OS / Orçamento / Agendamento)
   const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('orcamento');
   const [tipoDocumentoGerar, setTipoDocumentoGerar] = useState<'ORÇAMENTO' | 'ORDEM DE SERVIÇO'>('ORÇAMENTO');
   const [tipoAgendamentoForm, setTipoAgendamentoForm] = useState<'Serviço' | 'Avaliação / Orçamento'>('Serviço');
@@ -58,14 +53,12 @@ export default function Home() {
   const [osDataAgend, setOsDataAgend] = useState(diaHojeIso);
   const [osHoraAgend, setOsHoraAgend] = useState('14:00');
 
-  // Múltiplos serviços com técnicos, valores e descontos individuais
   const [listaItensServico, setListaItensServico] = useState([
     { id: 1, descricao: '13 - LIMPEZA DETALHADA', funcionario: 'João Silva', valor: '120.00', desconto: '120.00' },
     { id: 2, descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: '400.00', desconto: '0.00' },
     { id: 3, descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: '900.00', desconto: '0.00' }
   ]);
 
-  // Custos detalhados
   const [listaCustosDetalhados, setListaCustosDetalhados] = useState([
     { id: 1, descricao: 'Película PPF', valor: '150.00' }
   ]);
@@ -73,11 +66,9 @@ export default function Home() {
   const [osSinal, setOsSinal] = useState('300.00');
   const [osContaRecebimentoSinal, setOsContaRecebimentoSinal] = useState('MB WAY');
   
-  // Estado para modal de edição de serviços no pátio ou liquidação
   const [osEmEdicao, setOsEmEdicao] = useState<any | null>(null);
   const [contaFinalMetodo, setContaFinalMetodo] = useState('MB WAY');
 
-  // Estados para autocompletar sugestões
   const [mostrarSugestoesCliente, setMostrarSugestoesCliente] = useState(false);
   const [mostrarSugestoesServicoIndex, setMostrarSugestoesServicoIndex] = useState<number | null>(null);
 
@@ -539,10 +530,20 @@ export default function Home() {
   const totalDiasMes = new Date(anoAtualCal, mesAtualCal + 1, 0).getDate();
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundImage: `linear-gradient(rgba(9, 10, 15, 0.92), rgba(9, 10, 15, 0.95)), url('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1920&auto=format&fit=crop')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      color: '#f8fafc', 
+      fontFamily: 'system-ui, sans-serif', 
+      display: 'flex', 
+      flexDirection: 'column' 
+    }}>
       
       {/* HEADER DA APLICAÇÃO */}
-      <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ backgroundColor: 'rgba(13, 15, 23, 0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div>
             <div style={{ fontSize: '20px', fontWeight: '900', fontFamily: 'Arial Black, sans-serif', textTransform: 'uppercase', lineHeight: '1' }}>
@@ -571,7 +572,8 @@ export default function Home() {
         {/* MENU LATERAL */}
         <nav style={{ 
           width: '300px', 
-          backgroundColor: '#0d0f17', 
+          backgroundColor: 'rgba(13, 15, 23, 0.85)', 
+          backdropFilter: 'blur(10px)',
           borderRight: '1px solid #1e2235', 
           display: 'flex', 
           flexDirection: 'column', 
@@ -627,7 +629,7 @@ export default function Home() {
                 {ordensServico.map(os => {
                   const badge = getBadgeStyle(os.status);
                   return (
-                    <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                    <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
                           <span style={{ fontSize: '14px', color: '#60a5fa', fontWeight: 'bold' }}>Registo #{os.id}</span>
@@ -647,7 +649,7 @@ export default function Home() {
                         </select>
                       </div>
 
-                      <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', fontSize: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #1e2235' }}>
+                      <div style={{ backgroundColor: 'rgba(9, 10, 15, 0.8)', padding: '16px', borderRadius: '12px', fontSize: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #1e2235' }}>
                         <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente} {os.contacto && <span style={{ color: '#94a3b8', fontSize: '13px' }}>({os.contacto})</span>}</p>
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -684,7 +686,7 @@ export default function Home() {
 
           {/* MODAL DE LIQUIDAÇÃO FINAL OU EDIÇÃO DE SERVIÇOS NO PÁTIO */}
           {osEmEdicao && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(5px)', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
               <div style={{ backgroundColor: '#131722', border: '1px solid #d4af37', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '90vh', overflowY: 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>
@@ -831,15 +833,15 @@ export default function Home() {
 
                 return (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                    <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                       <p style={{ fontSize: '14px', color: '#d4af37', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Balanço Líquido</p>
                       <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: liq >= 0 ? '#34d399' : '#f87171', margin: 0 }}>{liq.toFixed(2)} €</p>
                     </div>
-                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                    <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                       <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Receitas</p>
                       <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#34d399', margin: 0 }}>+{rec.toFixed(2)} €</p>
                     </div>
-                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                    <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                       <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Custos / Despesas</p>
                       <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>-{desp.toFixed(2)} €</p>
                     </div>
@@ -857,7 +859,7 @@ export default function Home() {
                 <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Crie Agendamentos, Orçamentos ou Ordens de Serviço completas com PDF oficial.</p>
               </div>
 
-              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '950px' }}>
+              <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '950px' }}>
                 <form onSubmit={lidarComSubmissaoRegisto} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   
                   <div>
@@ -1157,7 +1159,7 @@ export default function Home() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '28px', alignItems: 'start' }}>
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', marginBottom: '12px' }}>
                     {diasSemana.map((d, i) => (
                       <div key={i} style={{ textAlign: 'center', fontSize: '14px', fontWeight: 'bold', color: '#d4af37', padding: '8px 0' }}>{d}</div>
@@ -1224,7 +1226,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>
                     📅 Marcações para {diaSelecionadoCal}
                   </h3>
@@ -1270,7 +1272,7 @@ export default function Home() {
                 <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Registo financeiro com receitas e custos detalhados.</p>
               </div>
 
-              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+              <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '500px', overflowY: 'auto' }}>
                   {transacoes.map(t => (
                     <div key={t.id} style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1291,7 +1293,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS (COM DIÁRIA, FIXO E PORCENTAGEM) */}
+          {/* ABA 6: FUNCIONÁRIOS */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -1300,7 +1302,7 @@ export default function Home() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '28px' }}>
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 18px 0' }}>Novo Funcionário</h3>
                   <form onSubmit={adicionarFuncionario} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div>
@@ -1326,7 +1328,7 @@ export default function Home() {
                   </form>
                 </div>
 
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '0 0 18px 0' }}>Equipa Registada</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {funcionarios.map(f => (
@@ -1354,7 +1356,7 @@ export default function Home() {
                 <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Informações apresentadas nos orçamentos e ordens de serviço.</p>
               </div>
 
-              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Nome / Razão Social</label>
                   <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
