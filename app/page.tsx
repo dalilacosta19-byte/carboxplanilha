@@ -73,7 +73,6 @@ export default function Home() {
   const [novaDespDescricao, setNovaDespDescricao] = useState('');
   const [novaDespValor, setNovaDespValor] = useState('');
   const [novaDespCategoria, setNovaDespCategoria] = useState('Produtos/Peças');
-  const [novaDespMatricula, setNovaDespMatricula] = useState('');
   const [arquivoCarregadoNome, setArchivoCarregadoNome] = useState('');
 
   const [mostrarSugestoesCliente, setMostrarSugestoesCliente] = useState(false);
@@ -520,7 +519,7 @@ export default function Home() {
     const novaTransacao = {
       id: Date.now(),
       descricao: arquivoCarregadoNome ? `${novaDespDescricao} [Doc/Foto: ${arquivoCarregadoNome}]` : novaDespDescricao,
-      matricula: novaDespMatricula ? novaDespMatricula.toUpperCase() : 'GERAL',
+      matricula: 'GERAL',
       categoria: novaDespCategoria,
       tipo: 'despesa' as const,
       valor: val,
@@ -530,7 +529,6 @@ export default function Home() {
     setTransacoes([novaTransacao, ...transacoes]);
     setNovaDespDescricao('');
     setNovaDespValor('');
-    setNovaDespMatricula('');
     setArchivoCarregadoNome('');
     alert('Despesa adicionada com sucesso ao Livro-Caixa!');
   };
@@ -540,10 +538,9 @@ export default function Home() {
     if (!file) return;
 
     setArchivoCarregadoNome(file.name);
-    // Simula leitura OCR inteligente da fatura (PDF ou foto)
     const nomeLimpo = file.name.replace(/\.[^/.]+$/, "");
     setNovaDespDescricao(`Fatura/Recibo: ${nomeLimpo}`);
-    setNovaDespValor('45.00'); // Valor simulado detetado automaticamente
+    setNovaDespValor('45.00');
   };
 
   const menuItems = [
@@ -1337,7 +1334,7 @@ export default function Home() {
                   )}
                 </div>
 
-                <form onSubmit={adicionarDespesaInteligente} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr)) gap: 14px', marginTop: '10px', display: 'grid', gap: '14px' }}>
+                <form onSubmit={adicionarDespesaInteligente} style={{ display: 'grid', gap: '14px', marginTop: '10px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '10px', alignItems: 'center' }}>
                     <input 
                       type="text" 
