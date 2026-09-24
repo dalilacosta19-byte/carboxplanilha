@@ -13,7 +13,6 @@ export default function Home() {
     email: 'carbox77detailing@gmail.com'
   });
 
-  // Filtros Avançados para o Livro-Caixa
   const [dataInicioFiltro, setDataInicioFiltro] = useState('');
   const [dataFimFiltro, setDataFimFiltro] = useState('');
   const [mesFiltro, setMesFiltro] = useState('');
@@ -29,14 +28,16 @@ export default function Home() {
   const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
   const [valorRemuneracao, setValorRemuneracao] = useState('30');
 
+  // Agenda com suporte a Hora
   const [servicosRealizados, setServicosRealizados] = useState([
-    { id: 1, cliente: 'Carlos Silva', veiculo: 'Porsche 911 Turbo', matricula: '0KM-7700', servico: 'PPF Frontal + Vitrificação', data: '2026-06-01', status: 'Em Execução' }
+    { id: 1, cliente: 'Carlos Silva', veiculo: 'Porsche 911 Turbo', matricula: '0KM-7700', servico: 'PPF Frontal + Vitrificação', data: '2026-06-01', hora: '09:30', status: 'Agendado' }
   ]);
   const [novoClienteAgend, setNovoClienteAgend] = useState('');
   const [novoVeiculoAgend, setNovoVeiculoAgend] = useState('');
   const [novaMatriculaAgend, setNovaMatriculaAgend] = useState('');
   const [novoServicoAgend, setNovoServicoAgend] = useState('');
   const [novaDataAgend, setNovaDataAgend] = useState('');
+  const [novaHoraAgend, setNovaHoraAgend] = useState('09:00');
 
   const [ordensServico, setOrdensServico] = useState([
     { 
@@ -121,12 +122,23 @@ export default function Home() {
   const adicionarAgendamento = (e: React.FormEvent) => {
     e.preventDefault();
     if (!novoClienteAgend || !novaMatriculaAgend || !novaDataAgend) return;
-    setServicosRealizados([...servicosRealizados, { id: Date.now(), cliente: novoClienteAgend, veiculo: novoVeiculoAgend || 'Desconhecido', matricula: novaMatriculaAgend.toUpperCase(), servico: novoServicoAgend || 'Estética Geral', data: novaDataAgend, status: 'Agendado' }]);
+    setServicosRealizados([...servicosRealizados, { 
+      id: Date.now(), 
+      cliente: novoClienteAgend, 
+      veiculo: novoVeiculoAgend || 'Desconhecido', 
+      matricula: novaMatriculaAgend.toUpperCase(), 
+      servico: novoServicoAgend || 'Estética Geral', 
+      data: novaDataAgend, 
+      hora: novaHoraAgend || '09:00',
+      status: 'Agendado' 
+    }]);
     setNovoClienteAgend('');
     setNovoVeiculoAgend('');
     setNovaMatriculaAgend('');
     setNovoServicoAgend('');
     setNovaDataAgend('');
+    setNovaHoraAgend('09:00');
+    alert('Agendamento criado com sucesso!');
   };
 
   const criarOrdemServico = (e: React.FormEvent) => {
@@ -555,28 +567,53 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: AGENDA & FERIADOS */}
+          {/* ABA 4: AGENDA & FERIADOS (Com campo de Hora) */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Agenda & Feriados Nacionais</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Consulte agendamentos e feriados em Portugal.</p>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Consulte agendamentos com horários e feriados em Portugal.</p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '28px' }}>
                 <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 18px 0' }}>Novo Agendamento</h3>
                   <form onSubmit={adicionarAgendamento} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <input type="text" placeholder="Matrícula (Ex: 0KM-7700)" value={novaMatriculaAgend} onChange={(e) => setNovaMatriculaAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    <input type="text" placeholder="Matrícula (Ex: 0KM-7700)" value={novaMatriculaAgend} onChange={(e) => setNovaMatriculaAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px', textTransform: 'uppercase' }} />
                     <input type="text" placeholder="Nome Cliente" value={novoClienteAgend} onChange={(e) => setNovoClienteAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
-                    <input type="date" value={novaDataAgend} onChange={(e) => setNovaDataAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
-                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Agendar</button>
+                    <input type="text" placeholder="Serviço (Ex: Vitrificação)" value={novoServicoAgend} onChange={(e) => setNovoServicoAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Data</label>
+                        <input type="date" value={novaDataAgend} onChange={(e) => setNovaDataAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '10px', fontSize: '15px', boxSizing: 'border-box' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Hora</label>
+                        <input type="time" value={novaHoraAgend} onChange={(e) => setNovaHoraAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '10px', fontSize: '15px', boxSizing: 'border-box' }} />
+                      </div>
+                    </div>
+
+                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '6px' }}>Criar Agendamento</button>
                   </form>
+
+                  {/* Lista de Agendamentos */}
+                  <div style={{ marginTop: '24px', borderTop: '1px solid #1e2235', paddingTop: '18px' }}>
+                    <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '12px' }}>Lista de Agendados</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+                      {servicosRealizados.map(ag => (
+                        <div key={ag.id} style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '8px', border: '1px solid #222b45', fontSize: '14px' }}>
+                          <p style={{ margin: '0 0 2px 0', color: '#fff', fontWeight: 'bold' }}>{ag.veiculo} ({ag.matricula})</p>
+                          <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>📅 {ag.data} às <b>{ag.hora || '09:00'}</b> | {ag.servico}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '0 0 18px 0' }}>🇵🇹 Feriados Nacionais</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto' }}>
                     {feriadosPortugal.map((f, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', padding: '12px 16px', backgroundColor: '#090a0f', borderRadius: '8px', border: '1px solid #1e2235' }}>
                         <span style={{ color: '#fff', fontWeight: 'bold' }}>{f.nome}</span>
@@ -589,7 +626,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 5: LIVRO-CAIXA COM FILTROS POR MÊS E MATRÍCULA */}
+          {/* ABA 5: LIVRO-CAIXA */}
           {tab === 'financeiro' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
