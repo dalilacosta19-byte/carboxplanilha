@@ -310,6 +310,11 @@ export default function Home() {
             body { font-family: Helvetica, Arial, sans-serif; color: #111; padding: 40px; background: #fff; margin: 0; }
             .header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
             
+            .brand-logo { font-size: 28px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; font-family: Arial Black, sans-serif; }
+            .brand-logo span.car { color: #d4af37; }
+            .brand-logo span.box { color: #111; }
+            .brand-logo span.detailing { display: block; font-size: 10px; letter-spacing: 3px; color: #d4af37; font-weight: bold; margin-top: -2px; }
+
             .doc-title-box { text-align: right; }
             .doc-title-box h2 { font-size: 22px; margin: 0 0 4px 0; color: #111; text-transform: uppercase; letter-spacing: 0.5px; }
             .doc-title-box p { font-size: 12px; margin: 2px 0; color: #555; }
@@ -328,12 +333,20 @@ export default function Home() {
             .totals-row.final { font-size: 15px; font-weight: bold; color: #111; border-top: 2px solid #111; border-bottom: none; padding-top: 8px; margin-top: 4px; }
             
             .obs-box { margin-top: 20px; font-size: 11px; color: #333; background: #f4f4f4; padding: 10px; border-radius: 4px; }
+            
+            .print-btn-bar { position: fixed; top: 10px; right: 10px; background: #111; color: #fff; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+            @media print { .print-btn-bar { display: none; } }
           </style>
         </head>
         <body>
+          <button class="print-btn-bar" onclick="window.print()">🖨️ Imprimir Orçamento</button>
+
           <div class="header-container">
             <div>
-              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAADgCAMAAACuWf6gAAAAA1BMVEX///+nxBvIAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAASElEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC3AWO3AAEo0g7XAAAAAElFTkSuQmCC" alt="CarBox77 Detailing" style="max-height: 55px; width: auto;" />
+              <div class="brand-logo">
+                <span class="car">CAR</span><span class="box">BOX</span><span style="color:#d4af37">77</span>
+                <span class="detailing">DETAILING</span>
+              </div>
             </div>
             <div class="doc-title-box">
               <h2>${tituloDoc}</h2>
@@ -419,10 +432,6 @@ export default function Home() {
           </div>
 
           ${osObs ? `<div class="obs-box"><b>Observações:</b> ${osObs}</div>` : ''}
-
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
         </body>
       </html>
     `);
@@ -486,7 +495,9 @@ export default function Home() {
       <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div>
-            <img src="https://i.ibb.co/30B3v5C/carbox-logo.png" alt="CarBox77 Detailing" style={{ height: '45px', width: 'auto' }} />
+            <div style={{ fontSize: '20px', fontWeight: '900', fontFamily: 'Arial Black, sans-serif', textTransform: 'uppercase', lineHeight: '1' }}>
+              <span style={{ color: '#d4af37' }}>CAR</span><span style={{ color: '#fff' }}>BOX</span><span style={{ color: '#d4af37' }}>77</span>
+            </div>
           </div>
           <div>
             <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{dadosEmpresa.nome}</h1>
