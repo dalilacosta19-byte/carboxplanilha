@@ -87,6 +87,7 @@ export default function Home() {
         { descricao: 'PPF Frontal', funcionario: 'João Silva', valor: 800.00 },
         { descricao: 'Vitrificação Completa', funcionario: 'Ricardo Costa', valor: 400.00 }
       ],
+      servico: 'PPF Frontal + Vitrificação Completa',
       observacoes: 'Inspeção rigorosa à chegada. Sem riscos prévios.', 
       custosPecas: 150.00, 
       valorOriginal: 1200.00, 
@@ -116,7 +117,6 @@ export default function Home() {
     { data: '2026-12-25', nome: 'Natal' }
   ];
 
-  // Extrair base de clientes únicos já cadastrados no sistema
   const clientesCadastrados = Array.from(new Set([
     ...ordensServico.map(o => o.cliente),
     ...agendamentos.map(a => a.cliente)
@@ -152,7 +152,6 @@ export default function Home() {
     }
   };
 
-  // Gestão da lista de serviços dinâmicos na OS
   const adicionarLinhaServico = () => {
     setListaItensServico([...listaItensServico, { id: Date.now(), descricao: '', funcionario: '', valor: '' }]);
   };
@@ -211,13 +210,20 @@ export default function Home() {
       const custos = Number(osCustos) || 0;
       const restante = Math.max(0, valorFin - sinal);
 
+      const servicosDetalhesArray = listaItensServico.map(i => ({ 
+        descricao: i.descricao || 'Serviço Geral', 
+        funcionario: i.funcionario || 'Não atribuído', 
+        valor: Number(i.valor) || 0 
+      }));
+
       const novaOS = {
         id: Date.now(),
         cliente: osCliente,
         contacto: osContacto,
         veiculo: osVeiculo || 'Desconhecido',
         matricula: matriculaU,
-        servicosDetalhes: listaItensServico.map(i => ({ descricao: i.descricao || 'Serviço Geral', funcionario: i.funcionario || 'Não atribuído', valor: Number(i.valor) || 0 })),
+        servicosDetalhes: servicosDetalhesArray,
+        servico: servicosDetalhesArray.map(s => s.descricao).join(' + '),
         observacoes: osObs || 'Sem observações registadas.',
         custosPecas: custos,
         valorOriginal: valorOrig,
@@ -535,7 +541,7 @@ export default function Home() {
                               <p key={idx} style={{ margin: '2px 0', color: '#cbd5e1', fontSize: '14px' }}>• {s.descricao} (<span style={{ color: '#60a5fa' }}>{s.funcionario}</span>) - <b>{s.valor.toFixed(2)}€</b></p>
                             ))
                           ) : (
-                            <p style={{ margin: 0, color: '#cbd5e1' }}>{os.servico}</p>
+                            <p style={{ margin: 0, color: '#cbd5e1' }}>{(os as any).servico}</p>
                           )}
                         </div>
                       </div>
@@ -697,7 +703,6 @@ export default function Home() {
                     {listaItensServico.map((item, index) => (
                       <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 40px', gap: '10px', alignItems: 'center', position: 'relative' }}>
                         
-                        {/* Sugestões inteligentes de serviços */}
                         <div style={{ position: 'relative' }}>
                           <input 
                             type="text" 
