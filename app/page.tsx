@@ -640,21 +640,29 @@ export default function Home() {
                   {/* CAMPO CLIENTE COM AUTOCOMPLETAR INTELIGENTE */}
                   <div style={{ position: 'relative' }}>
                     <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Cliente</label>
-                    <input 
-                      type="text" 
-                      placeholder="Nome do cliente (comece a escrever para sugerir cadastrados)" 
-                      value={osCliente} 
-                      onChange={(e) => {
-                        setOsCliente(e.target.value);
-                        setMostrarSugestoesCliente(true);
-                      }} 
-                      onFocus={() => setMostrarSugestoesCliente(true)}
-                      style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} 
-                    />
+                    <div style={{ display: 'flex', position: 'relative' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Nome do cliente (comece a escrever para sugerir cadastrados)" 
+                        value={osCliente} 
+                        onChange={(e) => {
+                          setOsCliente(e.target.value);
+                          setMostrarSugestoesCliente(true);
+                        }} 
+                        onFocus={() => setMostrarSugestoesCliente(true)}
+                        style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} 
+                      />
+                      {osCliente && (
+                        <button type="button" onClick={() => { setOsCliente(''); setMostrarSugestoesCliente(false); }} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' }}>✕</button>
+                      )}
+                    </div>
 
                     {mostrarSugestoesCliente && clientesCadastrados.filter(c => c.cliente.toLowerCase().includes(osCliente.toLowerCase())).length > 0 && (
                       <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#131722', border: '1px solid #d4af37', borderRadius: '10px', marginTop: '4px', zIndex: 50, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
-                        <p style={{ fontSize: '12px', color: '#d4af37', padding: '8px 12px', margin: 0, borderBottom: '1px solid #222b45', fontWeight: 'bold' }}>⚡ Clientes já registados no sistema (Clique para selecionar):</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222b45', padding: '8px 12px' }}>
+                          <p style={{ fontSize: '12px', color: '#d4af37', margin: 0, fontWeight: 'bold' }}>⚡ Clientes já registados:</p>
+                          <button type="button" onClick={() => setMostrarSugestoesCliente(false)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>✕ Fechar</button>
+                        </div>
                         {clientesCadastrados
                           .filter(c => c.cliente.toLowerCase().includes(osCliente.toLowerCase()))
                           .map((c, idx) => (
@@ -718,7 +726,10 @@ export default function Home() {
 
                           {mostrarSugestoesServicoIndex === index && sugestoesServicosAutomotivos.filter(s => s.toLowerCase().includes(item.descricao.toLowerCase())).length > 0 && (
                             <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#131722', border: '1px solid #d4af37', borderRadius: '8px', marginTop: '4px', zIndex: 60, maxHeight: '180px', overflowY: 'auto' }}>
-                              <p style={{ fontSize: '11px', color: '#d4af37', padding: '6px 10px', margin: 0, borderBottom: '1px solid #222b45', fontWeight: 'bold' }}>💡 Sugestões inteligentes:</p>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222b45', padding: '6px 10px' }}>
+                                <p style={{ fontSize: '11px', color: '#d4af37', margin: 0, fontWeight: 'bold' }}>💡 Sugestões inteligentes:</p>
+                                <button type="button" onClick={() => setMostrarSugestoesServicoIndex(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>✕ Fechar</button>
+                              </div>
                               {sugestoesServicosAutomotivos
                                 .filter(s => s.toLowerCase().includes(item.descricao.toLowerCase()))
                                 .map((sug, sIdx) => (
