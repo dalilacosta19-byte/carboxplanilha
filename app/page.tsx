@@ -28,16 +28,32 @@ export default function Home() {
   const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
   const [valorRemuneracao, setValorRemuneracao] = useState('30');
 
-  // Agenda com suporte a Hora
-  const [servicosRealizados, setServicosRealizados] = useState([
-    { id: 1, cliente: 'Carlos Silva', veiculo: 'Porsche 911 Turbo', matricula: '0KM-7700', servico: 'PPF Frontal + Vitrificação', data: '2026-06-01', hora: '09:30', status: 'Agendado' }
+  // Agenda integrada com Orçamentos e Agendamentos
+  const [agendamentos, setAgendamentos] = useState([
+    { id: 1, tipo: 'Agendamento', cliente: 'Carlos Silva', veiculo: 'Porsche 911 Turbo', matricula: '0KM-7700', servico: 'PPF Frontal + Vitrificação', data: '2026-06-01', hora: '09:30', status: 'Agendado' },
+    { id: 2, tipo: 'Orçamento', cliente: 'Maria Santos', veiculo: 'BMW M4', matricula: 'AA-99-BB', servico: 'Polimento Comercial', data: '2026-06-10', hora: '14:00', status: 'Orçamento Pendente' }
   ]);
-  const [novoClienteAgend, setNovoClienteAgend] = useState('');
-  const [novoVeiculoAgend, setNovoVeiculoAgend] = useState('');
-  const [novaMatriculaAgend, setNovaMatriculaAgend] = useState('');
-  const [novoServicoAgend, setNovoServicoAgend] = useState('');
-  const [novaDataAgend, setNovaDataAgend] = useState('');
-  const [novaHoraAgend, setNovaHoraAgend] = useState('09:00');
+
+  // Navegação do Calendário
+  const [anoAtualCal, setAnoAtualCal] = useState(2026);
+  const [mesAtualCal, setMesAtualCal] = useState(5); // 0 a 11 (5 = Junho)
+  const [diaSelecionadoCal, setDiaSelecionadoCal] = useState('2026-06-01');
+
+  // Formulário OS / Agendamento / Orçamento
+  const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('os');
+  const [osCliente, setOsCliente] = useState('');
+  const [osVeiculo, setOsVeiculo] = useState('');
+  const [osMatricula, setOsMatricula] = useState('');
+  const [osServico, setOsServico] = useState('');
+  const [osObs, setOsObs] = useState('');
+  const [osFuncionarios, setOsFuncionarios] = useState<string[]>([]);
+  const [osCustos, setOsCustos] = useState('0');
+  const [osValor, setOsValor] = useState('');
+  const [osDesconto, setOsDesconto] = useState('0');
+  const [osSinal, setOsSinal] = useState('0');
+  const [osContaRecebimento, setOsContaRecebimento] = useState('MB WAY');
+  const [osDataAgend, setOsDataAgend] = useState('2026-06-01');
+  const [osHoraAgend, setOsHoraAgend] = useState('09:00');
 
   const [ordensServico, setOrdensServico] = useState([
     { 
@@ -59,19 +75,6 @@ export default function Home() {
       data: '2026-06-01' 
     }
   ]);
-
-  const [osCliente, setOsCliente] = useState('');
-  const [osVeiculo, setOsVeiculo] = useState('');
-  const [osMatricula, setOsMatricula] = useState('');
-  const [osServico, setOsServico] = useState('');
-  const [osObs, setOsObs] = useState('');
-  const [osFuncionarios, setOsFuncionarios] = useState<string[]>([]);
-  const [osCustos, setOsCustos] = useState('0');
-  const [osValor, setOsValor] = useState('');
-  const [osDesconto, setOsDesconto] = useState('0');
-  const [osSinal, setOsSinal] = useState('0');
-  const [osContaRecebimento, setOsContaRecebimento] = useState('MB WAY');
-  const [osStatus, setOsStatus] = useState('Em Execução');
 
   const [transacoes, setTransacoes] = useState([
     { id: 1, descricao: 'Sinal OS #101 (Porsche 911)', matricula: '0KM-7700', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-06-01' },
@@ -119,83 +122,97 @@ export default function Home() {
     setFuncionarios(funcionarios.filter(f => f.id !== id));
   };
 
-  const adicionarAgendamento = (e: React.FormEvent) => {
+  // Processar criação unificada (OS, Agendamento ou Orçamento)
+  const processarRegistoUnificado = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!novoClienteAgend || !novaMatriculaAgend || !novaDataAgend) return;
-    setServicosRealizados([...servicosRealizados, { 
-      id: Date.now(), 
-      cliente: novoClienteAgend, 
-      veiculo: novoVeiculoAgend || 'Desconhecido', 
-      matricula: novaMatriculaAgend.toUpperCase(), 
-      servico: novoServicoAgend || 'Estética Geral', 
-      data: novaDataAgend, 
-      hora: novaHoraAgend || '09:00',
-      status: 'Agendado' 
-    }]);
-    setNovoClienteAgend('');
-    setNovoVeiculoAgend('');
-    setNovaMatriculaAgend('');
-    setNovoServicoAgend('');
-    setNovaDataAgend('');
-    setNovaHoraAgend('09:00');
-    alert('Agendamento criado com sucesso!');
-  };
+    if (!osCliente || !osMatricula || !osServico) {
+      alert('Por favor, preencha os campos obrigatórios (Matrícula, Cliente e Serviço).');
+      return;
+    }
 
-  const criarOrdemServico = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!osCliente || !osMatricula || !osServico) return;
-    const valorOrig = Number(osValor) || 0;
-    const desc = Number(osDesconto) || 0;
-    const valorFin = Math.max(0, valorOrig - desc);
-    const sinal = Number(osSinal) || 0;
-    const custos = Number(osCustos) || 0;
-    const restante = Math.max(0, valorFin - sinal);
     const matriculaU = osMatricula.toUpperCase();
     const dataHoje = new Date().toISOString().split('T')[0];
 
-    const novaOS = {
-      id: Date.now(),
-      cliente: osCliente,
-      veiculo: osVeiculo || 'Desconhecido',
-      matricula: matriculaU,
-      servico: osServico,
-      observacoes: osObs || 'Sem observações registadas.',
-      funcionariosAtgados: osFuncionarios,
-      custosPecas: custos,
-      valorOriginal: valorOrig,
-      desconto: desc,
-      valorFinal: valorFin,
-      sinalPago: sinal,
-      contaRecebimentoSinal: sinal > 0 ? osContaRecebimento : 'Nenhum',
-      restanteAPagar: restante,
-      status: osStatus,
-      data: dataHoje
-    };
+    if (tipoRegistroOS === 'os') {
+      const valorOrig = Number(osValor) || 0;
+      const desc = Number(osDesconto) || 0;
+      const valorFin = Math.max(0, valorOrig - desc);
+      const sinal = Number(osSinal) || 0;
+      const custos = Number(osCustos) || 0;
+      const restante = Math.max(0, valorFin - sinal);
 
-    setOrdensServico([novaOS, ...ordensServico]);
-
-    if (sinal > 0) {
-      setTransacoes(prev => [{
+      const novaOS = {
         id: Date.now(),
-        descricao: `Sinal OS #${novaOS.id} (${matriculaU}) via ${osContaRecebimento}`,
+        cliente: osCliente,
+        veiculo: osVeiculo || 'Desconhecido',
         matricula: matriculaU,
-        categoria: 'Serviço',
-        tipo: 'receita' as const,
-        valor: sinal,
+        servico: osServico,
+        observacoes: osObs || 'Sem observações registadas.',
+        funcionariosAtgados: osFuncionarios,
+        custosPecas: custos,
+        valorOriginal: valorOrig,
+        desconto: desc,
+        valorFinal: valorFin,
+        sinalPago: sinal,
+        contaRecebimentoSinal: sinal > 0 ? osContaRecebimento : 'Nenhum',
+        restanteAPagar: restante,
+        status: 'Em Execução',
         data: dataHoje
-      }, ...prev]);
-    }
+      };
 
-    if (custos > 0) {
-      setTransacoes(prev => [{
-        id: Date.now() + 1,
-        descricao: `Custos/Peças OS #${novaOS.id} (${matriculaU})`,
+      setOrdensServico([novaOS, ...ordensServico]);
+
+      if (sinal > 0) {
+        setTransacoes(prev => [{
+          id: Date.now(),
+          descricao: `Sinal OS #${novaOS.id} (${matriculaU}) via ${osContaRecebimento}`,
+          matricula: matriculaU,
+          categoria: 'Serviço',
+          tipo: 'receita' as const,
+          valor: sinal,
+          data: dataHoje
+        }, ...prev]);
+      }
+
+      if (custos > 0) {
+        setTransacoes(prev => [{
+          id: Date.now() + 1,
+          descricao: `Custos/Peças OS #${novaOS.id} (${matriculaU})`,
+          matricula: matriculaU,
+          categoria: 'Produtos/Peças',
+          tipo: 'despesa' as const,
+          valor: custos,
+          data: dataHoje
+        }, ...prev]);
+      }
+
+      alert('Ordem de Serviço criada com sucesso!');
+    } else if (tipoRegistroOS === 'agendamento') {
+      setAgendamentos([...agendamentos, {
+        id: Date.now(),
+        tipo: 'Agendamento',
+        cliente: osCliente,
+        veiculo: osVeiculo || 'Desconhecido',
         matricula: matriculaU,
-        categoria: 'Produtos/Peças',
-        tipo: 'despesa' as const,
-        valor: custos,
-        data: dataHoje
-      }, ...prev]);
+        servico: osServico,
+        data: osDataAgend,
+        hora: osHoraAgend,
+        status: 'Agendado'
+      }]);
+      alert('Agendamento de trabalho registado com sucesso!');
+    } else {
+      setAgendamentos([...agendamentos, {
+        id: Date.now(),
+        tipo: 'Orçamento',
+        cliente: osCliente,
+        veiculo: osVeiculo || 'Desconhecido',
+        matricula: matriculaU,
+        servico: osServico,
+        data: osDataAgend,
+        hora: osHoraAgend,
+        status: 'Orçamento Pendente'
+      }]);
+      alert('Pedido de orçamento registado com sucesso!');
     }
 
     setOsCliente('');
@@ -208,7 +225,6 @@ export default function Home() {
     setOsValor('');
     setOsDesconto('0');
     setOsSinal('0');
-    alert('Ordem de Serviço criada com sucesso!');
   };
 
   const atualizarStatusOS = (id: number, novoStatus: string) => {
@@ -314,8 +330,8 @@ export default function Home() {
   const menuItems = [
     { id: 'pateo', label: '🚗 Veículos no Pátio' },
     { id: 'metricas', label: '📊 Painel & Gráficos' },
-    { id: 'ordem-servico', label: '📋 Nova Ordem de Serviço' },
-    { id: 'agenda', label: '📅 Agenda & Feriados' },
+    { id: 'ordem-servico', label: '📋 Nova OS / Orçamento / Agendamento' },
+    { id: 'agenda', label: '📅 Calendário & Agenda' },
     { id: 'financeiro', label: '💰 Livro-Caixa' },
     { id: 'funcionarios', label: '👥 Funcionários' },
     { id: 'config', label: '⚙️ Empresa' },
@@ -331,6 +347,13 @@ export default function Home() {
       default: return { bg: '#1e293b', color: '#fff', border: '1px solid #334155' };
     }
   };
+
+  // Funções do Calendário
+  const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  const primeiroDiaMes = new Date(anoAtualCal, mesAtualCal, 1).getDay();
+  const totalDiasMes = new Date(anoAtualCal, mesAtualCal + 1, 0).getDate();
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
@@ -372,7 +395,7 @@ export default function Home() {
               style={{
                 textAlign: 'left',
                 padding: '16px 18px',
-                fontSize: '16px',
+                fontSize: '15px',
                 fontWeight: tab === item.id ? 'bold' : '500',
                 cursor: 'pointer',
                 borderRadius: '10px',
@@ -403,7 +426,7 @@ export default function Home() {
                   onClick={() => setTab('ordem-servico')}
                   style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '14px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}
                 >
-                  + Dar Entrada em Veículo
+                  + Nova OS / Agendamento
                 </button>
               </div>
 
@@ -501,16 +524,33 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 3: NOVA ORDEM DE SERVIÇO */}
+          {/* ABA 3: NOVA ORDEM DE SERVIÇO / AGENDAMENTO / ORÇAMENTO */}
           {tab === 'ordem-servico' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
-                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Nova Ordem de Serviço</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Registe a entrada da viatura, custos de peças e equipa.</p>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Registo de Trabalho</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Cadastre o cliente, a viatura e escolha se é Ordem de Serviço, Agendamento ou Orçamento.</p>
               </div>
 
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '900px' }}>
-                <form onSubmit={criarOrdemServico} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <form onSubmit={processarRegistoUnificado} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  
+                  {/* SELETOR DO TIPO DE REGISTO */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>Tipo de Registo:</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                      <button type="button" onClick={() => setTipoRegistroOS('os')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'os' ? '2px solid #d4af37' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'os' ? 'rgba(212, 175, 55, 0.15)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                        📋 Ordem de Serviço
+                      </button>
+                      <button type="button" onClick={() => setTipoRegistroOS('agendamento')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'agendamento' ? '2px solid #60a5fa' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'agendamento' ? 'rgba(96, 165, 250, 0.15)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                        📅 Agendamento
+                      </button>
+                      <button type="button" onClick={() => setTipoRegistroOS('orcamento')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'orcamento' ? '2px solid #c084fc' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'orcamento' ? 'rgba(192, 132, 252, 0.15)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                        📄 Pedido Orçamento
+                      </button>
+                    </div>
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Matrícula</label>
@@ -533,95 +573,186 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>👥 Técnicos Encarregues:</label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
-                      {funcionarios.map(f => (
-                        <button key={f.id} type="button" onClick={() => toggleFuncionarioOS(f.nome)} style={{ backgroundColor: osFuncionarios.includes(f.nome) ? '#2563eb' : '#131722', color: '#fff', border: '1px solid #222b45', padding: '10px 18px', borderRadius: '8px', fontSize: '15px', cursor: 'pointer', fontWeight: 'bold' }}>
-                          {osFuncionarios.includes(f.nome) ? '✓ ' : ''}{f.nome}
-                        </button>
-                      ))}
+                  {/* CAMPOS ESPECÍFICOS PARA AGENDAMENTO OU ORÇAMENTO */}
+                  {tipoRegistroOS !== 'os' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Data do Agendamento</label>
+                        <input type="date" value={osDataAgend} onChange={(e) => setOsDataAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '15px', boxSizing: 'border-box' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Hora</label>
+                        <input type="time" value={osHoraAgend} onChange={(e) => setOsHoraAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '15px', boxSizing: 'border-box' }} />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Valor (€)</label>
-                      <input type="number" step="0.01" value={osValor} onChange={(e) => setOsValor(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', color: '#f87171', marginBottom: '8px', fontWeight: 'bold' }}>Custos (Peças) (€)</label>
-                      <input type="number" step="0.01" value={osCustos} onChange={(e) => setOsCustos(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', color: '#34d399', marginBottom: '8px', fontWeight: 'bold' }}>Sinal Entrada (€)</label>
-                      <input type="number" step="0.01" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
-                    </div>
-                  </div>
+                  {/* CAMPOS ESPECÍFICOS PARA ORDEM DE SERVIÇO */}
+                  {tipoRegistroOS === 'os' && (
+                    <>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>👥 Técnicos Encarregues:</label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
+                          {funcionarios.map(f => (
+                            <button key={f.id} type="button" onClick={() => toggleFuncionarioOS(f.nome)} style={{ backgroundColor: osFuncionarios.includes(f.nome) ? '#2563eb' : '#131722', color: '#fff', border: '1px solid #222b45', padding: '10px 18px', borderRadius: '8px', fontSize: '15px', cursor: 'pointer', fontWeight: 'bold' }}>
+                              {osFuncionarios.includes(f.nome) ? '✓ ' : ''}{f.nome}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Valor (€)</label>
+                          <input type="number" step="0.01" value={osValor} onChange={(e) => setOsValor(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '14px', color: '#f87171', marginBottom: '8px', fontWeight: 'bold' }}>Custos (Peças) (€)</label>
+                          <input type="number" step="0.01" value={osCustos} onChange={(e) => setOsCustos(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '14px', color: '#34d399', marginBottom: '8px', fontWeight: 'bold' }}>Sinal Entrada (€)</label>
+                          <input type="number" step="0.01" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', fontWeight: 'bold', padding: '16px', borderRadius: '10px', border: 'none', cursor: 'pointer', marginTop: '12px', fontSize: '17px' }}>
-                    Criar Ordem de Serviço
+                    {tipoRegistroOS === 'os' ? 'Criar Ordem de Serviço' : tipoRegistroOS === 'agendamento' ? 'Confirmar Agendamento' : 'Guardar Pedido de Orçamento'}
                   </button>
                 </form>
               </div>
             </div>
           )}
 
-          {/* ABA 4: AGENDA & FERIADOS (Com campo de Hora) */}
+          {/* ABA 4: CALENDÁRIO & AGENDA PROFISSIONAL */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-              <div>
-                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Agenda & Feriados Nacionais</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Consulte agendamentos com horários e feriados em Portugal.</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário de Agendamentos & Orçamentos</h2>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Selecione um dia no calendário para ver todas as marcações e feriados de Portugal.</p>
+                </div>
+
+                {/* CONTROLO DE MÊS E ANO */}
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', backgroundColor: '#131722', padding: '10px 16px', borderRadius: '12px', border: '1px solid #1e2235' }}>
+                  <select 
+                    value={mesAtualCal} 
+                    onChange={(e) => setMesAtualCal(Number(e.target.value))}
+                    style={{ backgroundColor: '#090a0f', color: '#d4af37', border: '1px solid #222b45', padding: '8px 12px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    {nomesMeses.map((m, idx) => (
+                      <option key={idx} value={idx}>{m}</option>
+                    ))}
+                  </select>
+                  <select 
+                    value={anoAtualCal} 
+                    onChange={(e) => setAnoAtualCal(Number(e.target.value))}
+                    style={{ backgroundColor: '#090a0f', color: '#fff', border: '1px solid #222b45', padding: '8px 12px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    <option value={2025}>2025</option>
+                    <option value={2026}>2026</option>
+                    <option value={2027}>2027</option>
+                  </select>
+                </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '28px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '28px', alignItems: 'start' }}>
+                
+                {/* CALENDÁRIO BONITO */}
                 <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 18px 0' }}>Novo Agendamento</h3>
-                  <form onSubmit={adicionarAgendamento} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <input type="text" placeholder="Matrícula (Ex: 0KM-7700)" value={novaMatriculaAgend} onChange={(e) => setNovaMatriculaAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px', textTransform: 'uppercase' }} />
-                    <input type="text" placeholder="Nome Cliente" value={novoClienteAgend} onChange={(e) => setNovoClienteAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
-                    <input type="text" placeholder="Serviço (Ex: Vitrificação)" value={novoServicoAgend} onChange={(e) => setNovoServicoAgend(e.target.value)} style={{ backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', fontSize: '15px' }} />
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Data</label>
-                        <input type="date" value={novaDataAgend} onChange={(e) => setNovaDataAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '10px', fontSize: '15px', boxSizing: 'border-box' }} />
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Hora</label>
-                        <input type="time" value={novaHoraAgend} onChange={(e) => setNovaHoraAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '10px', fontSize: '15px', boxSizing: 'border-box' }} />
-                      </div>
-                    </div>
-
-                    <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold', padding: '14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '6px' }}>Criar Agendamento</button>
-                  </form>
-
-                  {/* Lista de Agendamentos */}
-                  <div style={{ marginTop: '24px', borderTop: '1px solid #1e2235', paddingTop: '18px' }}>
-                    <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '12px' }}>Lista de Agendados</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
-                      {servicosRealizados.map(ag => (
-                        <div key={ag.id} style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '8px', border: '1px solid #222b45', fontSize: '14px' }}>
-                          <p style={{ margin: '0 0 2px 0', color: '#fff', fontWeight: 'bold' }}>{ag.veiculo} ({ag.matricula})</p>
-                          <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>📅 {ag.data} às <b>{ag.hora || '09:00'}</b> | {ag.servico}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '0 0 18px 0' }}>🇵🇹 Feriados Nacionais</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto' }}>
-                    {feriadosPortugal.map((f, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', padding: '12px 16px', backgroundColor: '#090a0f', borderRadius: '8px', border: '1px solid #1e2235' }}>
-                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{f.nome}</span>
-                        <span style={{ color: '#60a5fa' }}>{f.data}</span>
-                      </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', marginBottom: '12px' }}>
+                    {diasSemana.map((d, i) => (
+                      <div key={i} style={{ textAlign: 'center', fontSize: '14px', fontWeight: 'bold', color: '#d4af37', padding: '8px 0' }}>{d}</div>
                     ))}
                   </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
+                    {/* Espaços vazios do início do mês */}
+                    {Array.from({ length: primeiroDiaMes }).map((_, i) => (
+                      <div key={`empty-${i}`} style={{ padding: '20px' }}></div>
+                    ))}
+
+                    {/* Dias do Mês */}
+                    {Array.from({ length: totalDiasMes }).map((_, i) => {
+                      const diaNum = i + 1;
+                      const mesFormatado = String(mesAtualCal + 1).padStart(2, '0');
+                      const diaFormatado = String(diaNum).padStart(2, '0');
+                      const dataStr = `${anoAtualCal}-${mesFormatado}-${diaFormatado}`;
+
+                      const feriadoDia = feriadosPortugal.find(f => f.data === dataStr);
+                      const temAgendamento = agendamentos.some(ag => ag.data === dataStr);
+                      const isSelecionado = diaSelecionadoCal === dataStr;
+
+                      return (
+                        <div 
+                          key={diaNum}
+                          onClick={() => setDiaSelecionadoCal(dataStr)}
+                          style={{ 
+                            backgroundColor: isSelecionado ? '#d4af37' : feriadoDia ? 'rgba(239, 68, 68, 0.15)' : temAgendamento ? 'rgba(37, 99, 235, 0.2)' : '#090a0f',
+                            border: feriadoDia ? '1px solid rgba(239, 68, 68, 0.5)' : temAgendamento ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid #222b45',
+                            borderRadius: '12px',
+                            padding: '16px 8px',
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            minHeight: '75px',
+                            position: 'relative'
+                          }}
+                        >
+                          <span style={{ fontSize: '18px', fontWeight: 'bold', color: isSelecionado ? '#090a0f' : feriadoDia ? '#f87171' : '#fff' }}>{diaNum}</span>
+                          
+                          {feriadoDia && (
+                            <span style={{ fontSize: '10px', color: '#f87171', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{feriadoDia.nome}</span>
+                          )}
+
+                          {temAgendamento && !feriadoDia && (
+                            <span style={{ width: '6px', height: '6px', backgroundColor: '#60a5fa', borderRadius: '50%', marginTop: '4px' }}></span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* PAINEL LATERAL COM OS AGENDAMENTOS DO DIA SELECIONADO */}
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>
+                    📅 Marcações para {diaSelecionadoCal}
+                  </h3>
+
+                  {feriadosPortugal.find(f => f.data === diaSelecionadoCal) && (
+                    <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', color: '#f87171', fontSize: '14px', fontWeight: 'bold' }}>
+                      🇵🇹 Feriado: {feriadosPortugal.find(f => f.data === diaSelecionadoCal)?.nome}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+                    {agendamentos.filter(ag => ag.data === diaSelecionadoCal).length === 0 ? (
+                      <p style={{ color: '#94a3b8', fontSize: '15px', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>Nenhum agendamento ou orçamento para este dia.</p>
+                    ) : (
+                      agendamentos
+                        .filter(ag => ag.data === diaSelecionadoCal)
+                        .map(ag => (
+                          <div key={ag.id} style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: ag.tipo === 'Orçamento' ? '#c084fc' : '#60a5fa', backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>{ag.tipo}</span>
+                              <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#d4af37' }}>🕒 {ag.hora}</span>
+                            </div>
+                            <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: '4px 0 0 0' }}>{ag.veiculo} ({ag.matricula})</p>
+                            <p style={{ fontSize: '14px', color: '#cbd5e1', margin: 0 }}><b>Cliente:</b> {ag.cliente}</p>
+                            <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}><b>Serviço:</b> {ag.servico}</p>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
