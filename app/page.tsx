@@ -18,6 +18,7 @@ import {
   Search, 
   History, 
   User, 
+  Users,
   Plus, 
   X 
 } from 'lucide-react';
@@ -47,7 +48,6 @@ interface Cliente {
 export default function CarboxDashboard() {
   const [activeTab, setActiveTab] = useState('clientes');
 
-  // Estados da Gestão de Clientes
   const [clientes, setClientes] = useState<Cliente[]>([
     {
       id: "1",
@@ -167,7 +167,7 @@ export default function CarboxDashboard() {
   return (
     <div style={{ backgroundColor: '#020617', color: '#f8fafc', minHeight: '100vh' }} className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-md">
+      <header className="border-b border-slate-800 bg-slate-900/85 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-md">
         <div className="flex items-center space-x-3">
           <div className="bg-gradient-to-tr from-blue-600 to-cyan-400 p-2 rounded-xl text-white shadow-lg shadow-cyan-500/20">
             <Car className="w-6 h-6" />
