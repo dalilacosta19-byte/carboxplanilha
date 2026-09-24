@@ -35,7 +35,7 @@ export default function Home() {
 
   // Agenda integrada
   const [agendamentos, setAgendamentos] = useState([
-    { id: 1, tipo: 'Orçamento', cliente: 'Carla Monteiro', contacto: '+351 922 333 444', veiculo: 'Renault Captur', matricula: 'AZ-91-GI', servico: 'Limpeza Detalhada + PPF', data: '2026-09-23', hora: '14:00', status: 'Orçamento Pendente' }
+    { id: 1, tipo: 'Agendamento', cliente: 'Carla Monteiro', contacto: '+351 922 333 444', veiculo: 'Renault Captur', matricula: 'AZ-91-GI', servico: 'Limpeza Detalhada + PPF', data: '2026-09-23', hora: '14:00', status: 'Agendado' }
   ]);
 
   // Navegação do Calendário
@@ -43,13 +43,18 @@ export default function Home() {
   const [mesAtualCal, setMesAtualCal] = useState(8); // Setembro
   const [diaSelecionadoCal, setDiaSelecionadoCal] = useState('2026-09-23');
 
-  // Formulário OS / Orçamento
+  // Formulário Unificado (OS / Orçamento / Agendamento)
+  const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('os');
   const [tipoDocumentoGerar, setTipoDocumentoGerar] = useState<'ORÇAMENTO' | 'ORDEM DE SERVIÇO'>('ORÇAMENTO');
+  
   const [osCliente, setOsCliente] = useState('Carla Monteiro');
   const [osContacto, setOsContacto] = useState('+351 922 333 444');
   const [osVeiculo, setOsVeiculo] = useState('Renault Captur');
   const [osMatricula, setOsMatricula] = useState('AZ-91-GI');
   const [osObs, setOsObs] = useState('Renault Captur matrícula AZ-91-GI. IVA - regime de isenção.');
+
+  const [osDataAgend, setOsDataAgend] = useState('2026-09-23');
+  const [osHoraAgend, setOsHoraAgend] = useState('14:00');
 
   // Múltiplos serviços com técnicos, valores e descontos individuais
   const [listaItensServico, setListaItensServico] = useState([
@@ -202,10 +207,35 @@ export default function Home() {
     setFuncionarios(funcionarios.filter(f => f.id !== id));
   };
 
-  const gerarEImprimirPDFOficial = (e: React.FormEvent) => {
+  // Processar submissão (se for agendamento guarda na agenda, se for OS gera PDF)
+  const lidarComSubmissaoRegisto = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!osCliente || !osMatricula) {
-      alert('Por favor, preencha pelo menos o Cliente e a Matrícula para gerar o documento.');
+    if (!osCliente) {
+      alert('Por favor, preencha o nome do cliente.');
+      return;
+    }
+
+    if (tipoRegistroOS === 'agendamento' || tipoRegistroOS === 'orcamento') {
+      const novoAg = {
+        id: Date.now(),
+        tipo: tipoRegistroOS === 'agendamento' ? 'Agendamento' : 'Orçamento',
+        cliente: osCliente,
+        contacto: osContacto || 'Sem contacto',
+        veiculo: osVeiculo || 'Renault Captur',
+        matricula: osMatricula ? osMatricula.toUpperCase() : 'N/D',
+        servico: listaItensServico[0]?.descricao || 'Estética Geral',
+        data: osDataAgend,
+        hora: osHoraAgend,
+        status: tipoRegistroOS === 'agendamento' ? 'Agendado' : 'Orçamento Pendente'
+      };
+      setAgendamentos([...agendamentos, novoAg]);
+      alert(`${tipoRegistroOS === 'agendamento' ? 'Agendamento' : 'Pedido de Orçamento'} guardado com sucesso na Agenda!`);
+      return;
+    }
+
+    // Caso seja Ordem de Serviço, gera o PDF oficial
+    if (!osMatricula) {
+      alert('Para Ordem de Serviço, por favor preencha a Matrícula.');
       return;
     }
 
@@ -472,7 +502,7 @@ export default function Home() {
   const menuItems = [
     { id: 'pateo', label: '🚗 Veículos no Pátio' },
     { id: 'metricas', label: '📊 Painel & Gráficos' },
-    { id: 'ordem-servico', label: '📋 Emitir Orçamento / OS' },
+    { id: 'ordem-servico', label: '📋 OS / Agendamento / Orçamento' },
     { id: 'agenda', label: '📅 Calendário & Agenda' },
     { id: 'financeiro', label: '💰 Livro-Caixa' },
     { id: 'funcionarios', label: '👥 Funcionários' },
@@ -575,7 +605,7 @@ export default function Home() {
                   onClick={() => setTab('ordem-servico')}
                   style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '14px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}
                 >
-                  + Emitir Orçamento / OS
+                  + Novo Registo / OS / Agendamento
                 </button>
               </div>
 
@@ -667,28 +697,42 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 3: EMISSÃO DE ORÇAMENTO / OS COM PDF OFICIAL */}
+          {/* ABA 3: ORDEM DE SERVIÇO / AGENDAMENTO / ORÇAMENTO */}
           {tab === 'ordem-servico' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
-                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Emitir Orçamento / Ordem de Serviço (PDF Oficial)</h2>
-                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Preencha os serviços, descontos e custos para gerar o documento exato da CarBox.</p>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Registo Unificado (OS / Agendamento / Orçamento)</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Crie Agendamentos, Orçamentos ou Ordens de Serviço completas com PDF oficial.</p>
               </div>
 
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '950px' }}>
-                <form onSubmit={gerarEImprimirPDFOficial} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <form onSubmit={lidarComSubmissaoRegisto} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   
+                  {/* SELETOR DO TIPO DE REGISTO */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>Tipo de Documento a Gerar:</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                      <button type="button" onClick={() => setTipoDocumentoGerar('ORÇAMENTO')} style={{ padding: '14px', borderRadius: '8px', border: tipoDocumentoGerar === 'ORÇAMENTO' ? '2px solid #d4af37' : '1px solid #222b45', backgroundColor: tipoDocumentoGerar === 'ORÇAMENTO' ? 'rgba(212, 175, 55, 0.15)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
-                        📄 Orçamento Oficial
+                    <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>Selecione o Tipo de Ação:</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                      <button type="button" onClick={() => setTipoRegistroOS('os')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'os' ? '2px solid #2563eb' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'os' ? 'rgba(37, 99, 235, 0.2)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                        📋 Ordem de Serviço (PDF)
                       </button>
-                      <button type="button" onClick={() => setTipoDocumentoGerar('ORDEM DE SERVIÇO')} style={{ padding: '14px', borderRadius: '8px', border: tipoDocumentoGerar === 'ORDEM DE SERVIÇO' ? '2px solid #2563eb' : '1px solid #222b45', backgroundColor: tipoDocumentoGerar === 'ORDEM DE SERVIÇO' ? 'rgba(37, 99, 235, 0.15)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
-                        📋 Ordem de Serviço
+                      <button type="button" onClick={() => setTipoRegistroOS('agendamento')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'agendamento' ? '2px solid #60a5fa' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'agendamento' ? 'rgba(96, 165, 250, 0.2)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                        📅 Agendamento
+                      </button>
+                      <button type="button" onClick={() => setTipoRegistroOS('orcamento')} style={{ padding: '12px', borderRadius: '8px', border: tipoRegistroOS === 'orcamento' ? '2px solid #d4af37' : '1px solid #222b45', backgroundColor: tipoRegistroOS === 'orcamento' ? 'rgba(212, 175, 55, 0.2)' : '#090a0f', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                        📄 Pedido Orçamento
                       </button>
                     </div>
                   </div>
+
+                  {tipoRegistroOS === 'os' && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Documento PDF a Emitir:</label>
+                      <select value={tipoDocumentoGerar} onChange={(e) => setTipoDocumentoGerar(e.target.value as any)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '15px' }}>
+                        <option value="ORÇAMENTO">Orçamento Oficial</option>
+                        <option value="ORDEM DE SERVIÇO">Ordem de Serviço Oficial</option>
+                      </select>
+                    </div>
+                  )}
 
                   <div style={{ position: 'relative' }}>
                     <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Cliente</label>
@@ -741,6 +785,20 @@ export default function Home() {
                     <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Viatura</label>
                     <input type="text" placeholder="Ex: Renault Captur" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                   </div>
+
+                  {/* CAMPOS DE DATA E HORA PARA AGENDAMENTO */}
+                  {tipoRegistroOS !== 'os' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #222b45' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>Data do Agendamento</label>
+                        <input type="date" value={osDataAgend} onChange={(e) => setOsDataAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '15px' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '6px', fontWeight: 'bold' }}>Hora</label>
+                        <input type="time" value={osHoraAgend} onChange={(e) => setOsHoraAgend(e.target.value)} style={{ width: '100%', backgroundColor: '#131722', border: '1px solid #222b45', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '15px' }} />
+                      </div>
+                    </div>
+                  )}
 
                   <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -891,7 +949,7 @@ export default function Home() {
                   </div>
 
                   <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', fontWeight: 'bold', padding: '16px', borderRadius: '10px', border: 'none', cursor: 'pointer', marginTop: '12px', fontSize: '17px' }}>
-                    🖨️ Gerar e Imprimir PDF Oficial
+                    {tipoRegistroOS === 'os' ? '🖨️ Gerar e Imprimir PDF Oficial' : tipoRegistroOS === 'agendamento' ? '📅 Guardar Agendamento na Agenda' : '📄 Guardar Pedido de Orçamento'}
                   </button>
                 </form>
               </div>
@@ -949,6 +1007,7 @@ export default function Home() {
                       const dataStr = `${anoAtualCal}-${mesFormatado}-${diaFormatado}`;
 
                       const feriadoDia = feriadosPortugal.find(f => f.data === dataStr);
+                      const temAgendamento = agendamentos.some(ag => ag.data === dataStr);
                       const isSelecionado = diaSelecionadoCal === dataStr;
 
                       return (
@@ -956,18 +1015,23 @@ export default function Home() {
                           key={diaNum}
                           onClick={() => setDiaSelecionadoCal(dataStr)}
                           style={{ 
-                            backgroundColor: isSelecionado ? '#d4af37' : feriadoDia ? 'rgba(239, 68, 68, 0.15)' : '#090a0f',
-                            border: feriadoDia ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid #222b45',
+                            backgroundColor: isSelecionado ? '#d4af37' : feriadoDia ? 'rgba(239, 68, 68, 0.15)' : temAgendamento ? 'rgba(37, 99, 235, 0.2)' : '#090a0f',
+                            border: feriadoDia ? '1px solid rgba(239, 68, 68, 0.5)' : temAgendamento ? '1px solid rgba(59, 130, 246, 0.5)' : '1px solid #222b45',
                             borderRadius: '12px',
                             padding: '16px 8px',
                             textAlign: 'center',
                             cursor: 'pointer',
                             minHeight: '75px',
-                            position: 'relative'
+                            position: 'relative',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center'
                           }}
                         >
                           <span style={{ fontSize: '18px', fontWeight: 'bold', color: isSelecionado ? '#090a0f' : feriadoDia ? '#f87171' : '#fff' }}>{diaNum}</span>
-                          {feriadoDia && <span style={{ fontSize: '10px', color: '#f87171', display: 'block', marginTop: '4px' }}>{feriadoDia.nome}</span>}
+                          {feriadoDia && <span style={{ fontSize: '10px', color: '#f87171', display: 'block', marginTop: '2px' }}>{feriadoDia.nome}</span>}
+                          {temAgendamento && !feriadoDia && <span style={{ width: '6px', height: '6px', backgroundColor: '#60a5fa', borderRadius: '50%', marginTop: '4px' }}></span>}
                         </div>
                       );
                     })}
@@ -983,7 +1047,26 @@ export default function Home() {
                       🇵🇹 Feriado: {feriadosPortugal.find(f => f.data === diaSelecionadoCal)?.nome}
                     </div>
                   )}
-                  <p style={{ color: '#94a3b8', fontSize: '14px' }}>Nenhum agendamento pendente para este dia.</p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+                    {agendamentos.filter(ag => ag.data === diaSelecionadoCal).length === 0 ? (
+                      <p style={{ color: '#94a3b8', fontSize: '14px', fontStyle: 'italic', margin: '10px 0' }}>Nenhum agendamento para este dia.</p>
+                    ) : (
+                      agendamentos
+                        .filter(ag => ag.data === diaSelecionadoCal)
+                        .map(ag => (
+                          <div key={ag.id} style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '10px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 'bold', color: ag.tipo === 'Orçamento' ? '#c084fc' : '#60a5fa', backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>{ag.tipo}</span>
+                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#d4af37' }}>🕒 {ag.hora}</span>
+                            </div>
+                            <p style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', margin: '2px 0 0 0' }}>{ag.veiculo} <span style={{ fontSize: '12px', color: '#94a3b8' }}>({ag.matricula})</span></p>
+                            <p style={{ fontSize: '13px', color: '#cbd5e1', margin: 0 }}><b>Cliente:</b> {ag.cliente} ({ag.contacto})</p>
+                            <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}><b>Serviço:</b> {ag.servico}</p>
+                          </div>
+                        ))
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
