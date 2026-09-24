@@ -190,10 +190,6 @@ export default function Home() {
     setListaCustosDetalhados(novaLista);
   };
 
-  const calcularTotalCustos = () => {
-    return listaCustosDetalhados.reduce((acc, item) => acc + (Number(item.valor) || 0), 0);
-  };
-
   const adicionarFuncionario = (e: React.FormEvent) => {
     e.preventDefault();
     if (!novoFuncNome || !novoFuncCargo) return;
@@ -283,7 +279,6 @@ export default function Home() {
       }, ...prev]);
     });
 
-    // ABRIR JANELA DO PDF COM O LOGÓTIPO EXATO E ESTILO IDÊNTICO AO PAPEL
     const w = window.open('', '_blank');
     if (!w) return;
 
@@ -297,7 +292,6 @@ export default function Home() {
             .badge-box { border: 1px solid #999; padding: 3px 10px; font-weight: bold; background: #f5f5f5; }
             .header-container { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
             
-            /* LOGÓTIPO EXATO CARBOX COM X E SETA DOURADA */
             .carbox-logo { display: inline-flex; align-items: baseline; font-family: Arial, sans-serif; }
             .carbox-text-car { font-size: 28px; font-weight: bold; color: #4a4a4a; letter-spacing: -0.5px; }
             .carbox-text-box { font-size: 28px; font-weight: 900; color: #4a4a4a; position: relative; }
@@ -684,7 +678,6 @@ export default function Home() {
               <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '32px', borderRadius: '16px', maxWidth: '950px' }}>
                 <form onSubmit={gerarEImprimirPDFOficial} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   
-                  {/* SELETOR DO TIPO DE DOCUMENTO */}
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', color: '#d4af37', marginBottom: '8px', fontWeight: 'bold' }}>Tipo de Documento a Gerar:</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -697,7 +690,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* CLIENTE */}
                   <div style={{ position: 'relative' }}>
                     <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Cliente</label>
                     <input 
@@ -750,7 +742,6 @@ export default function Home() {
                     <input type="text" placeholder="Ex: Renault Captur" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} style={{ width: '100%', backgroundColor: '#090a0f', border: '1px solid #222b45', color: '#fff', padding: '14px', borderRadius: '10px', boxSizing: 'border-box', fontSize: '16px' }} />
                   </div>
 
-                  {/* SERVIÇOS, VALORES E DESCONTO */}
                   <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <label style={{ fontSize: '15px', color: '#d4af37', fontWeight: 'bold' }}>🛠️ Serviços, Valores e Descontos:</label>
@@ -844,7 +835,6 @@ export default function Home() {
                     ))}
                   </div>
 
-                  {/* CUSTOS DETALHADOS (Pintor, Peças, Produto...) */}
                   <div style={{ backgroundColor: '#090a0f', padding: '20px', borderRadius: '12px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <label style={{ fontSize: '15px', color: '#f87171', fontWeight: 'bold' }}>💸 Custos (Pintor / Peças / Produtos / Outros):</label>
@@ -977,7 +967,7 @@ export default function Home() {
                           }}
                         >
                           <span style={{ fontSize: '18px', fontWeight: 'bold', color: isSelecionado ? '#090a0f' : feriadoDia ? '#f87171' : '#fff' }}>{diaNum}</span>
-                          {feriadoDia && <span style={{ fontSize: '10px', color: '#f87171', display: 'block', marginTop: '4px' }}>{feriadoDia.name}</span>}
+                          {feriadoDia && <span style={{ fontSize: '10px', color: '#f87171', display: 'block', marginTop: '4px' }}>{feriadoDia.nome}</span>}
                         </div>
                       );
                     })}
@@ -988,6 +978,11 @@ export default function Home() {
                   <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>
                     📅 Marcações para {diaSelecionadoCal}
                   </h3>
+                  {feriadosPortugal.find(f => f.data === diaSelecionadoCal) && (
+                    <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', color: '#f87171', fontSize: '14px', fontWeight: 'bold' }}>
+                      🇵🇹 Feriado: {feriadosPortugal.find(f => f.data === diaSelecionadoCal)?.nome}
+                    </div>
+                  )}
                   <p style={{ color: '#94a3b8', fontSize: '14px' }}>Nenhum agendamento pendente para este dia.</p>
                 </div>
               </div>
