@@ -7,7 +7,7 @@ export default function Home() {
 
   const [dadosEmpresa, setDadosEmpresa] = useState({
     nome: 'CARBOX77 DETAILING, UNIPESSOAL LDA',
-    nif: 'Rascunho',
+    nif: '513 401 890',
     morada: 'Rua da Torre, Pavilhão Guilherme Pinto Basto, 2750-748 Cascais, Portugal',
     telefone: '+351 211 515 449',
     email: 'carbox77detailing@gmail.com',
@@ -16,11 +16,6 @@ export default function Home() {
     iban: 'PT50 0033 0000 4546 1405 9370 5',
     swift: 'BCOPTPL'
   });
-
-  const [dataInicioFiltro, setDataInicioFiltro] = useState('');
-  const [dataFimFiltro, setDataFimFiltro] = useState('');
-  const [mesFiltro, setMesFiltro] = useState('');
-  const [matriculaFiltro, setMatriculaFiltro] = useState('');
 
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 },
@@ -214,7 +209,6 @@ export default function Home() {
       return;
     }
 
-    // Se for apenas Agendamento puro, guarda na agenda
     if (tipoRegistroOS === 'agendamento') {
       const novoAg = {
         id: Date.now(),
@@ -233,7 +227,6 @@ export default function Home() {
       return;
     }
 
-    // Se for Orçamento ou Ordem de Serviço, gera e imprime o PDF oficial
     const tituloDoc = tipoRegistroOS === 'orcamento' ? 'ORÇAMENTO' : tipoDocumentoGerar;
 
     let valorOrig = 0;
@@ -317,27 +310,14 @@ export default function Home() {
           <title>${tituloDoc} #${docId} - ${dadosEmpresa.nome}</title>
           <style>
             body { font-family: Helvetica, Arial, sans-serif; color: #111; padding: 40px; background: #fff; margin: 0; }
-            .top-bar { display: flex; justify-content: flex-end; gap: 15px; margin-bottom: 10px; font-size: 11px; }
-            .badge-box { border: 1px solid #999; padding: 3px 10px; font-weight: bold; background: #f5f5f5; }
-            .header-container { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
+            .header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
             
-            .carbox-logo-container { display: inline-block; }
-            .carbox-main-row { display: flex; align-items: baseline; }
-            .carbox-gold-text { font-family: Arial, sans-serif; font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #f3e792 0%, #c59b27 50%, #b8860b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
-            .carbox-black-text { font-family: Arial, sans-serif; font-size: 32px; font-weight: 900; color: #111; letter-spacing: -0.5px; }
-            .carbox-subtext { font-family: Arial, sans-serif; font-size: 9px; font-weight: bold; letter-spacing: 5px; color: #b8860b; margin-top: -2px; margin-left: 38px; }
-
             .doc-title-box { text-align: right; }
             .doc-title-box h2 { font-size: 22px; margin: 0 0 4px 0; color: #111; text-transform: uppercase; letter-spacing: 0.5px; }
             .doc-title-box p { font-size: 12px; margin: 2px 0; color: #555; }
             
             .company-details { font-size: 11px; color: #444; line-height: 1.5; margin-bottom: 20px; }
             .client-box { border: 1px solid #ccc; padding: 12px; border-radius: 4px; margin-bottom: 20px; background: #fafafa; display: flex; justify-content: space-between; font-size: 13px; }
-            
-            .meta-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid #ccc; background: #f9f9f9; text-align: center; font-size: 11px; margin-bottom: 20px; }
-            .meta-cell { padding: 8px; border-right: 1px solid #ccc; }
-            .meta-cell:last-child { border-right: none; }
-            .meta-cell b { display: block; margin-top: 2px; font-size: 12px; color: #111; }
 
             table.items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
             table.items-table th { background: #111; color: #fff; font-size: 11px; text-transform: uppercase; padding: 8px 10px; text-align: left; }
@@ -350,40 +330,13 @@ export default function Home() {
             .totals-row.final { font-size: 15px; font-weight: bold; color: #111; border-top: 2px solid #111; border-bottom: none; padding-top: 8px; margin-top: 4px; }
             
             .obs-box { margin-top: 20px; font-size: 11px; color: #333; background: #f4f4f4; padding: 10px; border-radius: 4px; }
-            .footer-note { margin-top: 30px; font-size: 10px; text-align: center; color: #777; border-top: 1px solid #eee; padding-top: 10px; }
           </style>
         </head>
         <body>
-          <div class="top-bar">
-            <span class="badge-box">ORIGINAL</span>
-            <span class="badge-box" style="background:#fff; color:#777;">RASCUNHO</span>
-          </div>
-
           <div class="header-container">
             <div>
-              <div class="carbox-logo-container">
-                <div class="carbox-main-row">
-                  <span class="carbox-gold-text">CAR</span>
-                  <span class="carbox-black-text">BO</span>
-                  <span class="carbox-black-text" style="position:relative;">X</span>
-                  <div style="display:inline-block; margin-left:-2px; vertical-align:top;">
-                    <svg width="36" height="34" viewBox="0 0 100 90" style="overflow:visible;">
-                      <path d="M10,15 L85,15 L70,45 L35,45 L25,75 L60,75" fill="none" stroke="url(#goldGrad)" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
-                      <path d="M30,0 L95,0 L80,30 L45,30 L35,60 L70,60" fill="none" stroke="url(#goldGrad)" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
-                      <defs>
-                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stop-color="#fae17d" />
-                          <stop offset="50%" stop-color="#d4af37" />
-                          <stop offset="100%" stop-color="#996515" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  </div>
-                </div>
-                <div class="carbox-subtext">DETAILING</div>
-              </div>
+              <img src="https://i.ibb.co/30B3v5C/carbox-logo.png" alt="CarBox77 Detailing" style="max-height: 55px; width: auto;" />
             </div>
-
             <div class="doc-title-box">
               <h2>${tituloDoc}</h2>
               <p><b>Data de Emissão:</b> ${dataHoje}</p>
@@ -408,14 +361,6 @@ export default function Home() {
               <b>Viatura:</b> ${osVeiculo}<br/>
               <b>Matrícula:</b> ${osMatricula}
             </div>
-          </div>
-
-          <div class="meta-grid">
-            <div class="meta-cell">NIF:<b>Rascunho</b></div>
-            <div class="meta-cell">Referência:<b>-</b></div>
-            <div class="meta-cell">Válido até:<b>${dataHoje}</b></div>
-            <div class="meta-cell">IVA:<b>0,00€</b></div>
-            <div class="meta-cell" style="border-right:none;">Total:<b>${valorFin.toFixed(2)}€</b></div>
           </div>
 
           <table class="items-table">
@@ -479,10 +424,6 @@ export default function Home() {
 
           ${osObs ? `<div class="obs-box"><b>Observações:</b> ${osObs}</div>` : ''}
 
-          <div class="footer-note">
-            Este documento não serve de factura • Documento processado por computador • Página 1/1
-          </div>
-
           <script>
             window.onload = function() { window.print(); }
           </script>
@@ -545,16 +486,11 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
       
-      {/* HEADER COM LOGÓTIPO IDÊNTICO À MARCA */}
+      {/* HEADER */}
       <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
-              <span style={{ fontSize: '24px', fontWeight: 'bold', background: 'linear-gradient(135deg, #f3e792 0%, #c59b27 50%, #b8860b 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CAR</span>
-              <span style={{ fontSize: '24px', fontWeight: '900', color: '#fff' }}>BOX</span>
-              <span style={{ fontSize: '20px', fontWeight: '900', color: '#d4af37', marginLeft: '4px' }}>77</span>
-            </div>
-            <p style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '4px', color: '#d4af37', margin: 0 }}>DETAILING</p>
+            <img src="https://i.ibb.co/30B3v5C/carbox-logo.png" alt="CarBox77 Detailing" style={{ height: '45px', width: 'auto' }} />
           </div>
           <div>
             <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{dadosEmpresa.nome}</h1>
