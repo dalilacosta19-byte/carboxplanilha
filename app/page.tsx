@@ -5,18 +5,18 @@ export default function Home() {
   const [tab, setTab] = useState('pateo');
   const [user, setUser] = useState('admin');
 
+  // Dados oficiais atualizados da CARBOX 77
   const [dadosEmpresa, setDadosEmpresa] = useState({
-    nome: 'CARBOX 77 - Estética Automotiva',
-    nif: '500 123 456',
+    nome: 'Carbox77 Detailing Unipessoal Lda',
+    nif: '513401890',
     morada: 'Pavilhão Guilherme Pinto Basto, R. da Torre, 2750-748 Cascais',
-    telefone: '+351 963 800 568',
-    email: 'geral@carbox77.pt'
+    telefone: '+351 211 515 449',
+    email: 'carbox77detailing@gmail.com'
   });
 
   const [dataInicioFiltro, setDataInicioFiltro] = useState('');
   const [dataFimFiltro, setDataFimFiltro] = useState('');
 
-  // Adicionada a opção de diária nos funcionários
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 },
     { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000 },
@@ -223,7 +223,7 @@ export default function Home() {
         <style>
           body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
           .header { border-bottom: 2px solid #d4af37; padding-bottom: 10px; display: flex; justify-content: space-between; }
-          h1 { color: #d4af37; margin: 0; font-size: 22px; }
+          h1 { color: #d4af37; margin: 0; font-size: 20px; }
           .box { background: #f9f9f9; border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin: 15px 0; }
           table { width: 100%; border-collapse: collapse; margin-top: 15px; }
           th, td { border: 1px solid #ccc; padding: 10px; font-size: 15px; text-align: left; }
@@ -232,7 +232,7 @@ export default function Home() {
         </head>
         <body>
           <div class="header">
-            <div><h1>${dadosEmpresa.nome}</h1><p>${dadosEmpresa.morada} | NIF: ${dadosEmpresa.nif}</p></div>
+            <div><h1>${dadosEmpresa.nome}</h1><p>${dadosEmpresa.morada} | NIF: ${dadosEmpresa.nif} | Tel: ${dadosEmpresa.telefone}</p></div>
             <div style="text-align: right;"><b>OS Nº:</b> #${os.id}<br/><b>Data:</b> ${os.data}</div>
           </div>
           <div class="box">
@@ -270,6 +270,7 @@ export default function Home() {
         </head>
         <body>
           <h1>${dadosEmpresa.nome} - Relatório Financeiro</h1>
+          <p>NIF: ${dadosEmpresa.nif} | Tel: ${dadosEmpresa.telefone}</p>
           <p style="font-size: 16px;">Receitas: <b>+${rec.toFixed(2)}€</b> | Despesas: <b style="color:red;">-${desp.toFixed(2)}€</b> | Líquido: <b>${(rec - desp).toFixed(2)}€</b></p>
           <hr/>
           <table width="100%" border="1" cellspacing="0" cellpadding="10" style="border-collapse:collapse;font-size:14px;">
@@ -311,7 +312,7 @@ export default function Home() {
       <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#d4af37', margin: 0, letterSpacing: '0.5px' }}>{dadosEmpresa.nome}</h1>
-          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>Estética Automotiva de Alta Performance • Cascais</p>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>Estética Automotiva de Alta Performance • Cascais • NIF: {dadosEmpresa.nif}</p>
         </div>
 
         <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
@@ -604,7 +605,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS (Com suporte a Diária) */}
+          {/* ABA 6: FUNCIONÁRIOS */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
