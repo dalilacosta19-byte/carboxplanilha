@@ -1,16 +1,20 @@
+import './globals.css';
+
 export const metadata = {
-  title: 'CARBOXPLANILHA',
+  title: 'CARBOX77',
   description: 'Aplicação CARBOX',
-}
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="pt">
-      <body>{children}</body>
+      <body className="bg-slate-950 text-slate-100 antialiased">
+        {children}
+      </body>
     </html>
-  )
+  );
 }
