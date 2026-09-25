@@ -1,924 +1,603 @@
 'use client';
+import { useState } from 'react';
 
-import React, { useState } from 'react';
-import { 
-  BarChart3, 
-  FileText, 
-  TrendingUp, 
-  Calendar, 
-  ShieldCheck, 
-  DollarSign, 
-  Car, 
-  CheckCircle2, 
-  Clock, 
-  Sparkles,
-  UserPlus, 
-  Phone, 
-  Mail, 
-  Search, 
-  History, 
-  User, 
-  Users,
-  Plus, 
-  X,
-  ClipboardList
-} from 'lucide-react';
+export default function Home() {
+  const [tab, setTab] = useState('pateo');
+  const [user, setUser] = useState('admin');
 
-interface ServicoHistorico {
-  id: string;
-  data: string;
-  veiculo: string;
-  matricula: string;
-  servico: string;
-  valor: number;
-  observacoes: string;
-}
+  const [dadosEmpresa, setDadosEmpresa] = useState({
+    nome: 'CARBOX77 DETAILING, UNIPESSOAL LDA',
+    nif: '513 401 890',
+    morada: 'Rua da Torre, Pavilhão Guilherme Pinto Basto, 2750-748 Cascais, Portugal',
+    telefone: '+351 211 515 449',
+    email: 'carbox77detailing@gmail.com',
+    capitalSocial: '50000,00',
+    conservatoria: 'Registo Comercial de Lisboa',
+    iban: 'PT50 0033 0000 4546 1405 9370 5',
+    swift: 'BCOPTPL'
+  });
 
-interface Cliente {
-  id: string;
-  nome: string;
-  apelido: string;
-  telefone: string;
-  email: string;
-  matricula: string;
-  modelo: string;
-  ano: string;
-  historico: ServicoHistorico[];
-}
-
-interface AgendamentoAvaliacao {
-  id: string;
-  cliente: string;
-  telefone1: string;
-  telefone2?: string;
-  matricula?: string;
-  viatura: string;
-  data: string;
-  hora: string;
-  notasAvaliacao: string;
-}
-
-export default function CarboxDashboard() {
-  const [activeTab, setActiveTab] = useState('agendamento');
-
-  const [clientes, setClientes] = useState<Cliente[]>([
-    {
-      id: "1",
-      nome: "João",
-      apelido: "Silva",
-      telefone: "+351 912 345 678",
-      email: "joao@email.com",
-      matricula: "AA-00-BB",
-      modelo: "BMW Série 3",
-      ano: "2021",
-      historico: [
-        {
-          id: "h1",
-          data: "2026-02-10",
-          veiculo: "BMW Série 3",
-          matricula: "AA-00-BB",
-          servico: "Polimento Comercial + Proteção Cerâmica",
-          valor: 350,
-          observacoes: "Pintura com alguns swirls leves, resultado excelente."
-        }
-      ]
-    },
+  const [funcionarios, setFuncionarios] = useState([
+    { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 },
+    { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000 },
+    { id: 3, nome: 'Ricardo Costa', cargo: 'Polidor Externo', tipoRemuneracao: 'diaria', valorPctOuFixo: 75 },
+    { id: 4, nome: 'Kevin', cargo: 'Detailer', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 }
   ]);
+  const [novoFuncNome, setNovoFuncNome] = useState('');
+  const [novoFuncCargo, setNovoFuncCargo] = useState('');
+  const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
+  const [valorRemuneracao, setValorRemuneracao] = useState('30');
 
-  const [agendamentos, setAgendamentos] = useState<AgendamentoAvaliacao[]>([
-    {
-      id: "a1",
-      cliente: "Carla Monteiro",
-      telefone1: "+351 922 333 444",
-      telefone2: "+351 911 222 333",
-      matricula: "AZ-91-GI",
-      viatura: "Renault Captur",
-      data: "2026-09-25",
-      hora: "14:00",
-      notasAvaliacao: "Avaliação do estado da pintura e estofos em pele."
+  // Agenda integrada / Avaliações
+  const [agendamentos, setAgendamentos] = useState([
+    { 
+      id: 1, 
+      tipo: 'Avaliação', 
+      cliente: 'Carla Monteiro', 
+      telefone1: '+351 922 333 444', 
+      telefone2: '+351 911 222 333', 
+      veiculo: 'Renault Captur', 
+      matricula: 'AZ-91-GI', 
+      notasAvaliacao: 'Avaliação inicial do estado da pintura e proteções.', 
+      data: '2026-09-23', 
+      hora: '14:00', 
+      status: 'Agendado' 
     }
   ]);
 
-  const [busca, setBusca] = useState("");
-  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
+  // Estados para Novo Agendamento / Avaliação
+  const [agClient, setAgClient] = useState('');
+  const [agTel1, setAgTel1] = useState('');
+  const [agTel2, setAgTel2] = useState('');
+  const [agVeiculo, setAgVeiculo] = useState('');
+  const [agMatricula, setAgMatricula] = useState('');
+  const [agData, setAgData] = useState('');
+  const [agHora, setAgHora] = useState('');
+  const [agNotas, setAgNotas] = useState('');
+
+  // Navegação do Calendário
+  const [anoAtualCal, setAnoAtualCal] = useState(2026);
+  const [mesAtualCal, setMesAtualCal] = useState(8); // Setembro
+
+  // Formulário Unificado (OS / Orçamento / Agendamento)
+  const [tipoRegistroOS, setTipoRegistroOS] = useState<'os' | 'agendamento' | 'orcamento'>('orcamento');
+  const [tipoDocumentoGerar, setTipoDocumentoGerar] = useState<'ORÇAMENTO' | 'ORDEM DE SERVIÇO'>('ORÇAMENTO');
   
-  const [novoServico, setNovoServico] = useState({
-    servico: "",
-    valor: "",
-    veiculo: "",
-    matricula: "",
-    observacoes: ""
-  });
-  const [mostrarModalServico, setMostrarModalServico] = useState(false);
+  const [osCliente, setOsCliente] = useState('Carla Monteiro');
+  const [osContacto, setOsContacto] = useState('+351 922 333 444');
+  const [osVeiculo, setOsVeiculo] = useState('Renault Captur');
+  const [osMatricula, setOsMatricula] = useState('AZ-91-GI');
+  const [osObs, setOsObs] = useState('Renault Captur matrícula AZ-91-GI. Regime de isenção.');
 
-  const [novoCliente, setNovoCliente] = useState<Omit<Cliente, "id" | "historico">>({
-    nome: "",
-    apelido: "",
-    telefone: "",
-    email: "",
-    matricula: "",
-    modelo: "",
-    ano: "",
-  });
+  // Múltiplos serviços com técnicos, valores e descontos individuais
+  const [listaItensServico, setListaItensServico] = useState([
+    { id: 1, descricao: '13 - LIMPEZA DETALHADA', funcionario: 'João Silva', valor: '120.00', desconto: '120.00' },
+    { id: 2, descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: '400.00', desconto: '0.00' },
+    { id: 3, descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: '900.00', desconto: '0.00' }
+  ]);
 
-  // Estado para o Formulário de Agendamento (Avaliação)
-  const [novoAgendamento, setNovoAgendamento] = useState({
-    cliente: "",
-    telefone1Numero: "",
-    telefone2: "",
-    matricula: "",
-    viatura: "",
-    data: "",
-    hora: "",
-    notasAvaliacao: ""
-  });
+  // Custos detalhados
+  const [listaCustosDetalhados, setListaCustosDetalhados] = useState([
+    { id: 1, descricao: 'Película PPF', valor: '150.00' }
+  ]);
 
-  const handleCadastrar = (e: React.FormEvent) => {
+  const [osSinal, setOsSinal] = useState('300.00');
+  const [osContaRecebimentoSinal, setOsContaRecebimentoSinal] = useState('MB WAY');
+  const [osContaRecebimentoFinal, setOsContaRecebimentoFinal] = useState('MB WAY');
+
+  const [ordensServico, setOrdensServico] = useState([
+    { 
+      id: 101, 
+      cliente: 'Carla Monteiro', 
+      contacto: '+351 922 333 444',
+      veiculo: 'Renault Captur', 
+      matricula: 'AZ-91-GI', 
+      servicosDetalhes: [
+        { descricao: '13 - LIMPEZA DETALHADA', funcionario: 'João Silva', valor: 120.00, desconto: 120.00 },
+        { descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: 400.00, desconto: 0.00 },
+        { descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: 900.00, desconto: 0.00 }
+      ],
+      servico: 'Limpeza Detalhada + PPF Black Piano + Fusion Coating',
+      observacoes: 'Renault Captur matrícula AZ-91-GI. Regime de isenção.', 
+      custosDetalhados: [{ descricao: 'Película PPF', valor: 150.00 }], 
+      valorOriginal: 1420.00, 
+      descontoTotal: 120.00, 
+      valorFinal: 1300.00, 
+      sinalPago: 300.00,
+      contaRecebimentoSinal: 'MB WAY',
+      restanteAPagar: 1000.00,
+      status: 'Em Execução', 
+      data: '2026-09-23' 
+    }
+  ]);
+
+  const [transacoes, setTransacoes] = useState([
+    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-09-23' },
+    { id: 2, descricao: 'Compra Película PPF', matricula: 'AZ-91-GI', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: '2026-09-23' }
+  ]);
+
+  const adicionarLinhaServico = () => {
+    setListaItensServico([...listaItensServico, { id: Date.now(), descricao: '', funcionario: '', valor: '', desconto: '0.00' }]);
+  };
+
+  const removerLinhaServico = (index: number) => {
+    if (listaItensServico.length === 1) return;
+    setListaItensServico(listaItensServico.filter((_, i) => i !== index));
+  };
+
+  const atualizarItemServico = (index: number, campo: string, valor: string) => {
+    const novaLista = [...listaItensServico];
+    (novaLista[index] as any)[campo] = valor;
+    setListaItensServico(novaLista);
+  };
+
+  const adicionarLinhaCusto = () => {
+    setListaCustosDetalhados([...listaCustosDetalhados, { id: Date.now(), descricao: '', valor: '' }]);
+  };
+
+  const removerLinhaCusto = (index: number) => {
+    if (listaCustosDetalhados.length === 1) return;
+    setListaCustosDetalhados(listaCustosDetalhados.filter((_, i) => i !== index));
+  };
+
+  const atualizarItemCusto = (index: number, campo: string, valor: string) => {
+    const novaLista = [...listaCustosDetalhados];
+    (novaLista[index] as any)[campo] = valor;
+    setListaCustosDetalhados(novaLista);
+  };
+
+  const adicionarFuncionario = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!novoCliente.nome || !novoCliente.telefone || !novoCliente.matricula) {
-      alert("Por favor, preencha o Nome, Telefone e a Matrícula!");
+    if (!novoFuncNome || !novoFuncCargo) return;
+    setFuncionarios([...funcionarios, { id: Date.now(), nome: novoFuncNome, cargo: novoFuncCargo, tipoRemuneracao, valorPctOuFixo: Number(valorRemuneracao) || 0 }]);
+    setNovoFuncNome('');
+    setNovoFuncCargo('');
+  };
+
+  const removerFuncionario = (id: number) => {
+    setFuncionarios(funcionarios.filter(f => f.id !== id));
+  };
+
+  // Submissão do Agendamento de Avaliação atualizado
+  const criarAgendamentoAvaliacao = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agClient || !agTel1 || !agData || !agHora) {
+      alert('Por favor, preencha o Nome do Cliente, o Telefone Principal, a Data e a Hora.');
       return;
     }
 
-    const item: Cliente = {
-      ...novoCliente,
-      id: Date.now().toString(),
-      historico: [
-        {
-          id: Date.now().toString(),
-          data: new Date().toISOString().split('T')[0],
-          veiculo: novoCliente.modelo || "Veículo Principal",
-          matricula: novoCliente.matricula,
-          servico: "Registo Inicial / Orçamento",
-          valor: 0,
-          observacoes: "Registo inicial do cliente no sistema."
+    const novoAg = {
+      id: Date.now(),
+      tipo: 'Avaliação',
+      cliente: agClient,
+      telefone1: `+351 ${agTel1}`,
+      telefone2: agTel2 ? `+351 ${agTel2}` : undefined,
+      veiculo: agVeiculo || 'Viatura Geral',
+      matricula: agMatricula ? agMatricula.toUpperCase() : 'Não informada',
+      notasAvaliacao: agNotas || 'Avaliação técnica agendada.',
+      data: agData,
+      hora: agHora,
+      status: 'Agendado'
+    };
+
+    setAgendamentos([...agendamentos, novoAg]);
+    setAgClient('');
+    setAgTel1('');
+    setAgTel2('');
+    setAgVeiculo('');
+    setAgMatricula('');
+    setAgData('');
+    setAgHora('');
+    setAgNotas('');
+    alert('Agendamento de Avaliação registado com sucesso!');
+  };
+
+  const atualizarStatusOS = (id: number, novoStatus: string) => {
+    setOrdensServico(ordensServico.map(os => {
+      if (os.id === id) {
+        const dataHoje = new Date().toISOString().split('T')[0];
+        if (novoStatus === 'Pronto / Entregue' && os.restanteAPagar > 0) {
+          const saldo = os.restanteAPagar;
+          setTransacoes(prev => [{
+            id: Date.now(),
+            descricao: `Liquidação Final OS #${os.id} (${os.cliente}) via ${osContaRecebimentoFinal}`,
+            matricula: os.matricula,
+            categoria: 'Serviço',
+            tipo: 'receita' as const,
+            valor: saldo,
+            data: dataHoje
+          }, ...prev]);
+          return { ...os, status: novoStatus, sinalPago: os.sinalPago + saldo, restanteAPagar: 0 };
         }
-      ]
-    };
-
-    setClientes([item, ...clientes]);
-    setNovoCliente({ nome: "", apelido: "", telefone: "", email: "", matricula: "", modelo: "", ano: "" });
-    alert("Cliente e Veículo registados com sucesso!");
-  };
-
-  const handleCriarAgendamento = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!novoAgendamento.cliente || !novoAgendamento.telefone1Numero || !novoAgendamento.data || !novoAgendamento.hora) {
-      alert("Por favor, preencha o Nome do Cliente, o Telefone Principal, a Data e a Hora!");
-      return;
-    }
-
-    const agendamentoItem: AgendamentoAvaliacao = {
-      id: Date.now().toString(),
-      cliente: novoAgendamento.cliente,
-      telefone1: `+351 ${novoAgendamento.telefone1Numero}`,
-      telefone2: novoAgendamento.telefone2 ? novoAgendamento.telefone2 : undefined,
-      matricula: novoAgendamento.matricula ? novoAgendamento.matricula.toUpperCase() : undefined,
-      viatura: novoAgendamento.viatura || "Não especificada",
-      data: novoAgendamento.data,
-      hora: novoAgendamento.hora,
-      notasAvaliacao: novoAgendamento.notasAvaliacao || "Agendamento para avaliação técnica."
-    };
-
-    setAgendamentos([agendamentoItem, ...agendamentos]);
-    setNovoAgendamento({
-      cliente: "",
-      telefone1Numero: "",
-      telefone2: "",
-      matricula: "",
-      viatura: "",
-      data: "",
-      hora: "",
-      notasAvaliacao: ""
-    });
-    alert("Agendamento de Avaliação registado com sucesso!");
-  };
-
-  const handleAdicionarServico = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!clienteSelecionado || !novoServico.servico || !novoServico.valor) {
-      alert("Preencha o serviço e o valor!");
-      return;
-    }
-
-    const novoRegisto: ServicoHistorico = {
-      id: Date.now().toString(),
-      data: new Date().toISOString().split('T')[0],
-      veiculo: novoServico.veiculo || clienteSelecionado.modelo,
-      matricula: novoServico.matricula || clienteSelecionado.matricula,
-      servico: novoServico.servico,
-      valor: parseFloat(novoServico.valor) || 0,
-      observacoes: novoServico.observacoes
-    };
-
-    const clientesAtualizados = clientes.map(c => {
-      if (c.id === clienteSelecionado.id) {
-        const atualizado = {
-          ...c,
-          historico: [novoRegisto, ...c.historico]
-        };
-        setClienteSelecionado(atualizado);
-        return atualizado;
+        return { ...os, status: novoStatus };
       }
-      return c;
-    });
-
-    setClientes(clientesAtualizados);
-    setNovoServico({ servico: "", valor: "", veiculo: "", matricula: "", observacoes: "" });
-    setMostrarModalServico(false);
-    alert("Serviço adicionado ao prontuário do cliente com sucesso!");
+      return os;
+    }));
   };
 
-  const clientesFiltrados = clientes.filter(
-    (c) =>
-      c.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      c.matricula.toLowerCase().includes(busca.toLowerCase()) ||
-      c.telefone.includes(busca)
-  );
+  const menuItems = [
+    { id: 'pateo', label: '🚗 Veículos no Pátio' },
+    { id: 'metricas', label: '📊 Painel & Gráficos' },
+    { id: 'ordem-servico', label: '📋 OS / Orçamento' },
+    { id: 'agendamento', label: '📅 Agendamento (Avaliação)' },
+    { id: 'agenda', label: '🗓️ Calendário & Agenda' },
+    { id: 'financeiro', label: '💰 Livro-Caixa' },
+    { id: 'funcionarios', label: '👥 Funcionários' },
+    { id: 'config', label: '⚙️ Empresa' },
+  ];
+
+  const getBadgeStyle = (status: string) => {
+    switch (status) {
+      case 'Pendente Aprovação': return { bg: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.4)' };
+      case 'Aguardando Peças': return { bg: 'rgba(251, 191, 36, 0.2)', color: '#fde047', border: '1px solid rgba(251, 191, 36, 0.4)' };
+      case 'Em Execução': return { bg: 'rgba(37, 99, 235, 0.2)', color: '#93c5fd', border: '1px solid rgba(37, 99, 235, 0.4)' };
+      case 'Aguardando Pagamento': return { bg: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.4)' };
+      case 'Pronto / Entregue': return { bg: 'rgba(52, 211, 153, 0.2)', color: '#6ee7b7', border: '1px solid rgba(52, 211, 153, 0.4)' };
+      default: return { bg: '#1e293b', color: '#fff', border: '1px solid #334155' };
+    }
+  };
 
   return (
-    <div style={{ backgroundColor: '#020617', color: '#f8fafc', minHeight: '100vh' }} className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/85 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-md">
-        <div className="flex items-center space-x-3">
-          <div className="bg-gradient-to-tr from-blue-600 to-cyan-400 p-2 rounded-xl text-white shadow-lg shadow-cyan-500/20">
-            <Car className="w-6 h-6" />
+    <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
+      
+      {/* HEADER */}
+      <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div>
+            <img src="https://i.ibb.co/30B3v5C/carbox-logo.png" alt="CarBox77 Detailing" style={{ height: '45px', width: 'auto' }} />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-wider text-white">CARBOX77</h1>
-            <p className="text-xs text-slate-400">DETAILING, UNIPESSOAL LDA</p>
+            <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{dadosEmpresa.nome}</h1>
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Estética Automotiva de Alta Performance • Cascais</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Sistema Ativo
-          </span>
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', backgroundColor: '#131722', padding: '6px', borderRadius: '10px', border: '1px solid #222b45' }}>
+            <button onClick={() => setUser('admin')} style={{ backgroundColor: user === 'admin' ? '#d4af37' : 'transparent', color: user === 'admin' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Admin</button>
+            <button onClick={() => setUser('funcionario')} style={{ backgroundColor: user === 'funcionario' ? '#d4af37' : 'transparent', color: user === 'funcionario' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Equipa</button>
+          </div>
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <nav className="border-b border-slate-800 bg-slate-900/50 px-6 flex space-x-2 overflow-x-auto">
-        <button 
-          onClick={() => setActiveTab('dashboard')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
-            activeTab === 'dashboard' 
-              ? 'border-cyan-400 text-cyan-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" /> Visão Geral
-        </button>
-        <button 
-          onClick={() => setActiveTab('clientes')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
-            activeTab === 'clientes' 
-              ? 'border-cyan-400 text-cyan-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Users className="w-4 h-4" /> Gestão de Clientes
-        </button>
-        <button 
-          onClick={() => setActiveTab('orcamentos')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
-            activeTab === 'orcamentos' 
-              ? 'border-cyan-400 text-cyan-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <FileText className="w-4 h-4" /> Orçamentos & Faturação
-        </button>
-        <button 
-          onClick={() => setActiveTab('analise')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
-            activeTab === 'analise' 
-              ? 'border-cyan-400 text-cyan-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <TrendingUp className="w-4 h-4" /> Análise & Inteligência
-        </button>
-        <button 
-          onClick={() => setActiveTab('agendamento')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
-            activeTab === 'agendamento' 
-              ? 'border-cyan-400 text-cyan-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Calendar className="w-4 h-4" /> Agendamento (Avaliação)
-        </button>
-        <button 
-          onClick={() => setActiveTab('servicos')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
-            activeTab === 'servicos' 
-              ? 'border-cyan-400 text-cyan-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <ShieldCheck className="w-4 h-4" /> Serviços & Produtos
-        </button>
-        <button 
-          onClick={() => setActiveTab('livro')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
-            activeTab === 'livro' 
-              ? 'border-cyan-400 text-cyan-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <DollarSign className="w-4 h-4" /> Livro de Caixa
-        </button>
-      </nav>
+      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+        
+        {/* MENU LATERAL */}
+        <nav style={{ 
+          width: '300px', 
+          backgroundColor: '#0d0f17', 
+          borderRight: '1px solid #1e2235', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '8px', 
+          padding: '24px 16px',
+          boxSizing: 'border-box',
+          flexShrink: 0
+        }}>
+          <p style={{ fontSize: '13px', textTransform: 'uppercase', color: '#d4af37', fontWeight: 'bold', padding: '0 12px', marginBottom: '12px', letterSpacing: '1px' }}>Menu Principal</p>
+          {menuItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              style={{
+                textAlign: 'left',
+                padding: '16px 18px',
+                fontSize: '15px',
+                fontWeight: tab === item.id ? 'bold' : '500',
+                cursor: 'pointer',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: tab === item.id ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
+                color: tab === item.id ? '#d4af37' : '#e2e8f0',
+                borderLeft: tab === item.id ? '5px solid #d4af37' : '5px solid transparent',
+                transition: 'all 0.2s'
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <p className="text-xs uppercase tracking-wider text-slate-400 font-medium">Faturamento Mensal</p>
-                <h3 className="text-2xl font-bold text-white mt-2">12.450,00 €</h3>
-                <span className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5" /> +15% que o mês passado
-                </span>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <p className="text-xs uppercase tracking-wider text-slate-400 font-medium">Serviços Concluídos</p>
-                <h3 className="text-2xl font-bold text-white mt-2">48</h3>
-                <span className="text-xs text-cyan-400 mt-2 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> 4 em andamento hoje
-                </span>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <p className="text-xs uppercase tracking-wider text-slate-400 font-medium">Orçamentos Pendentes</p>
-                <h3 className="text-2xl font-bold text-white mt-2">12</h3>
-                <span className="text-xs text-amber-400 mt-2 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" /> Requer atenção
-                </span>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <p className="text-xs uppercase tracking-wider text-slate-400 font-medium">Satisfação de Clientes</p>
-                <h3 className="text-2xl font-bold text-white mt-2">99.4%</h3>
-                <span className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" /> Excelente
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-              <h3 className="text-lg font-semibold text-white mb-4">Bem-vindo ao Sistema CARBOX77</h3>
-              <p className="text-sm text-slate-400">
-                Selecione a aba &quot;Gestão de Clientes&quot; ou &quot;Agendamento&quot; no menu superior para gerir cadastros e marcar avaliações.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* MÓDULO DE AGENDAMENTO (AVALIAÇÃO) */}
-        {activeTab === 'agendamento' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-              <div>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <Calendar className="text-cyan-400" /> Agendamento de Avaliações
-                </h2>
-                <p className="text-xs text-slate-400">Agende avaliações de veículos sem custos, sinal ou atribuição de funcionários</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Formulário de Agendamento */}
-              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4 shadow-xl">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <ClipboardList className="w-5 h-5 text-cyan-400" /> Marcar Nova Avaliação
-                </h3>
-
-                <form onSubmit={handleCriarAgendamento} className="space-y-3 text-sm">
-                  {/* Nome do Cliente */}
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Cliente *</label>
-                    <input
-                      type="text"
-                      required
-                      value={novoAgendamento.cliente}
-                      onChange={(e) => setNovoAgendamento({ ...novoAgendamento, cliente: e.target.value })}
-                      className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                      placeholder="Ex: Carla Monteiro"
-                    />
-                  </div>
-
-                  {/* Telefone 1 com +351 fixo */}
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Contacto / Telefone Principal *</label>
-                    <div className="flex items-center">
-                      <span className="px-3 py-2 bg-slate-800 border border-r-0 border-slate-700 rounded-l-lg text-slate-300 font-mono text-xs">
-                        +351
-                      </span>
-                      <input
-                        type="text"
-                        required
-                        value={novoAgendamento.telefone1Numero}
-                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, telefone1Numero: e.target.value })}
-                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-r-lg text-white text-xs"
-                        placeholder="922 333 444"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Telefone 2 Opção */}
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Contacto / Telefone 2 (Opcional)</label>
-                    <div className="relative">
-                      <Phone className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
-                      <input
-                        type="text"
-                        value={novoAgendamento.telefone2}
-                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, telefone2: e.target.value })}
-                        className="w-full pl-9 p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
-                        placeholder="Ex: +351 911 222 333"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Matrícula (Opcional) e Viatura */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Matrícula (Opcional)</label>
-                      <input
-                        type="text"
-                        value={novoAgendamento.matricula}
-                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, matricula: e.target.value })}
-                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white uppercase font-mono text-xs"
-                        placeholder="AZ-91-GI"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Viatura</label>
-                      <input
-                        type="text"
-                        value={novoAgendamento.viatura}
-                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, viatura: e.target.value })}
-                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
-                        placeholder="Renault Captur"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Data e Hora */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Data *</label>
-                      <input
-                        type="date"
-                        required
-                        value={novoAgendamento.data}
-                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, data: e.target.value })}
-                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Hora *</label>
-                      <input
-                        type="time"
-                        required
-                        value={novoAgendamento.hora}
-                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, hora: e.target.value })}
-                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Notas da Avaliação */}
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Notas / Detalhes da Avaliação</label>
-                    <textarea
-                      rows={3}
-                      value={novoAgendamento.notasAvaliacao}
-                      onChange={(e) => setNovoAgendamento({ ...novoAgendamento, notasAvaliacao: e.target.value })}
-                      className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
-                      placeholder="Descreva o motivo da avaliação (ex: verificar danos na pintura, polimento, faróis...)"
-                    ></textarea>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-all mt-2 shadow-lg shadow-cyan-500/20"
-                  >
-                    Confirmar Agendamento de Avaliação
-                  </button>
-                </form>
-              </div>
-
-              {/* Lista de Avaliações Agendadas */}
-              <div className="lg:col-span-2 bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4 shadow-xl">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-cyan-400" /> Avaliações Marcadas
-                </h3>
-
-                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                  {agendamentos.length === 0 ? (
-                    <p className="text-sm text-slate-500 text-center py-8">Nenhum agendamento de avaliação encontrado.</p>
-                  ) : (
-                    agendamentos.map((ag) => (
-                      <div
-                        key={ag.id}
-                        className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between gap-3 hover:border-slate-700 transition-all"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="font-bold text-white text-base block">{ag.cliente}</span>
-                            <span className="text-xs text-cyan-400 font-mono">
-                              {ag.viatura} {ag.matricula ? `(${ag.matricula})` : ''}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <span className="bg-cyan-950 text-cyan-300 text-xs px-2.5 py-1 rounded border border-cyan-800 font-medium block">
-                              📅 {ag.data} às {ag.hora}
-                            </span>
-                            <span className="text-[10px] text-emerald-400 mt-1 block">Avaliação Sem Custo</span>
-                          </div>
-                        </div>
-
-                        <div className="text-xs text-slate-400 space-y-1 border-t border-slate-900 pt-2">
-                          <p className="flex items-center gap-3">
-                            <span>📞 Principal: {ag.telefone1}</span>
-                            {ag.telefone2 && <span>📞 Tel 2: {ag.telefone2}</span>}
-                          </p>
-                          <p className="text-slate-300 italic bg-slate-900/60 p-2 rounded border border-slate-800/80 mt-1">
-                            &quot;{ag.notasAvaliacao}&quot;
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
+        {/* CONTEÚDO PRINCIPAL */}
+        <main style={{ flex: 1, padding: '36px 44px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
+          
+          {/* ABA 1: VEÍCULOS NO PÁTIO */}
+          {tab === 'pateo' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Veículos no Pátio</h2>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Acompanhe o status em tempo real.</p>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'clientes' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-              <div>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <User className="text-cyan-400" /> Gestão de Clientes & Prontuários
-                </h2>
-                <p className="text-xs text-slate-400">Histórico completo, viaturas e serviços prestados por cliente</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Formulário de Registo */}
-              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4 shadow-xl">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <UserPlus className="w-5 h-5 text-cyan-400" /> Novo Registo
-                </h3>
-
-                <form onSubmit={handleCadastrar} className="space-y-3 text-sm">
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Nome *</label>
-                    <input
-                      type="text"
-                      required
-                      value={novoCliente.nome}
-                      onChange={(e) => setNovoCliente({ ...novoCliente, nome: e.target.value })}
-                      className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                      placeholder="Ex: Carlos"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Apelido</label>
-                    <input
-                      type="text"
-                      value={novoCliente.apelido}
-                      onChange={(e) => setNovoCliente({ ...novoCliente, apelido: e.target.value })}
-                      className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                      placeholder="Ex: Ferreira"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Telefone (Obrigatório) *</label>
-                    <div className="relative">
-                      <Phone className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-                      <input
-                        type="text"
-                        required
-                        value={novoCliente.telefone}
-                        onChange={(e) => setNovoCliente({ ...novoCliente, telefone: e.target.value })}
-                        className="w-full pl-9 p-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                        placeholder="+351 910 000 000"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">E-mail</label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-                      <input
-                        type="email"
-                        value={novoCliente.email}
-                        onChange={(e) => setNovoCliente({ ...novoCliente, email: e.target.value })}
-                        className="w-full pl-9 p-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                        placeholder="cliente@email.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-800">
-                    <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider block mb-2">
-                      Dados do Veículo
-                    </span>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs text-slate-400 mb-1">Matrícula *</label>
-                        <div className="relative">
-                          <Car className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-                          <input
-                            type="text"
-                            required
-                            value={novoCliente.matricula}
-                            onChange={(e) => setNovoCliente({ ...novoCliente, matricula: e.target.value.toUpperCase() })}
-                            className="w-full pl-9 p-2 bg-slate-950 border border-slate-800 rounded-lg text-white uppercase font-mono"
-                            placeholder="AA-00-BB"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs text-slate-400 mb-1">Modelo</label>
-                          <input
-                            type="text"
-                            value={novoCliente.modelo}
-                            onChange={(e) => setNovoCliente({ ...novoCliente, modelo: e.target.value })}
-                            className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                            placeholder="Ex: Audi A4"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs text-slate-400 mb-1">Ano</label>
-                          <input
-                            type="text"
-                            value={novoCliente.ano}
-                            onChange={(e) => setNovoCliente({ ...novoCliente, ano: e.target.value })}
-                            className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                            placeholder="2020"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-all mt-4 shadow-lg shadow-cyan-500/20"
-                  >
-                    Guardar Cliente & Veículo
-                  </button>
-                </form>
-              </div>
-
-              {/* Lista de Clientes */}
-              <div className="lg:col-span-2 bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4 shadow-xl">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-                  <h3 className="text-lg font-bold text-white">Clientes Cadastrados</h3>
-                  <div className="relative w-full sm:w-64">
-                    <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-                    <input
-                      type="text"
-                      value={busca}
-                      onChange={(e) => setBusca(e.target.value)}
-                      className="w-full pl-9 p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
-                      placeholder="Pesquisar por Nome, Matrícula..."
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                  {clientesFiltrados.length === 0 ? (
-                    <p className="text-sm text-slate-500 text-center py-8">Nenhum cliente ou veículo encontrado.</p>
-                  ) : (
-                    clientesFiltrados.map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-slate-700 transition-all"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-white text-base">
-                              {item.nome} {item.apelido}
-                            </span>
-                            <span className="bg-cyan-950 text-cyan-400 text-xs px-2 py-0.5 rounded border border-cyan-800 font-mono font-bold">
-                              {item.matricula}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 flex items-center gap-3">
-                            <span>📞 {item.telefone}</span>
-                            {item.email && <span>✉️ {item.email}</span>}
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            🚗 {item.modelo || "Sem modelo"} {item.ano ? `(${item.ano})` : ""}
-                          </p>
-                        </div>
-
-                        <button
-                          onClick={() => setClienteSelecionado(item)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-xs text-white rounded-lg transition-all font-semibold shadow-md shadow-cyan-500/20"
-                        >
-                          <History className="w-3.5 h-3.5" /> Ver Prontuário
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab !== 'dashboard' && activeTab !== 'clientes' && activeTab !== 'agendamento' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl text-center py-16">
-            <Car className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">Módulo em Exibição</h3>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Esta secção está pronta a ser integrada. Podes navegar livremente entre a Visão Geral, Gestão de Clientes e Agendamentos.
-            </p>
-          </div>
-        )}
-      </main>
-
-      {/* MODAL DE PRONTUÁRIO / HISTÓRICO DO CLIENTE */}
-      {clienteSelecionado && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-xl p-6 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex justify-between items-start border-b border-slate-800 pb-4">
-              <div>
-                <span className="text-xs text-cyan-400 uppercase font-bold tracking-wider">Prontuário 360º</span>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2 mt-1">
-                  {clienteSelecionado.nome} {clienteSelecionado.apelido}
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  📞 {clienteSelecionado.telefone} {clienteSelecionado.email ? `| ✉️ ${clienteSelecionado.email}` : ""}
-                </p>
-              </div>
-              <button
-                onClick={() => setClienteSelecionado(null)}
-                className="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-950 border border-slate-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Resumo Financeiro do Cliente */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-slate-950 p-4 rounded-lg border border-slate-800">
-              <div>
-                <span className="text-xs text-slate-400 block">Total Investido</span>
-                <span className="text-lg font-bold text-emerald-400">
-                  {clienteSelecionado.historico.reduce((acc, h) => acc + h.valor, 0).toFixed(2)} €
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block">Serviços Realizados</span>
-                <span className="text-lg font-bold text-white">{clienteSelecionado.historico.length}</span>
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block">Viatura Principal</span>
-                <span className="text-sm font-bold text-cyan-400">{clienteSelecionado.modelo || clienteSelecionado.matricula}</span>
-              </div>
-            </div>
-
-            {/* Histórico / Linha do Tempo */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-cyan-400" /> Histórico de Serviços & Viaturas
-                </h4>
-                <button
-                  onClick={() => setMostrarModalServico(!mostrarModalServico)}
-                  className="flex items-center gap-1 text-xs bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-all shadow-md"
+                <button 
+                  onClick={() => setTab('ordem-servico')}
+                  style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '14px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}
                 >
-                  <Plus className="w-3.5 h-3.5" /> Adicionar Registo
+                  + Novo Registo / OS / Orçamento
                 </button>
               </div>
 
-              {/* Formulário rápido para adicionar serviço ao histórico */}
-              {mostrarModalServico && (
-                <form onSubmit={handleAdicionarServico} className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
-                  <h5 className="text-xs font-bold text-cyan-400 uppercase">Novo Registo no Prontuário</h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <label className="block text-slate-400 mb-1">Serviço Realizado *</label>
-                      <input
-                        type="text"
-                        required
-                        value={novoServico.servico}
-                        onChange={(e) => setNovoServico({ ...novoServico, servico: e.target.value })}
-                        className="w-full p-2 bg-slate-900 border border-slate-800 rounded text-white"
-                        placeholder="Ex: Vitrificação de Pintura"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-400 mb-1">Valor (€) *</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        required
-                        value={novoServico.valor}
-                        onChange={(e) => setNovoServico({ ...novoServico, valor: e.target.value })}
-                        className="w-full p-2 bg-slate-900 border border-slate-800 rounded text-white"
-                        placeholder="Ex: 250.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-400 mb-1">Modelo da Viatura</label>
-                      <input
-                        type="text"
-                        value={novoServico.veiculo || clienteSelecionado.modelo}
-                        onChange={(e) => setNovoServico({ ...novoServico, veiculo: e.target.value })}
-                        className="w-full p-2 bg-slate-900 border border-slate-800 rounded text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-400 mb-1">Matrícula</label>
-                      <input
-                        type="text"
-                        value={novoServico.matricula || clienteSelecionado.matricula}
-                        onChange={(e) => setNovoServico({ ...novoServico, matricula: e.target.value.toUpperCase() })}
-                        className="w-full p-2 bg-slate-900 border border-slate-800 rounded text-white uppercase font-mono"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Observações Técnicas</label>
-                    <textarea
-                      value={novoServico.observacoes}
-                      onChange={(e) => setNovoServico({ ...novoServico, observacoes: e.target.value })}
-                      className="w-full p-2 bg-slate-900 border border-slate-800 rounded text-xs text-white"
-                      placeholder="Ex: Notas sobre o estado da pintura, produtos aplicados..."
-                      rows={2}
-                    ></textarea>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setMostrarModalServico(false)}
-                      className="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs rounded hover:bg-slate-700"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded"
-                    >
-                      Salvar no Prontuário
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Listagem do Histórico */}
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                {clienteSelecionado.historico.length === 0 ? (
-                  <p className="text-xs text-slate-500 text-center py-4">Sem registos no histórico.</p>
-                ) : (
-                  clienteSelecionado.historico.map((hist) => (
-                    <div key={hist.id} className="bg-slate-950 p-3 rounded border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white">{hist.servico}</span>
-                          <span className="text-xs px-1.5 py-0.5 bg-slate-900 text-slate-300 rounded font-mono">{hist.matricula}</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+                {ordensServico.map(os => {
+                  const badge = getBadgeStyle(os.status);
+                  return (
+                    <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ fontSize: '14px', color: '#60a5fa', fontWeight: 'bold' }}>Registo #{os.id}</span>
+                          <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: '4px 0 0 0' }}>{os.veiculo}</h3>
+                          <p style={{ fontSize: '15px', color: '#cbd5e1', margin: '6px 0 0 0' }}>Matrícula: <b style={{ color: '#fff', background: '#090a0f', padding: '4px 10px', borderRadius: '6px', fontSize: '16px', border: '1px solid #222b45' }}>{os.matricula}</b></p>
                         </div>
-                        <p className="text-xs text-slate-400">
-                          📅 {hist.data} | 🚗 {hist.veiculo} {hist.observacoes ? `| 📝 ${hist.observacoes}` : ""}
-                        </p>
+                        <select 
+                          value={os.status}
+                          onChange={(e) => atualizarStatusOS(os.id, e.target.value)}
+                          style={{ backgroundColor: badge.bg, color: badge.color, border: badge.border, padding: '10px 14px', borderRadius: '10px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                          <option value="Pendente Aprovação">Pendente Aprovação</option>
+                          <option value="Aguardando Peças">Aguardando Peças</option>
+                          <option value="Em Execução">Em Execução</option>
+                          <option value="Aguardando Pagamento">Aguardando Pagamento</option>
+                          <option value="Pronto / Entregue">Pronto / Entregue</option>
+                        </select>
                       </div>
-                      <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-2 py-1 rounded border border-emerald-800/60">
-                        {hist.valor.toFixed(2)} €
-                      </span>
+
+                      <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', fontSize: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #1e2235' }}>
+                        <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente} {os.contacto && <span style={{ color: '#94a3b8', fontSize: '13px' }}>({os.contacto})</span>}</p>
+                        <div>
+                          <p style={{ margin: '0 0 4px 0', color: '#d4af37', fontWeight: 'bold', fontSize: '14px' }}>Serviços e Descontos:</p>
+                          {os.servicosDetalhes ? (
+                            os.servicosDetalhes.map((s: any, idx: number) => (
+                              <p key={idx} style={{ margin: '2px 0', color: '#cbd5e1', fontSize: '14px' }}>• {s.descricao} - <b>{(s.valor - (s.desconto || 0)).toFixed(2)}€</b> {s.desconto > 0 && <span style={{ color: '#f87171', fontSize: '12px' }}>(Desc: {s.desconto.toFixed(2)}€)</span>}</p>
+                            ))
+                          ) : (
+                            <p style={{ margin: 0, color: '#cbd5e1' }}>{(os as any).servico}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '15px', borderTop: '1px solid #1e2235', paddingTop: '14px' }}>
+                        <div>
+                          <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span><br/>
+                          <span style={{ color: '#34d399' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b></span>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ color: '#94a3b8' }}>Falta Pagar:</span><br/>
+                          <span style={{ fontSize: '18px', fontWeight: 'bold', color: os.restanteAPagar > 0 ? '#f87171' : '#34d399' }}>{os.restanteAPagar.toFixed(2)} €</span>
+                        </div>
+                      </div>
                     </div>
-                  ))
-                )}
+                  );
+                })}
               </div>
             </div>
+          )}
 
-            <div className="flex justify-end pt-2 border-t border-slate-800">
-              <button
-                onClick={() => setClienteSelecionado(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-all"
-              >
-                Fechar Prontuário
-              </button>
+          {/* ABA: PAINEL & GRÁFICOS */}
+          {tab === 'metricas' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Painel & Desempenho</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Balanço financeiro por período.</p>
+              </div>
+
+              {(() => {
+                const rec = transacoes.filter(t => t.tipo === 'receita').reduce((a, b) => a + b.valor, 0);
+                const desp = transacoes.filter(t => t.tipo === 'despesa').reduce((a, b) => a + b.valor, 0);
+                const liq = rec - desp;
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#d4af37', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Balanço Líquido</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: liq >= 0 ? '#34d399' : '#f87171', margin: 0 }}>{liq.toFixed(2)} €</p>
+                    </div>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Receitas</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#34d399', margin: 0 }}>+{rec.toFixed(2)} €</p>
+                    </div>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Custos / Despesas</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>-{desp.toFixed(2)} €</p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
-          </div>
-        </div>
-      )}
+          )}
+
+          {/* ABA: AGENDAMENTO (AVALIAÇÃO) - ATUALIZADA COM AS REGRAS ESPECÍFICAS */}
+          {tab === 'agendamento' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Agendamento de Avaliações</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Agende avaliações de veículos sem custos, sinal, IVA ou atribuição de funcionários.</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '28px' }}>
+                
+                {/* Formulário de Novo Agendamento de Avaliação */}
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>Marcar Nova Avaliação</h3>
+                  
+                  <form onSubmit={criarAgendamentoAvaliacao} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    
+                    {/* Nome do Cliente */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Nome do Cliente *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={agClient}
+                        onChange={(e) => setAgClient(e.target.value)}
+                        placeholder="Ex: Carla Monteiro"
+                        style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    {/* Telefone 1 com Prefixo +351 Fixo */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Contacto / Telefone Principal *</label>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ padding: '12px 14px', backgroundColor: '#1e2235', border: '1px solid #222b45', borderRight: 'none', borderRadius: '8px 0 0 8px', color: '#d4af37', fontSize: '15px', fontWeight: 'bold' }}>
+                          +351
+                        </span>
+                        <input 
+                          type="text" 
+                          required
+                          value={agTel1}
+                          onChange={(e) => setAgTel1(e.target.value)}
+                          placeholder="922 333 444"
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '0 8px 8px 0', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Telefone 2 Opcional */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Contacto / Telefone 2 (Opcional)</label>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ padding: '12px 14px', backgroundColor: '#1e2235', border: '1px solid #222b45', borderRight: 'none', borderRadius: '8px 0 0 8px', color: '#94a3b8', fontSize: '15px' }}>
+                          +351
+                        </span>
+                        <input 
+                          type="text" 
+                          value={agTel2}
+                          onChange={(e) => setAgTel2(e.target.value)}
+                          placeholder="911 222 333"
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '0 8px 8px 0', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Viatura e Matrícula (Opcional) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Viatura</label>
+                        <input 
+                          type="text" 
+                          value={agVeiculo}
+                          onChange={(e) => setAgVeiculo(e.target.value)}
+                          placeholder="Renault Captur"
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Matrícula (Opcional)</label>
+                        <input 
+                          type="text" 
+                          value={agMatricula}
+                          onChange={(e) => setAgMatricula(e.target.value)}
+                          placeholder="AZ-91-GI"
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', textTransform: 'uppercase', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Data e Hora */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Data *</label>
+                        <input 
+                          type="date" 
+                          required
+                          value={agData}
+                          onChange={(e) => setAgData(e.target.value)}
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Hora *</label>
+                        <input 
+                          type="time" 
+                          required
+                          value={agHora}
+                          onChange={(e) => setAgHora(e.target.value)}
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Notas da Avaliação */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Notas / Motivo da Avaliação</label>
+                      <textarea 
+                        rows={3}
+                        value={agNotas}
+                        onChange={(e) => setAgNotas(e.target.value)}
+                        placeholder="Descreva o que será avaliado no veículo..."
+                        style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box', resize: 'vertical' }}
+                      />
+                    </div>
+
+                    <button 
+                      type="submit"
+                      style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', marginTop: '8px', width: '100%' }}
+                    >
+                      Confirmar Agendamento de Avaliação
+                    </button>
+
+                  </form>
+                </div>
+
+                {/* Lista de Avaliações Agendadas */}
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Avaliações Marcadas</h3>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '550px', overflowY: 'auto' }}>
+                    {agendamentos.length === 0 ? (
+                      <p style={{ color: '#94a3b8', textAlign: 'center', padding: '32px 0' }}>Nenhuma avaliação agendada de momento.</p>
+                    ) : (
+                      agendamentos.map(ag => (
+                        <div key={ag.id} style={{ backgroundColor: '#090a0f', border: '1px solid #1e2235', borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
+                              <p style={{ fontSize: '14px', color: '#d4af37', margin: '4px 0 0 0' }}>🚗 {ag.veiculo} {ag.matricula !== 'Não informada' ? `(${ag.matricula})` : ''}</p>
+                            </div>
+                            <span style={{ backgroundColor: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '6px 10px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold' }}>
+                              📅 {ag.data} às {ag.hora}
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '14px', color: '#cbd5e1', borderTop: '1px solid #1e2235', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <p style={{ margin: 0 }}>📞 Principal: <b>{ag.telefone1}</b></p>
+                            {ag.telefone2 && <p style={{ margin: 0 }}>📞 Tel 2: <b>{ag.telefone2}</b></p>}
+                            <p style={{ margin: '6px 0 0 0', color: '#94a3b8', fontStyle: 'italic', backgroundColor: '#131722', padding: '8px', borderRadius: '6px' }}>&quot;{ag.notasAvaliacao}&quot;</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* ABA: ORDEM DE SERVIÇO / ORÇAMENTO */}
+          {tab === 'ordem-servico' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Orçamentos & Ordens de Serviço</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Criação e emissão de documentos oficiais.</p>
+              </div>
+
+              <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '32px' }}>
+                <p style={{ color: '#cbd5e1', fontSize: '16px' }}>Secção pronta a emitir documentos com o regime de isenção de IVA e dados oficiais da CARBOX77.</p>
+              </div>
+            </div>
+          )}
+
+          {/* OUTRAS ABAS (Placeholder rápido caso navegue) */}
+          {tab !== 'pateo' && tab !== 'metricas' && tab !== 'agendamento' && tab !== 'ordem-servico' && (
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '40px', textAlign: 'center' }}>
+              <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Módulo Selecionado</h3>
+              <p style={{ color: '#94a3b8', fontSize: '16px', margin: 0 }}>Esta secção está integrada no sistema principal CARBOX77.</p>
+            </div>
+          )}
+
+        </main>
+      </div>
     </div>
   );
 }
