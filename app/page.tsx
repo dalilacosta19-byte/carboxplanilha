@@ -28,7 +28,7 @@ export default function Home() {
   const [novoStockQtd, setNovoStockQtd] = useState('');
   const [novoStockCusto, setNovoStockCusto] = useState('');
 
-  // Funcionários (Com inputs completos restaurados)
+  // Funcionários
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 150.00 },
     { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000.00, adiantamento: 0.00 },
@@ -52,6 +52,7 @@ export default function Home() {
       telefone2: '911 222 333', 
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
+      servicoAgendado: '13 - Limpeza Detalhada',
       notasAvaliacao: 'Avaliação inicial do estado da pintura e proteções.', 
       data: '2026-09-30', 
       hora: '14:00', 
@@ -64,6 +65,7 @@ export default function Home() {
   const [agTel2, setAgTel2] = useState('');
   const [agVeiculo, setAgVeiculo] = useState('');
   const [agMatricula, setAgMatricula] = useState('');
+  const [agServico, setAgServico] = useState('');
   const [agData, setAgData] = useState('');
   const [agHoraSel, setAgHoraSel] = useState('10');
   const [agMinSel, setAgMinSel] = useState('00');
@@ -90,7 +92,7 @@ export default function Home() {
       contacto2: '911 222 333',
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
-      servico: 'Limpeza Detalhada',
+      servico: '13 - Limpeza Detalhada',
       funcionario: 'João Silva',
       valorTotal: 400.00,
       iva23: 0.00,
@@ -110,6 +112,34 @@ export default function Home() {
   const [novaTransDesc, setNovaTransDesc] = useState('');
   const [novaTransVal, setNovaTransVal] = useState('');
   const [novaTransData, setNovaTransData] = useState(new Date().toISOString().split('T')[0]);
+
+  // Função para autocompletar dados do cliente de forma inteligente
+  const selecionarClienteInteligente = (nome: string, tipo: 'ag' | 'os') => {
+    if (tipo === 'ag') setAgClient(nome);
+    if (tipo === 'os') setOsCliente(nome);
+
+    const encontrado = ordensServico.find(o => o.cliente.toLowerCase() === nome.toLowerCase()) ||
+                       agendamentos.find(a => a.cliente.toLowerCase() === nome.toLowerCase());
+    
+    if (encontrado) {
+      if (tipo === 'ag') {
+        setAgTel1(encontrado.contacto || (encontrado as any).telefone1 || '');
+        setAgTel2(encontrado.contacto2 || (encontrado as any).telefone2 || '');
+        setAgVeiculo(encontrado.veiculo || '');
+        setAgMatricula(encontrado.matricula || '');
+      } else {
+        setOsTel1(encontrado.contacto || (encontrado as any).telefone1 || '');
+        setOsTel2(encontrado.contacto2 || (encontrado as any).telefone2 || '');
+        setOsVeiculo(encontrado.veiculo || '');
+        setOsMatricula(encontrado.matricula || '');
+      }
+    }
+  };
+
+  const listaClientesUnicos = Array.from(new Set([
+    ...ordensServico.map(o => o.cliente),
+    ...agendamentos.map(a => a.cliente)
+  ]));
 
   // Função WhatsApp
   const enviarWhatsApp = (cliente: string, veiculo: string, matricula: string, telefone: string) => {
@@ -134,7 +164,8 @@ export default function Home() {
       telefone2: agTel2,
       veiculo: agVeiculo || 'Viatura',
       matricula: agMatricula ? agMatricula.toUpperCase() : 'N/D',
-      notasAvaliacao: agNotas || 'Avaliação agendada.',
+      servicoAgendado: agServico || 'Avaliação técnica',
+      notasAvaliacao: agNotas || 'Agendado.',
       data: agData,
       hora: `${agHoraSel}:${agMinSel}`,
       status: 'Agendado'
@@ -142,7 +173,7 @@ export default function Home() {
 
     setAgendamentos([novo, ...agendamentos]);
     alert('Agendamento criado com sucesso!');
-    setAgClient(''); setAgTel1(''); setAgTel2(''); setAgVeiculo(''); setAgMatricula(''); setAgNotas('');
+    setAgClient(''); setAgTel1(''); setAgTel2(''); setAgVeiculo(''); setAgMatricula(''); setAgServico(''); setAgNotas('');
   };
 
   const criarOS = (e: React.FormEvent) => {
@@ -201,10 +232,7 @@ export default function Home() {
         adiantamento: Number(novoFuncAdiantamento) || 0 
       }
     ]);
-    setNovoFuncNome('');
-    setNovoFuncCargo('');
-    setValorRemuneracao('30');
-    setNovoFuncAdiantamento('0');
+    setNovoFuncNome(''); setNovoFuncCargo(''); setValorRemuneracao('30'); setNovoFuncAdiantamento('0');
   };
 
   const removerFuncionario = (id: number) => {
@@ -318,7 +346,7 @@ export default function Home() {
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-          {/* ABA 1: VEÍCULOS NO PÁTIO */}
+          {/* ABA 1: VEÍCULOS NO PÁTIO (COM BOTÃO WHATSAPP) */}
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
@@ -335,7 +363,7 @@ export default function Home() {
                     <p style={{ margin: 0, color: '#d4af37' }}><b>Técnico Responsável:</b> {os.funcionario}</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1f293d', paddingTop: '10px', alignItems: 'center' }}>
                       <span>Total: <b>{os.valorFinal.toFixed(2)}€</b></span>
-                      <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
+                      <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>💬 WhatsApp</button>
                     </div>
                   </div>
                 ))}
@@ -353,8 +381,7 @@ export default function Home() {
 
               {(() => {
                 const rec = transacoes.filter(t => t.tipo === 'receita').reduce((a, b) => a + b.valor, 0);
-                const desp = 0;
-                const liq = rec - desp;
+                const liq = rec;
 
                 return (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
@@ -372,7 +399,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 3: OS / ORÇAMENTO / AGENDAMENTO (COM SUB-ABAS) */}
+          {/* ABA 3: OS / ORÇAMENTO / AGENDAMENTO (INTELIGENTE E COM +351) */}
           {tab === 'operacional' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -380,7 +407,6 @@ export default function Home() {
                 <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Selecione abaixo o que deseja emitir:</p>
               </div>
 
-              {/* Seletor de Sub-abas */}
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button 
                   onClick={() => setSubAbaOperacional('os')}
@@ -402,42 +428,78 @@ export default function Home() {
                 </button>
               </div>
 
+              <datalist id="lista-clientes-geral">
+                {listaClientesUnicos.map((nome, idx) => (
+                  <option key={idx} value={nome} />
+                ))}
+              </datalist>
+
               {/* FORMULÁRIO DE AGENDAMENTO */}
               {subAbaOperacional === 'agendamento' && (
                 <form onSubmit={criarAgendamento} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '700px' }}>
                   <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#2563eb', margin: 0 }}>📅 Novo Agendamento de Avaliação</h3>
                   
                   <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Cliente *</label>
-                    <input type="text" required value={agClient} onChange={(e) => setAgClient(e.target.value)} placeholder="Ex: Carla Monteiro" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Cliente * (Inteligente)</label>
+                    <input 
+                      type="text" 
+                      required 
+                      list="lista-clientes-geral"
+                      value={agClient} 
+                      onChange={(e) => selecionarClienteInteligente(e.target.value, 'ag')} 
+                      placeholder="Ex: Carla Monteiro" 
+                      style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} 
+                    />
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telefone Principal *</label>
-                      <input type="text" required value={agTel1} onChange={(e) => setAgTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ padding: '14px 16px', backgroundColor: '#1e2235', border: '1px solid #222b45', borderRight: 'none', borderRadius: '10px 0 0 10px', color: '#d4af37', fontSize: '16px', fontWeight: 'bold' }}>+351</span>
+                        <input type="text" required value={agTel1} onChange={(e) => setAgTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '0 10px 10px 0', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                      </div>
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telefone 2 (Opcional)</label>
-                      <input type="text" value={agTel2} onChange={(e) => setAgTel2(e.target.value)} placeholder="Opcional" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <input type="text" value={agTel2} onChange={(e) => setAgTel2(e.target.value)} placeholder="Opcional" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Viatura</label>
-                      <input type="text" value={agVeiculo} onChange={(e) => setAgVeiculo(e.target.value)} placeholder="Renault Captur" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <input type="text" value={agVeiculo} onChange={(e) => setAgVeiculo(e.target.value)} placeholder="Renault Captur" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Matrícula</label>
-                      <input type="text" value={agMatricula} onChange={(e) => setAgMatricula(e.target.value)} placeholder="AZ-91-GI" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', textTransform: 'uppercase' }} />
+                      <input type="text" value={agMatricula} onChange={(e) => setAgMatricula(e.target.value)} placeholder="AZ-91-GI" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', textTransform: 'uppercase', boxSizing: 'border-box' }} />
                     </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Tipo de Serviço / Avaliação</label>
+                    <input 
+                      type="text" 
+                      list="sugestoes-servicos" 
+                      value={agServico} 
+                      onChange={(e) => setAgServico(e.target.value)} 
+                      placeholder="Selecione ou escreva o serviço..." 
+                      style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}
+                    />
+                    <datalist id="sugestoes-servicos">
+                      <option value="13 - Limpeza Detalhada" />
+                      <option value="57 - Aplicação de PPF nos Black Piano" />
+                      <option value="111 - Fusion Coating (Proteção Cerâmica)" />
+                      <option value="Polimento Comercial" />
+                      <option value="Higienização de Interiores" />
+                    </datalist>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data *</label>
-                      <input type="date" required value={agData} onChange={(e) => setAgData(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <input type="date" required value={agData} onChange={(e) => setAgData(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Hora *</label>
@@ -465,27 +527,38 @@ export default function Home() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Cliente *</label>
-                      <input type="text" required value={osCliente} onChange={(e) => setOsCliente(e.target.value)} placeholder="Ex: Carla Monteiro" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Cliente * (Inteligente)</label>
+                      <input 
+                        type="text" 
+                        required 
+                        list="lista-clientes-geral"
+                        value={osCliente} 
+                        onChange={(e) => selecionarClienteInteligente(e.target.value, 'os')} 
+                        placeholder="Ex: Carla Monteiro" 
+                        style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} 
+                      />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Matrícula *</label>
-                      <input type="text" required value={osMatricula} onChange={(e) => setOsMatricula(e.target.value)} placeholder="AZ-91-GI" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', textTransform: 'uppercase' }} />
+                      <input type="text" required value={osMatricula} onChange={(e) => setOsMatricula(e.target.value)} placeholder="AZ-91-GI" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', textTransform: 'uppercase', boxSizing: 'border-box' }} />
                     </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telefone Principal</label>
-                      <input type="text" value={osTel1} onChange={(e) => setOsTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ padding: '14px 12px', backgroundColor: '#1e2235', border: '1px solid #222b45', borderRight: 'none', borderRadius: '10px 0 0 10px', color: '#d4af37', fontSize: '15px', fontWeight: 'bold' }}>+351</span>
+                        <input type="text" value={osTel1} onChange={(e) => setOsTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '0 10px 10px 0', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                      </div>
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telefone 2</label>
-                      <input type="text" value={osTel2} onChange={(e) => setOsTel2(e.target.value)} placeholder="Opcional" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <input type="text" value={osTel2} onChange={(e) => setOsTel2(e.target.value)} placeholder="Opcional" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Viatura</label>
-                      <input type="text" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} placeholder="Renault Captur" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <input type="text" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} placeholder="Renault Captur" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                   </div>
 
@@ -520,15 +593,15 @@ export default function Home() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Valor Total (€) *</label>
-                      <input type="text" required value={osValorTotal} onChange={(e) => setOsValorTotal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <input type="text" required value={osValorTotal} onChange={(e) => setOsValorTotal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Desconto (€)</label>
-                      <input type="text" value={osDesconto} onChange={(e) => setOsDesconto(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <input type="text" value={osDesconto} onChange={(e) => setOsDesconto(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Sinal Pago (€)</label>
-                      <input type="text" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                      <input type="text" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                   </div>
 
@@ -558,7 +631,8 @@ export default function Home() {
                   <div key={ag.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente} - {ag.veiculo} ({ag.matricula})</h4>
-                      <p style={{ margin: '6px 0 0 0', color: '#cbd5e1', fontSize: '15px' }}>📞 {ag.telefone1} {ag.telefone2 ? `| ${ag.telefone2}` : ''}</p>
+                      <p style={{ margin: '4px 0 0 0', color: '#d4af37', fontSize: '14px' }}>Serviço: {ag.servicoAgendado}</p>
+                      <p style={{ margin: '6px 0 0 0', color: '#cbd5e1', fontSize: '15px' }}>📞 +351 {ag.telefone1} {ag.telefone2 ? `| ${ag.telefone2}` : ''}</p>
                     </div>
                     <span style={{ backgroundColor: 'rgba(212, 175, 55, 0.2)', color: '#d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', padding: '8px 14px', borderRadius: '10px', fontSize: '15px', fontWeight: 'bold' }}>
                       📅 {ag.data} às {ag.hora}
@@ -608,7 +682,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS (COM FORMULÁRIO COMPLETO DE REMUNERAÇÃO) */}
+          {/* ABA 6: FUNCIONÁRIOS */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
