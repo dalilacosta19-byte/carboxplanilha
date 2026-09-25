@@ -6,6 +6,12 @@ export default function Home() {
   const [user, setUser] = useState('admin');
   const [subAbaOperacional, setSubAbaOperacional] = useState<'agendamento' | 'orcamento' | 'os'>('os');
 
+  // Estado do Calendário (Mês e Ano atuais)
+  const dataAtualObj = new Date();
+  const [mesCalendario, setMesCalendario] = useState(dataAtualObj.getMonth()); // 0 a 11
+  const [anoCalendario, setAnoCalendario] = useState(dataAtualObj.getFullYear());
+  const [diaSelecionado, setDiaSelecionado] = useState<string>(dataAtualObj.toISOString().split('T')[0]);
+
   // Dados da Empresa
   const [dadosEmpresa, setDadosEmpresa] = useState({
     nome: 'CARBOX77 DETAILING, UNIPESSOAL LDA',
@@ -54,7 +60,7 @@ export default function Home() {
       matricula: 'AZ-91-GI', 
       servicoAgendado: '13 - Limpeza Detalhada',
       notasAvaliacao: 'Avaliação inicial do estado da pintura e proteções.', 
-      data: '2026-09-30', 
+      data: new Date().toISOString().split('T')[0], 
       hora: '14:00', 
       status: 'Agendado' 
     }
@@ -66,7 +72,7 @@ export default function Home() {
   const [agVeiculo, setAgVeiculo] = useState('');
   const [agMatricula, setAgMatricula] = useState('');
   const [agServico, setAgServico] = useState('');
-  const [agData, setAgData] = useState('');
+  const [agData, setAgData] = useState(new Date().toISOString().split('T')[0]);
   const [agHoraSel, setAgHoraSel] = useState('10');
   const [agMinSel, setAgMinSel] = useState('00');
   const [agNotas, setAgNotas] = useState('');
@@ -101,19 +107,42 @@ export default function Home() {
       sinalPago: 150.00,
       restanteAPagar: 200.00,
       status: 'Em Execução', 
-      data: '2026-09-23' 
+      data: new Date().toISOString().split('T')[0] 
     }
   ]);
 
   const [transacoes, setTransacoes] = useState([
-    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 150.00, data: '2026-09-23' }
+    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 150.00, data: new Date().toISOString().split('T')[0] }
   ]);
 
   const [novaTransDesc, setNovaTransDesc] = useState('');
   const [novaTransVal, setNovaTransVal] = useState('');
-  const [novaTransData, setNovaTransData] = useState(new Date().toISOString().split('T')[0]);
 
-  // Função para autocompletar dados do cliente de forma inteligente
+  // Feriados Nacionais de Portugal
+  const isFeriadoPortugal = (ano: number, mes: number, dia: number) => {
+    const m = mes + 1;
+    const fixos = [
+      { m: 1, d: 1 },   // Ano Novo
+      { m: 4, d: 25 },  // Dia da Liberdade
+      { m: 5, d: 1 },   // Dia do Trabalhador
+      { m: 6, d: 10 },  // Dia de Portugal
+      { m: 8, d: 15 },  // Assunção de Nossa Senhora
+      { m: 10, d: 5 },  // Implantação da República
+      { m: 11, d: 1 },  // Todos os Santos
+      { m: 12, d: 1 },  // Restauração da Independência
+      { m: 12, d: 8 },  // Imaculada Conceição
+      { m: 12, d: 25 }  // Natal
+    ];
+    if (fixos.some(f => f.m === m && f.d === dia)) return true;
+
+    // Feriados móveis para 2026 (Sexta-feira Santa 03/04/2026, Corpo de Deus 04/06/2026)
+    if (ano === 2026) {
+      if (m === 4 && dia === 3) return true;
+      if (m === 6 && dia === 4) return true;
+    }
+    return false;
+  };
+
   const selecionarClienteInteligente = (nome: string, tipo: 'ag' | 'os') => {
     if (tipo === 'ag') setAgClient(nome);
     if (tipo === 'os') setOsCliente(nome);
@@ -141,14 +170,12 @@ export default function Home() {
     ...agendamentos.map(a => a.cliente)
   ]));
 
-  // Função WhatsApp
   const enviarWhatsApp = (cliente: string, veiculo: string, matricula: string, telefone: string) => {
     const telLimpo = telefone.replace(/\D/g, '');
     const msg = encodeURIComponent(`Olá ${cliente}, informamos que o seu veículo ${veiculo} (${matricula}) na CARBOX77 Detailing está pronto para levantamento. Obrigado!`);
     window.open(`https://wa.me/351${telLimpo}?text=${msg}`, '_blank');
   };
 
-  // Funções de Registo
   const criarAgendamento = (e: React.FormEvent) => {
     e.preventDefault();
     if (!agClient || !agTel1 || !agData) {
@@ -248,8 +275,8 @@ export default function Home() {
 
   const adicionarTransacaoManual = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!novaTransDesc || !novaTransVal || !novaTransData) return;
-    setTransacoes([{ id: Date.now(), descricao: novaTransDesc, matricula: 'GERAL', categoria: 'Serviço', tipo: 'receita', valor: Number(novaTransVal) || 0, data: novaTransData }, ...transacoes]);
+    if (!novaTransDesc || !novaTransVal) return;
+    setTransacoes([{ id: Date.now(), descricao: novaTransDesc, matricula: 'GERAL', categoria: 'Serviço', tipo: 'receita', valor: Number(novaTransVal) || 0, data: new Date().toISOString().split('T')[0] }, ...transacoes]);
     setNovaTransDesc(''); setNovaTransVal('');
   };
 
@@ -263,6 +290,25 @@ export default function Home() {
     { id: 'stock', label: '📦 Controlo de Stock' },
     { id: 'config', label: '⚙️ Empresa' },
   ];
+
+  // Helpers do Calendário
+  const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const primeiroDiaMes = new Date(anoCalendario, mesCalendario, 1).getDay(); // 0 (Domingo) a 6 (Sábado)
+  const totalDiasMes = new Date(anoCalendario, mesCalendario + 1, 0).getDate();
+
+  const mudarMes = (direcao: number) => {
+    let novoMes = mesCalendario + direcao;
+    let novoAno = anoCalendario;
+    if (novoMes > 11) {
+      novoMes = 0;
+      novoAno++;
+    } else if (novoMes < 0) {
+      novoMes = 11;
+      novoAno--;
+    }
+    setMesCalendario(novoMes);
+    setAnoCalendario(novoAno);
+  };
 
   return (
     <div style={{ 
@@ -611,27 +657,144 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: CALENDÁRIO & AGENDA */}
+          {/* ABA 4: CALENDÁRIO & AGENDA (ESTILO ELEGANTE COM FERIADOS PT E PAINEL LATERAL) */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-              <div>
-                <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário & Agenda</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Visualização de todos os agendamentos e avaliações.</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário & Agenda</h2>
+                  <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte os agendamentos e feriados nacionais de Portugal.</p>
+                </div>
+                {/* Legenda de cores */}
+                <div style={{ display: 'flex', gap: '16px', backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '12px 20px', borderRadius: '12px', border: '1px solid #1f293d', fontSize: '14px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#3b82f6' }}>● Avaliações</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#d4af37' }}>● Serviços / OS</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f87171' }}>● Feriados PT</span>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '800px' }}>
-                {agendamentos.map(ag => (
-                  <div key={ag.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente} - {ag.veiculo} ({ag.matricula})</h4>
-                      <p style={{ margin: '4px 0 0 0', color: '#d4af37', fontSize: '14px' }}>Serviço: {ag.servicoAgendado}</p>
-                      <p style={{ margin: '6px 0 0 0', color: '#cbd5e1', fontSize: '15px' }}>📞 +351 {ag.telefone1} {ag.telefone2 ? `| ${ag.telefone2}` : ''}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '28px', alignItems: 'start' }}>
+                
+                {/* CALENDÁRIO GRANDE */}
+                <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1f293d', borderRadius: '20px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  
+                  {/* Cabeçalho do Mês */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: 0 }}>
+                      {nomesMeses[mesCalendario]} de {anoCalendario}
+                    </h3>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => mudarMes(-1)} style={{ backgroundColor: '#090a0f', color: '#d4af37', border: '1px solid #222b45', padding: '10px 16px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>◀ Mês Anterior</button>
+                      <button onClick={() => mudarMes(1)} style={{ backgroundColor: '#090a0f', color: '#d4af37', border: '1px solid #222b45', padding: '10px 16px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>Próximo Mês ▶</button>
                     </div>
-                    <span style={{ backgroundColor: 'rgba(212, 175, 55, 0.2)', color: '#d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', padding: '8px 14px', borderRadius: '10px', fontSize: '15px', fontWeight: 'bold' }}>
-                      📅 {ag.data} às {ag.hora}
-                    </span>
                   </div>
-                ))}
+
+                  {/* Dias da Semana */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontWeight: 'bold', color: '#94a3b8', fontSize: '15px', paddingBottom: '10px', borderBottom: '1px solid #1f293d' }}>
+                    <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                  </div>
+
+                  {/* Grelha de Dias */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
+                    {/* Espaços em branco antes do 1º dia */}
+                    {Array.from({ length: primeiroDiaMes }).map((_, idx) => (
+                      <div key={`empty-${idx}`} style={{ padding: '20px', height: '80px' }}></div>
+                    ))}
+
+                    {/* Dias do Mês */}
+                    {Array.from({ length: totalDiasMes }).map((_, idx) => {
+                      const diaNum = idx + 1;
+                      const mesStr = String(mesCalendario + 1).padStart(2, '0');
+                      const diaStr = String(diaNum).padStart(2, '0');
+                      const dataFormatada = `${anoCalendario}-${mesStr}-${diaStr}`;
+                      
+                      const isFeriado = isFeriadoPortugal(anoCalendario, mesCalendario, diaNum);
+                      const isSelecionado = diaSelecionado === dataFormatada;
+
+                      // Filtrar agendamentos e OS deste dia
+                      const agsDoDia = agendamentos.filter(a => a.data === dataFormatada);
+                      const ossDoDia = ordensServico.filter(o => o.data === dataFormatada);
+
+                      return (
+                        <div
+                          key={dataFormatada}
+                          onClick={() => setDiaSelecionado(dataFormatada)}
+                          style={{
+                            backgroundColor: isSelecionado ? 'rgba(212, 175, 55, 0.25)' : isFeriado ? 'rgba(239, 68, 68, 0.12)' : '#090a0f',
+                            border: isSelecionado ? '2px solid #d4af37' : isFeriado ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid #1f293d',
+                            borderRadius: '12px',
+                            padding: '12px',
+                            minHeight: '85px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '16px', fontWeight: 'bold', color: isFeriado ? '#f87171' : '#fff' }}>{diaNum}</span>
+                            {isFeriado && <span style={{ fontSize: '10px', backgroundColor: '#f87171', color: '#090a0f', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Feriado</span>}
+                          </div>
+
+                          {/* Pontos indicadores de eventos */}
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
+                            {agsDoDia.map((_, i) => (
+                              <div key={`ag-${i}`} title="Avaliação / Agendamento" style={{ width: '8px', height: '8px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>
+                            ))}
+                            {ossDoDia.map((_, i) => (
+                              <div key={`os-${i}`} title="Serviço / OS" style={{ width: '8px', height: '8px', backgroundColor: '#d4af37', borderRadius: '50%' }}></div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* PAINEL LATERAL DE DETALHES DO DIA SELECIONADO */}
+                <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1f293d', borderRadius: '20px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0, borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
+                    📅 Agendamentos para {diaSelecionado}
+                  </h3>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '550px', overflowY: 'auto' }}>
+                    {/* Avaliações / Agendamentos do dia */}
+                    {agendamentos.filter(a => a.data === diaSelecionado).map(ag => (
+                      <div key={ag.id} style={{ backgroundColor: '#090a0f', borderLeft: '4px solid #3b82f6', border: '1px solid #1f293d', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '13px', backgroundColor: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', padding: '2px 8px', borderRadius: '6px', fontWeight: 'bold' }}>Avaliação / Agendamento</span>
+                          <span style={{ fontSize: '14px', color: '#d4af37', fontWeight: 'bold' }}>⏰ {ag.hora}</span>
+                        </div>
+                        <h4 style={{ fontSize: '17px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
+                        <p style={{ margin: 0, color: '#cbd5e1', fontSize: '15px' }}>🚗 {ag.veiculo} ({ag.matricula})</p>
+                        <p style={{ margin: 0, color: '#94a3b8', fontSize: '14px' }}>Serviço: {ag.servicoAgendado}</p>
+                        <p style={{ margin: 0, color: '#94a3b8', fontSize: '14px' }}>📞 +351 {ag.telefone1}</p>
+                      </div>
+                    ))}
+
+                    {/* Serviços / OS do dia */}
+                    {ordensServico.filter(o => o.data === diaSelecionado).map(os => (
+                      <div key={os.id} style={{ backgroundColor: '#090a0f', borderLeft: '4px solid #d4af37', border: '1px solid #1f293d', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '13px', backgroundColor: 'rgba(212, 175, 55, 0.2)', color: '#fde047', padding: '2px 8px', borderRadius: '6px', fontWeight: 'bold' }}>Serviço / OS</span>
+                          <span style={{ fontSize: '14px', color: '#34d399', fontWeight: 'bold' }}>{os.valorFinal.toFixed(2)} €</span>
+                        </div>
+                        <h4 style={{ fontSize: '17px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.cliente}</h4>
+                        <p style={{ margin: 0, color: '#cbd5e1', fontSize: '15px' }}>🚗 {os.veiculo} ({os.matricula})</p>
+                        <p style={{ margin: 0, color: '#94a3b8', fontSize: '14px' }}>Serviço: {os.servico}</p>
+                        <p style={{ margin: 0, color: '#d4af37', fontSize: '14px' }}>👤 Técnico: {os.funcionario}</p>
+                      </div>
+                    ))}
+
+                    {agendamentos.filter(a => a.data === diaSelecionado).length === 0 && ordensServico.filter(o => o.data === diaSelecionado).length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+                        <p style={{ fontSize: '16px', margin: 0 }}>Nenhum agendamento ou serviço para este dia.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
@@ -811,11 +974,11 @@ export default function Home() {
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>Morada</label>
-                  <input type="text" value={dadosEmpresa.morada} onChange={(e) => setDadosEmpresa({...dadosEmpresa, morada: e.target.value})} style={{ width: '100%', padding: '14px 16px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                  <input type="text" value={dadosEmpresa.morada} onChange={(e) => setDadosEmpresa({...dadosEmpresa, morada: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
                 </div>
                 <div>
                   <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>Telefone</label>
-                  <input type="text" value={dadosEmpresa.telefone} onChange={(e) => setDadosEmpresa({...dadosEmpresa, telefone: e.target.value})} style={{ width: '100%', padding: '14px 16px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
+                  <input type="text" value={dadosEmpresa.telefone} onChange={(e) => setDadosEmpresa({...dadosEmpresa, telefone: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#cbd5e1', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }} />
                 </div>
               </div>
             </div>
