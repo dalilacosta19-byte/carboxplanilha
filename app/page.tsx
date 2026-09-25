@@ -158,7 +158,7 @@ export default function Home() {
     setFuncionarios(funcionarios.filter(f => f.id !== id));
   };
 
-  // Submissão do Agendamento de Avaliação atualizado
+  // Submissão do Agendamento de Avaliação corrigida
   const criarAgendamentoAvaliacao = (e: React.FormEvent) => {
     e.preventDefault();
     if (!agClient || !agTel1 || !agData || !agHora) {
@@ -171,7 +171,7 @@ export default function Home() {
       tipo: 'Avaliação',
       cliente: agClient,
       telefone1: `+351 ${agTel1}`,
-      telefone2: agTel2 ? `+351 ${agTel2}` : undefined,
+      telefone2: agTel2 ? `+351 ${agTel2}` : '',
       veiculo: agVeiculo || 'Viatura Geral',
       matricula: agMatricula ? agMatricula.toUpperCase() : 'Não informada',
       notasAvaliacao: agNotas || 'Avaliação técnica agendada.',
@@ -405,7 +405,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA: AGENDAMENTO (AVALIAÇÃO) - ATUALIZADA COM AS REGRAS ESPECÍFICAS */}
+          {/* ABA: AGENDAMENTO (AVALIAÇÃO) */}
           {tab === 'agendamento' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -588,7 +588,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* OUTRAS ABAS (Placeholder rápido caso navegue) */}
+          {/* OUTRAS ABAS */}
           {tab !== 'pateo' && tab !== 'metricas' && tab !== 'agendamento' && tab !== 'ordem-servico' && (
             <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '40px', textAlign: 'center' }}>
               <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Módulo Selecionado</h3>
