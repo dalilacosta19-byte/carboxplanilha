@@ -118,18 +118,18 @@ export default function Home() {
     if (tipo === 'ag') setAgClient(nome);
     if (tipo === 'os') setOsCliente(nome);
 
-    const encontrado = ordensServico.find(o => o.cliente.toLowerCase() === nome.toLowerCase()) ||
-                       agendamentos.find(a => a.cliente.toLowerCase() === nome.toLowerCase());
+    const encontrado: any = ordensServico.find(o => o.cliente.toLowerCase() === nome.toLowerCase()) ||
+                            agendamentos.find(a => a.cliente.toLowerCase() === nome.toLowerCase());
     
     if (encontrado) {
       if (tipo === 'ag') {
-        setAgTel1(encontrado.contacto || (encontrado as any).telefone1 || '');
-        setAgTel2(encontrado.contacto2 || (encontrado as any).telefone2 || '');
+        setAgTel1(encontrado.contacto || encontrado.telefone1 || '');
+        setAgTel2(encontrado.contacto2 || encontrado.telefone2 || '');
         setAgVeiculo(encontrado.veiculo || '');
         setAgMatricula(encontrado.matricula || '');
       } else {
-        setOsTel1(encontrado.contacto || (encontrado as any).telefone1 || '');
-        setOsTel2(encontrado.contacto2 || (encontrado as any).telefone2 || '');
+        setOsTel1(encontrado.contacto || encontrado.telefone1 || '');
+        setOsTel2(encontrado.contacto2 || encontrado.telefone2 || '');
         setOsVeiculo(encontrado.veiculo || '');
         setOsMatricula(encontrado.matricula || '');
       }
@@ -346,7 +346,7 @@ export default function Home() {
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-          {/* ABA 1: VEÍCULOS NO PÁTIO (COM BOTÃO WHATSAPP) */}
+          {/* ABA 1: VEÍCULOS NO PÁTIO */}
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
@@ -399,7 +399,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 3: OS / ORÇAMENTO / AGENDAMENTO (INTELIGENTE E COM +351) */}
+          {/* ABA 3: OS / ORÇAMENTO / AGENDAMENTO */}
           {tab === 'operacional' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -572,13 +572,6 @@ export default function Home() {
                       placeholder="Selecione ou escreva o serviço..." 
                       style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}
                     />
-                    <datalist id="sugestoes-servicos">
-                      <option value="13 - Limpeza Detalhada" />
-                      <option value="57 - Aplicação de PPF nos Black Piano" />
-                      <option value="111 - Fusion Coating (Proteção Cerâmica)" />
-                      <option value="Polimento Comercial" />
-                      <option value="Higienização de Interiores" />
-                    </datalist>
                   </div>
 
                   <div>
