@@ -2,33 +2,46 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [tab, setTab] = useState('agendamento');
+  const [tab, setTab] = useState('pateo');
   const [user, setUser] = useState('admin');
 
   // Dados da Empresa
-  const [dadosEmpresa] = useState({
+  const [dadosEmpresa, setDadosEmpresa] = useState({
     nome: 'CARBOX77 DETAILING, UNIPESSOAL LDA',
     nif: '513 401 890',
     morada: 'Rua da Torre, Pavilhão Guilherme Pinto Basto, 2750-748 Cascais, Portugal',
     telefone: '+351 211 515 449',
     email: 'carbox77detailing@gmail.com',
-    iban: 'PT50 0033 0000 4546 1405 9370 5'
+    capitalSocial: '50000,00',
+    conservatoria: 'Registo Comercial de Lisboa',
+    iban: 'PT50 0033 0000 4546 1405 9370 5',
+    swift: 'BCOPTPL'
   });
 
-  // Lista de Agendamentos / Avaliações
+  // Funcionários
+  const [funcionarios, setFuncionarios] = useState([
+    { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 },
+    { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000 },
+    { id: 3, nome: 'Ricardo Costa', cargo: 'Polidor Externo', tipoRemuneracao: 'diaria', valorPctOuFixo: 75 },
+    { id: 4, nome: 'Kevin', cargo: 'Detailer', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 }
+  ]);
+  const [novoFuncNome, setNovoFuncNome] = useState('');
+  const [novoFuncCargo, setNovoFuncCargo] = useState('');
+  const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
+  const [valorRemuneracao, setValorRemuneracao] = useState('30');
+
+  // Agenda integrada / Avaliações
   const [agendamentos, setAgendamentos] = useState([
     { 
       id: 1, 
       tipo: 'Avaliação', 
       cliente: 'Carla Monteiro', 
-      paisTel1: '+351',
-      telefone1: '922 333 444', 
-      paisTel2: '+351',
-      telefone2: '911 222 333', 
+      telefone1: '+351 922 333 444', 
+      telefone2: '+351 911 222 333', 
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
       notasAvaliacao: 'Avaliação inicial do estado da pintura e proteções.', 
-      data: '2026-09-30', 
+      data: '2026-09-23', 
       hora: '14:00', 
       status: 'Agendado' 
     }
@@ -36,9 +49,7 @@ export default function Home() {
 
   // Estados para Novo Agendamento / Avaliação
   const [agClient, setAgClient] = useState('');
-  const [paisTel1, setPaisTel1] = useState('+351');
   const [agTel1, setAgTel1] = useState('');
-  const [paisTel2, setPaisTel2] = useState(''); // Em branco por padrão
   const [agTel2, setAgTel2] = useState('');
   const [agVeiculo, setAgVeiculo] = useState('');
   const [agMatricula, setAgMatricula] = useState('');
@@ -46,7 +57,174 @@ export default function Home() {
   const [agHora, setAgHora] = useState('');
   const [agNotas, setAgNotas] = useState('');
 
-  const horariosRapidos = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+  // Navegação do Calendário
+  const [anoAtualCal, setAnoAtualCal] = useState(2026);
+  const [mesAtualCal, setMesAtualCal] = useState(8); // Setembro
+
+  // Formulário Unificado (OS / Orçamento / Agendamento)
+  const [tipoDocumentoGerar, setTipoDocumentoGerar] = useState<'ORÇAMENTO' | 'ORDEM DE SERVIÇO'>('ORÇAMENTO');
+  
+  const [osCliente, setOsCliente] = useState('Carla Monteiro');
+  const [osContacto, setOsContacto] = useState('+351 922 333 444');
+  const [osVeiculo, setOsVeiculo] = useState('Renault Captur');
+  const [osMatricula, setOsMatricula] = useState('AZ-91-GI');
+  const [osObs, setOsObs] = useState('Renault Captur matrícula AZ-91-GI. Regime de isenção.');
+
+  // Múltiplos serviços com técnicos, valores e descontos individuais
+  const [listaItensServico, setListaItensServico] = useState([
+    { id: 1, descricao: '13 - LIMPEZA DETALHADA', funcionario: 'João Silva', valor: '120.00', desconto: '120.00' },
+    { id: 2, descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: '400.00', desconto: '0.00' },
+    { id: 3, descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: '900.00', desconto: '0.00' }
+  ]);
+
+  // Custos detalhados
+  const [listaCustosDetalhados, setListaCustosDetalhados] = useState([
+    { id: 1, descricao: 'Película PPF', valor: '150.00' }
+  ]);
+
+  const [osSinal, setOsSinal] = useState('300.00');
+  const [osContaRecebimentoSinal, setOsContaRecebimentoSinal] = useState('MB WAY');
+  const [osContaRecebimentoFinal, setOsContaRecebimentoFinal] = useState('MB WAY');
+
+  const [ordensServico, setOrdensServico] = useState([
+    { 
+      id: 101, 
+      cliente: 'Carla Monteiro', 
+      contacto: '+351 922 333 444',
+      veiculo: 'Renault Captur', 
+      matricula: 'AZ-91-GI', 
+      servicosDetalhes: [
+        { descricao: '13 - LIMPEZA DETALHADA', funcionario: 'João Silva', valor: 120.00, desconto: 120.00 },
+        { descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: 400.00, desconto: 0.00 },
+        { descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: 900.00, desconto: 0.00 }
+      ],
+      servico: 'Limpeza Detalhada + PPF Black Piano + Fusion Coating',
+      observacoes: 'Renault Captur matrícula AZ-91-GI. Regime de isenção.', 
+      custosDetalhados: [{ descricao: 'Película PPF', valor: 150.00 }], 
+      valorOriginal: 1420.00, 
+      descontoTotal: 120.00, 
+      valorFinal: 1300.00, 
+      sinalPago: 300.00,
+      contaRecebimentoSinal: 'MB WAY',
+      restanteAPagar: 1000.00,
+      status: 'Em Execução', 
+      data: '2026-09-23' 
+    }
+  ]);
+
+  // Transações Livro-Caixa
+  const [transacoes, setTransacoes] = useState([
+    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-09-23' },
+    { id: 2, descricao: 'Compra Película PPF', matricula: 'AZ-91-GI', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: '2026-09-23' }
+  ]);
+
+  const [novaTransDesc, setNovaTransDesc] = useState('');
+  const [novaTransMat, setNovaTransMat] = useState('');
+  const [novaTransCat, setNovaTransCat] = useState('Serviço');
+  const [novaTransTipo, setNovaTransTipo] = useState<'receita' | 'despesa'>('receita');
+  const [novaTransVal, setNovaTransVal] = useState('');
+  const [novaTransData, setNovaTransData] = useState(new Date().toISOString().split('T')[0]);
+
+  // Funções
+  const adicionarLinhaServico = () => {
+    setListaItensServico([...listaItensServico, { id: Date.now(), descricao: '', funcionario: '', valor: '', desconto: '0.00' }]);
+  };
+
+  const removerLinhaServico = (index: number) => {
+    if (listaItensServico.length === 1) return;
+    setListaItensServico(listaItensServico.filter((_, i) => i !== index));
+  };
+
+  const atualizarItemServico = (index: number, campo: string, valor: string) => {
+    const novaLista = [...listaItensServico];
+    (novaLista[index] as any)[campo] = valor;
+    setListaItensServico(novaLista);
+  };
+
+  const adicionarLinhaCusto = () => {
+    setListaCustosDetalhados([...listaCustosDetalhados, { id: Date.now(), descricao: '', valor: '' }]);
+  };
+
+  const removerLinhaCusto = (index: number) => {
+    if (listaCustosDetalhados.length === 1) return;
+    setListaCustosDetalhados(listaCustosDetalhados.filter((_, i) => i !== index));
+  };
+
+  const atualizarItemCusto = (index: number, campo: string, valor: string) => {
+    const novaLista = [...listaCustosDetalhados];
+    (novaLista[index] as any)[campo] = valor;
+    setListaCustosDetalhados(novaLista);
+  };
+
+  const criarOSOuOrcamento = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!osCliente || !osMatricula) {
+      alert('Por favor, preencha o Nome do Cliente e a Matrícula.');
+      return;
+    }
+
+    let valOrig = 0;
+    let descTot = 0;
+    const servicosFormatados = listaItensServico.map(item => {
+      const v = Number(item.valor) || 0;
+      const d = Number(item.desconto) || 0;
+      valOrig += v;
+      descTot += d;
+      return {
+        descricao: item.descricao || 'Serviço Detalhado',
+        funcionario: item.funcionario || 'Não atribuído',
+        valor: v,
+        desconto: d
+      };
+    });
+
+    const valorFinal = valOrig - descTot;
+    const sinal = Number(osSinal) || 0;
+    const restante = Math.max(0, valorFinal - sinal);
+    const custosFormatados = listaCustosDetalhados.map(c => ({
+      descricao: c.descricao || 'Custo',
+      valor: Number(c.valor) || 0
+    }));
+
+    const novaOSId = Date.now();
+    const dataHoje = new Date().toISOString().split('T')[0];
+
+    const novaOS = {
+      id: novaOSId,
+      cliente: osCliente,
+      contacto: osContacto,
+      veiculo: osVeiculo || 'Viatura',
+      matricula: osMatricula.toUpperCase(),
+      servicosDetalhes: servicosFormatados,
+      servico: servicosFormatados.map(s => s.descricao).join(' + '),
+      observacoes: osObs,
+      custosDetalhados: custosFormatados,
+      valorOriginal: valOrig,
+      descontoTotal: descTot,
+      valorFinal: valorFinal,
+      sinalPago: sinal,
+      contaRecebimentoSinal: osContaRecebimentoSinal,
+      restanteAPagar: restante,
+      status: 'Em Execução',
+      data: dataHoje
+    };
+
+    setOrdensServico([novaOS, ...ordensServico]);
+    alert('Registo criado com sucesso!');
+    setTab('pateo');
+  };
+
+  const adicionarFuncionario = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!novoFuncNome || !novoFuncCargo) return;
+    setFuncionarios([...funcionarios, { id: Date.now(), nome: novoFuncNome, cargo: novoFuncCargo, tipoRemuneracao, valorPctOuFixo: Number(valorRemuneracao) || 0 }]);
+    setNovoFuncNome('');
+    setNovoFuncCargo('');
+  };
+
+  const removerFuncionario = (id: number) => {
+    setFuncionarios(funcionarios.filter(f => f.id !== id));
+  };
 
   const criarAgendamentoAvaliacao = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,10 +237,8 @@ export default function Home() {
       id: Date.now(),
       tipo: 'Avaliação',
       cliente: agClient,
-      paisTel1,
-      telefone1: agTel1,
-      paisTel2,
-      telefone2: agTel2,
+      telefone1: `+351 ${agTel1}`,
+      telefone2: agTel2 ? agTel2 : '',
       veiculo: agVeiculo || 'Viatura Geral',
       matricula: agMatricula ? agMatricula.toUpperCase() : 'Não informada',
       notasAvaliacao: agNotas || 'Avaliação técnica agendada.',
@@ -75,13 +251,43 @@ export default function Home() {
     setAgClient('');
     setAgTel1('');
     setAgTel2('');
-    setPaisTel2('');
     setAgVeiculo('');
     setAgMatricula('');
     setAgData('');
     setAgHora('');
     setAgNotas('');
     alert('Agendamento de Avaliação registado com sucesso!');
+  };
+
+  const atualizarStatusOS = (id: number, novoStatus: string) => {
+    setOrdensServico(ordensServico.map(os => {
+      if (os.id === id) {
+        return { ...os, status: novoStatus };
+      }
+      return os;
+    }));
+  };
+
+  const adicionarTransacaoManual = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!novaTransDesc || !novaTransVal || !novaTransData) {
+      alert('Preencha a descrição, valor e data.');
+      return;
+    }
+    const tr = {
+      id: Date.now(),
+      descricao: novaTransDesc,
+      matricula: novaTransMat.toUpperCase() || 'GERAL',
+      categoria: novaTransCat,
+      tipo: novaTransTipo,
+      valor: Number(novaTransVal) || 0,
+      data: novaTransData
+    };
+    setTransacoes([tr, ...transacoes]);
+    setNovaTransDesc('');
+    setNovaTransMat('');
+    setNovaTransVal('');
+    alert('Transação registada no Livro-Caixa com sucesso!');
   };
 
   const menuItems = [
@@ -95,6 +301,17 @@ export default function Home() {
     { id: 'config', label: '⚙️ Empresa' },
   ];
 
+  const getBadgeStyle = (status: string) => {
+    switch (status) {
+      case 'Pendente Aprovação': return { bg: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.4)' };
+      case 'Aguardando Peças': return { bg: 'rgba(251, 191, 36, 0.2)', color: '#fde047', border: '1px solid rgba(251, 191, 36, 0.4)' };
+      case 'Em Execução': return { bg: 'rgba(37, 99, 235, 0.2)', color: '#93c5fd', border: '1px solid rgba(37, 99, 235, 0.4)' };
+      case 'Aguardando Pagamento': return { bg: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.4)' };
+      case 'Pronto / Entregue': return { bg: 'rgba(52, 211, 153, 0.2)', color: '#6ee7b7', border: '1px solid rgba(52, 211, 153, 0.4)' };
+      default: return { bg: '#1e293b', color: '#fff', border: '1px solid #334155' };
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
       
@@ -102,7 +319,7 @@ export default function Home() {
       <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div>
-            <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>CARBOX77 DETAILING</h1>
+            <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>{dadosEmpresa.nome}</h1>
             <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Estética Automotiva de Alta Performance • Cascais</p>
           </div>
         </div>
@@ -117,7 +334,7 @@ export default function Home() {
 
       <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
         
-        {/* MENU LATERAL COM TODAS AS OPÇÕES */}
+        {/* MENU LATERAL */}
         <nav style={{ 
           width: '280px', 
           backgroundColor: '#0d0f17', 
@@ -156,7 +373,160 @@ export default function Home() {
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '36px 44px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-          {tab === 'agendamento' ? (
+          {/* ABA 1: VEÍCULOS NO PÁTIO */}
+          {tab === 'pateo' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Veículos no Pátio</h2>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Acompanhe o status em tempo real.</p>
+                </div>
+                <button 
+                  onClick={() => setTab('ordem-servico')}
+                  style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '14px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}
+                >
+                  + Novo Registo / OS / Orçamento
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+                {ordensServico.map(os => {
+                  const badge = getBadgeStyle(os.status);
+                  return (
+                    <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ fontSize: '14px', color: '#60a5fa', fontWeight: 'bold' }}>Registo #{os.id}</span>
+                          <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: '4px 0 0 0' }}>{os.veiculo}</h3>
+                          <p style={{ fontSize: '15px', color: '#cbd5e1', margin: '6px 0 0 0' }}>Matrícula: <b style={{ color: '#fff', background: '#090a0f', padding: '4px 10px', borderRadius: '6px', fontSize: '16px', border: '1px solid #222b45' }}>{os.matricula}</b></p>
+                        </div>
+                        <select 
+                          value={os.status}
+                          onChange={(e) => atualizarStatusOS(os.id, e.target.value)}
+                          style={{ backgroundColor: badge.bg, color: badge.color, border: badge.border, padding: '10px 14px', borderRadius: '10px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                          <option value="Pendente Aprovação">Pendente Aprovação</option>
+                          <option value="Aguardando Peças">Aguardando Peças</option>
+                          <option value="Em Execução">Em Execução</option>
+                          <option value="Aguardando Pagamento">Aguardando Pagamento</option>
+                          <option value="Pronto / Entregue">Pronto / Entregue</option>
+                        </select>
+                      </div>
+
+                      <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', fontSize: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #1e2235' }}>
+                        <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente} {os.contacto && <span style={{ color: '#94a3b8', fontSize: '13px' }}>({os.contacto})</span>}</p>
+                        <div>
+                          <p style={{ margin: '0 0 4px 0', color: '#d4af37', fontWeight: 'bold', fontSize: '14px' }}>Serviços e Descontos:</p>
+                          {os.servicosDetalhes ? (
+                            os.servicosDetalhes.map((s: any, idx: number) => (
+                              <p key={idx} style={{ margin: '2px 0', color: '#cbd5e1', fontSize: '14px' }}>• {s.descricao} - <b>{(s.valor - (s.desconto || 0)).toFixed(2)}€</b></p>
+                            ))
+                          ) : (
+                            <p style={{ margin: 0, color: '#cbd5e1' }}>{(os as any).servico}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '15px', borderTop: '1px solid #1e2235', paddingTop: '14px' }}>
+                        <div>
+                          <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span><br/>
+                          <span style={{ color: '#34d399' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b></span>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ color: '#94a3b8' }}>Falta Pagar:</span><br/>
+                          <span style={{ fontSize: '18px', fontWeight: 'bold', color: os.restanteAPagar > 0 ? '#f87171' : '#34d399' }}>{os.restanteAPagar.toFixed(2)} €</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ABA 2: PAINEL & GRÁFICOS */}
+          {tab === 'metricas' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Painel & Desempenho</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Balanço financeiro por período.</p>
+              </div>
+
+              {(() => {
+                const rec = transacoes.filter(t => t.tipo === 'receita').reduce((a, b) => a + b.valor, 0);
+                const desp = transacoes.filter(t => t.tipo === 'despesa').reduce((a, b) => a + b.valor, 0);
+                const liq = rec - desp;
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#d4af37', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Balanço Líquido</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: liq >= 0 ? '#34d399' : '#f87171', margin: 0 }}>{liq.toFixed(2)} €</p>
+                    </div>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Receitas</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#34d399', margin: 0 }}>+{rec.toFixed(2)} €</p>
+                    </div>
+                    <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', padding: '28px', borderRadius: '16px' }}>
+                      <p style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0', textTransform: 'uppercase' }}>Total Custos / Despesas</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#f87171', margin: 0 }}>-{desp.toFixed(2)} €</p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* ABA 3: OS / ORÇAMENTO */}
+          {tab === 'ordem-servico' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Emissão de Orçamento / OS</h2>
+                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Regime de isenção de IVA (Art. 53º do CIVA).</p>
+                </div>
+              </div>
+
+              <form onSubmit={criarOSOuOrcamento} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>Dados do Cliente e Viatura</h3>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Nome do Cliente *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={osCliente}
+                        onChange={(e) => setOsCliente(e.target.value)}
+                        style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Matrícula *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={osMatricula}
+                        onChange={(e) => setOsMatricula(e.target.value)}
+                        style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', textTransform: 'uppercase', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer', width: '100%' }}
+                >
+                  Registar Orçamento / OS
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* ABA 4: AGENDAMENTO (AVALIAÇÃO) - CORRIGIDO CONFORME PEDIDO */}
+          {tab === 'agendamento' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Agendamento de Avaliações</h2>
@@ -171,7 +541,7 @@ export default function Home() {
                   
                   <form onSubmit={criarAgendamentoAvaliacao} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     
-                    {/* Nome */}
+                    {/* Nome do Cliente */}
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Nome do Cliente *</label>
                       <input 
@@ -184,58 +554,34 @@ export default function Home() {
                       />
                     </div>
 
-                    {/* Telefone Principal */}
+                    {/* Telefone Principal: Apenas +351 fixo (sem a escrita PT) */}
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Contacto / Telefone Principal *</label>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <select 
-                          value={paisTel1}
-                          onChange={(e) => setPaisTel1(e.target.value)}
-                          style={{ width: '110px', padding: '12px 10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#d4af37', fontSize: '14px', fontWeight: 'bold' }}
-                        >
-                          <option value="+351">+351 (PT)</option>
-                          <option value="+55">+55 (BR)</option>
-                          <option value="+41">+41 (CH)</option>
-                          <option value="+33">+33 (FR)</option>
-                          <option value="+34">+34 (ES)</option>
-                        </select>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ padding: '12px 14px', backgroundColor: '#1e2235', border: '1px solid #222b45', borderRight: 'none', borderRadius: '8px 0 0 8px', color: '#d4af37', fontSize: '15px', fontWeight: 'bold' }}>
+                          +351
+                        </span>
                         <input 
                           type="text" 
                           required
                           value={agTel1}
                           onChange={(e) => setAgTel1(e.target.value)}
                           placeholder="922 333 444"
-                          style={{ flex: 1, padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '0 8px 8px 0', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
                         />
                       </div>
                     </div>
 
-                    {/* Telefone 2 Opcional (País em branco) */}
+                    {/* Telefone 2: Sem país, apenas o espaço do número */}
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Contacto / Telefone 2 (Opcional)</label>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <select 
-                          value={paisTel2}
-                          onChange={(e) => setPaisTel2(e.target.value)}
-                          style={{ width: '110px', padding: '12px 10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#94a3b8', fontSize: '14px' }}
-                        >
-                          <option value="">País</option>
-                          <option value="+351">+351 (PT)</option>
-                          <option value="+55">+55 (BR)</option>
-                          <option value="+41">+41 (CH)</option>
-                          <option value="+33">+33 (FR)</option>
-                          <option value="+34">+34 (ES)</option>
-                          <option value="+44">+44 (UK)</option>
-                          <option value="+1">+1 (US/CA)</option>
-                        </select>
-                        <input 
-                          type="text" 
-                          value={agTel2}
-                          onChange={(e) => setAgTel2(e.target.value)}
-                          placeholder="Número alternativo"
-                          style={{ flex: 1, padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
-                        />
-                      </div>
+                      <input 
+                        type="text" 
+                        value={agTel2}
+                        onChange={(e) => setAgTel2(e.target.value)}
+                        placeholder="Número alternativo"
+                        style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                      />
                     </div>
 
                     {/* Viatura e Matrícula */}
@@ -262,7 +608,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Data (Calendário Nativo) & Hora */}
+                    {/* Data (Calendário) & Hora (Com setinha para baixo nativa) */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Data *</label>
@@ -281,34 +627,8 @@ export default function Home() {
                           required
                           value={agHora}
                           onChange={(e) => setAgHora(e.target.value)}
-                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box', cursor: 'pointer' }}
                         />
-                      </div>
-                    </div>
-
-                    {/* Botões de Horários Rápidos para Clicar */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Ou clique num horário rápido:</label>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {horariosRapidos.map(h => (
-                          <button
-                            key={h}
-                            type="button"
-                            onClick={() => setAgHora(h)}
-                            style={{
-                              backgroundColor: agHora === h ? '#d4af37' : '#090a0f',
-                              color: agHora === h ? '#090a0f' : '#cbd5e1',
-                              border: '1px solid #222b45',
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              fontSize: '13px',
-                              fontWeight: agHora === h ? 'bold' : 'normal',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            {h}
-                          </button>
-                        ))}
                       </div>
                     </div>
 
@@ -355,8 +675,8 @@ export default function Home() {
                           </div>
 
                           <div style={{ fontSize: '13px', color: '#cbd5e1', borderTop: '1px solid #1e2235', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            <p style={{ margin: 0 }}>📞 Principal: <b>{ag.paisTel1} {ag.telefone1}</b></p>
-                            {ag.telefone2 && <p style={{ margin: 0 }}>📞 Tel 2: <b>{ag.paisTel2} {ag.telefone2}</b></p>}
+                            <p style={{ margin: 0 }}>📞 Principal: <b>{ag.telefone1}</b></p>
+                            {ag.telefone2 && <p style={{ margin: 0 }}>📞 Tel 2: <b>{ag.telefone2}</b></p>}
                             <p style={{ margin: '6px 0 0 0', color: '#94a3b8', fontStyle: 'italic', backgroundColor: '#131722', padding: '8px', borderRadius: '6px' }}>&quot;{ag.notasAvaliacao}&quot;</p>
                           </div>
                         </div>
@@ -367,10 +687,37 @@ export default function Home() {
 
               </div>
             </div>
-          ) : (
-            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '40px', textAlign: 'center' }}>
-              <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Módulo Selecionado</h3>
-              <p style={{ color: '#94a3b8', fontSize: '16px', margin: 0 }}>Secção integrada no sistema principal CARBOX77.</p>
+          )}
+
+          {/* ABA 5: CALENDÁRIO & AGENDA */}
+          {tab === 'agenda' && (
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Calendário & Agenda</h2>
+              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Visualização de todos os compromissos agendados.</p>
+            </div>
+          )}
+
+          {/* ABA 6: LIVRO-CAIXA */}
+          {tab === 'financeiro' && (
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Livro-Caixa & Finanças</h2>
+              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Registo de receitas e despesas.</p>
+            </div>
+          )}
+
+          {/* ABA 7: FUNCIONÁRIOS */}
+          {tab === 'funcionarios' && (
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Gestão de Funcionários</h2>
+              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Colaboradores e comissões.</p>
+            </div>
+          )}
+
+          {/* ABA 8: EMPRESA */}
+          {tab === 'config' && (
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Dados da Empresa</h2>
+              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Informações fiscais e de faturação.</p>
             </div>
           )}
 
