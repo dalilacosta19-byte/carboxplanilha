@@ -5,7 +5,7 @@ export default function Home() {
   const [tab, setTab] = useState('pateo');
   const [user, setUser] = useState('admin');
 
-  // Dados da Empresa com morada e telefone atualizados
+  // Dados da Empresa
   const [dadosEmpresa, setDadosEmpresa] = useState({
     nome: 'CARBOX77 DETAILING, UNIPESSOAL LDA',
     nif: '513 401 890',
@@ -18,19 +18,31 @@ export default function Home() {
     swift: 'BCOPTPL'
   });
 
+  // Stock / Produtos (Materiais Caros)
+  const [stock, setStock] = useState([
+    { id: 1, nome: 'Película PPF (metros)', qtd: 20, custoUnitario: 35.00 },
+    { id: 2, nome: 'Fusion Coating (ml)', qtd: 250, custoUnitario: 45.00 },
+    { id: 3, nome: 'Shampoo Neutro Detail (L)', qtd: 10, custoUnitario: 12.00 }
+  ]);
+  const [novoStockNome, setNovoStockNome] = useState('');
+  const [novoStockQtd, setNovoStockQtd] = useState('');
+  const [novoStockCusto, setNovoStockCusto] = useState('');
+
   // Funcionários
   const [funcionarios, setFuncionarios] = useState([
-    { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 },
-    { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000 },
-    { id: 3, nome: 'Ricardo Costa', cargo: 'Polidor Externo', tipoRemuneracao: 'diaria', valorPctOuFixo: 75 },
-    { id: 4, nome: 'Kevin', cargo: 'Detailer', tipoRemuneracao: 'comissao', valorPctOuFixo: 30 }
+    { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 150.00 },
+    { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000.00, adiantamento: 0.00 },
+    { id: 3, nome: 'Ricardo Costa', cargo: 'Polidor Externo', tipoRemuneracao: 'diaria', valorPctOuFixo: 75.00, adiantamento: 50.00 },
+    { id: 4, nome: 'Kevin', cargo: 'Detailer', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 0.00 }
   ]);
+
   const [novoFuncNome, setNovoFuncNome] = useState('');
   const [novoFuncCargo, setNovoFuncCargo] = useState('');
   const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
   const [valorRemuneracao, setValorRemuneracao] = useState('30');
+  const [novoFuncAdiantamento, setNovoFuncAdiantamento] = useState('0');
 
-  // Agenda integrada / Avaliações
+  // Agenda / Avaliações
   const [agendamentos, setAgendamentos] = useState([
     { 
       id: 1, 
@@ -47,7 +59,6 @@ export default function Home() {
     }
   ]);
 
-  // Estados para Novo Agendamento / Avaliação
   const [agClient, setAgClient] = useState('');
   const [agTel1, setAgTel1] = useState('');
   const [agTel2, setAgTel2] = useState('');
@@ -58,21 +69,20 @@ export default function Home() {
   const [agMinSel, setAgMinSel] = useState('00');
   const [agNotas, setAgNotas] = useState('');
 
-  // Formulário OS / Orçamento
+  // OS / Orçamento
   const [osCliente, setOsCliente] = useState('Carla Monteiro');
-  const [osContacto, setOsContacto] = useState('+351 922 333 444');
+  const [osContacto, setOsContacto] = useState('922 333 444');
   const [osVeiculo, setOsVeiculo] = useState('Renault Captur');
   const [osMatricula, setOsMatricula] = useState('AZ-91-GI');
   const [osObs, setOsObs] = useState('Renault Captur matrícula AZ-91-GI. Regime de isenção.');
 
   const [listaItensServico, setListaItensServico] = useState([
     { id: 1, descricao: '13 - LIMPEZA DETALHADA', funcionario: 'João Silva', valor: '120.00', desconto: '120.00' },
-    { id: 2, descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: '400.00', desconto: '0.00' },
-    { id: 3, descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: '900.00', desconto: '0.00' }
+    { id: 2, descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: '400.00', desconto: '0.00' }
   ]);
 
-  const [listaCustosDetalhados, setListaCustosDetalhados] = useState([
-    { id: 1, descricao: 'Película PPF', valor: '150.00' }
+  const [listaCustosOS, setListaCustosOS] = useState([
+    { produto: 'Película PPF (metros)', qtdUtilizada: 2 }
   ]);
 
   const [osSinal, setOsSinal] = useState('300.00');
@@ -81,37 +91,73 @@ export default function Home() {
     { 
       id: 101, 
       cliente: 'Carla Monteiro', 
-      contacto: '+351 922 333 444',
+      contacto: '922 333 444',
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
       servicosDetalhes: [
         { descricao: '13 - LIMPEZA DETALHADA', funcionario: 'João Silva', valor: 120.00, desconto: 120.00 },
-        { descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: 400.00, desconto: 0.00 },
-        { descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: 900.00, desconto: 0.00 }
+        { descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: 400.00, desconto: 0.00 }
       ],
-      servico: 'Limpeza Detalhada + PPF Black Piano + Fusion Coating',
-      observacoes: 'Renault Captur matrícula AZ-91-GI. Regime de isenção.', 
-      custosDetalhados: [{ descricao: 'Película PPF', valor: 150.00 }], 
-      valorOriginal: 1420.00, 
+      materiaisConsumidos: [{ produto: 'Película PPF (metros)', qtd: 2, custoTotal: 70.00 }],
+      custoTotalMateriais: 70.00,
+      valorOriginal: 520.00, 
       descontoTotal: 120.00, 
-      valorFinal: 1300.00, 
+      valorFinal: 400.00, 
       sinalPago: 300.00,
-      contaRecebimentoSinal: 'MB WAY',
-      restanteAPagar: 1000.00,
+      restanteAPagar: 100.00,
       status: 'Em Execução', 
       data: '2026-09-23' 
     }
   ]);
 
-  // Transações Livro-Caixa
   const [transacoes, setTransacoes] = useState([
-    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-09-23' },
-    { id: 2, descricao: 'Compra Película PPF', matricula: 'AZ-91-GI', categoria: 'Produtos/Peças', tipo: 'despesa', valor: 150.00, data: '2026-09-23' }
+    { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 300.00, data: '2026-09-23' }
   ]);
 
   const [novaTransDesc, setNovaTransDesc] = useState('');
   const [novaTransVal, setNovaTransVal] = useState('');
   const [novaTransData, setNovaTransData] = useState(new Date().toISOString().split('T')[0]);
+
+  // Função WhatsApp
+  const enviarWhatsApp = (cliente: string, veiculo: string, matricula: string, telefone: string) => {
+    const telLimpo = telefone.replace(/\D/g, '');
+    const msg = encodeURIComponent(`Olá ${cliente}, informamos que o seu veículo ${veiculo} (${matricula}) na CARBOX77 Detailing está pronto para levantamento. Obrigado pela preferência!`);
+    window.open(`https://wa.me/${telLimpo}?text=${msg}`, '_blank');
+  };
+
+  // Funções Gestão
+  const adicionarFuncionario = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!novoFuncNome || !novoFuncCargo) return;
+    setFuncionarios([
+      ...funcionarios, 
+      { 
+        id: Date.now(), 
+        nome: novoFuncNome, 
+        cargo: novoFuncCargo, 
+        tipoRemuneracao, 
+        valorPctOuFixo: Number(valorRemuneracao) || 0,
+        adiantamento: Number(novoFuncAdiantamento) || 0
+      }
+    ]);
+    setNovoFuncNome('');
+    setNovoFuncCargo('');
+    setValorRemuneracao('30');
+    setNovoFuncAdiantamento('0');
+  };
+
+  const removerFuncionario = (id: number) => {
+    setFuncionarios(funcionarios.filter(f => f.id !== id));
+  };
+
+  const adicionarStock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!novoStockNome || !novoStockQtd || !novoStockCusto) return;
+    setStock([...stock, { id: Date.now(), nome: novoStockNome, qtd: Number(novoStockQtd) || 0, custoUnitario: Number(novoStockCusto) || 0 }]);
+    setNovoStockNome('');
+    setNovoStockQtd('');
+    setNovoStockCusto('');
+  };
 
   const criarOSOuOrcamento = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,6 +181,15 @@ export default function Home() {
       };
     });
 
+    let custoMatTotal = 0;
+    const materiaisFormatados = listaCustosOS.map(c => {
+      const itemStock = stock.find(s => s.nome === c.produto);
+      const custoUni = itemStock ? itemStock.custoUnitario : 0;
+      const subT = custoUni * (c.qtdUtilizada || 1);
+      custoMatTotal += subT;
+      return { produto: c.produto, qtd: c.qtdUtilizada, custoTotal: subT };
+    });
+
     const valorFinal = valOrig - descTot;
     const sinal = Number(osSinal) || 0;
     const restante = Math.max(0, valorFinal - sinal);
@@ -146,14 +201,12 @@ export default function Home() {
       veiculo: osVeiculo || 'Viatura',
       matricula: osMatricula.toUpperCase(),
       servicosDetalhes: servicosFormatados,
-      servico: servicosFormatados.map(s => s.descricao).join(' + '),
-      observacoes: osObs,
-      custosDetalhados: [],
+      materiaisConsumidos: materiaisFormatados,
+      custoTotalMateriais: custoMatTotal,
       valorOriginal: valOrig,
       descontoTotal: descTot,
       valorFinal: valorFinal,
       sinalPago: sinal,
-      contaRecebimentoSinal: 'MB WAY',
       restanteAPagar: restante,
       status: 'Em Execução',
       data: new Date().toISOString().split('T')[0]
@@ -164,26 +217,12 @@ export default function Home() {
     setTab('pateo');
   };
 
-  const adicionarFuncionario = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!novoFuncNome || !novoFuncCargo) return;
-    setFuncionarios([...funcionarios, { id: Date.now(), nome: novoFuncNome, cargo: novoFuncCargo, tipoRemuneracao, valorPctOuFixo: Number(valorRemuneracao) || 0 }]);
-    setNovoFuncNome('');
-    setNovoFuncCargo('');
-  };
-
-  const removerFuncionario = (id: number) => {
-    setFuncionarios(funcionarios.filter(f => f.id !== id));
-  };
-
   const criarAgendamentoAvaliacao = (e: React.FormEvent) => {
     e.preventDefault();
     if (!agClient || !agTel1 || !agData) {
-      alert('Por favor, preencha o Nome do Cliente, o Telefone Principal e a Data.');
+      alert('Preencha os campos obrigatórios.');
       return;
     }
-
-    const horaFormatada = `${agHoraSel}:${agMinSel}`;
 
     const novoAg = {
       id: Date.now(),
@@ -195,7 +234,7 @@ export default function Home() {
       matricula: agMatricula ? agMatricula.toUpperCase() : 'Não informada',
       notasAvaliacao: agNotas || 'Avaliação técnica agendada.',
       data: agData,
-      hora: horaFormatada,
+      hora: `${agHoraSel}:${agMinSel}`,
       status: 'Agendado'
     };
 
@@ -207,7 +246,7 @@ export default function Home() {
     setAgMatricula('');
     setAgData('');
     setAgNotas('');
-    alert('Agendamento de Avaliação registado com sucesso!');
+    alert('Agendamento registado com sucesso!');
   };
 
   const atualizarStatusOS = (id: number, novoStatus: string) => {
@@ -230,7 +269,8 @@ export default function Home() {
     { id: 'agendamento', label: '📅 Agendamento (Avaliação)' },
     { id: 'agenda', label: '🗓️ Calendário & Agenda' },
     { id: 'financeiro', label: '💰 Livro-Caixa' },
-    { id: 'funcionarios', label: '👥 Funcionários' },
+    { id: 'funcionarios', label: '👥 Funcionários & Salários' },
+    { id: 'stock', label: '📦 Controlo de Stock' },
     { id: 'config', label: '⚙️ Empresa' },
   ];
 
@@ -249,7 +289,6 @@ export default function Home() {
     <div style={{ 
       minHeight: '100vh', 
       backgroundColor: '#07080c', 
-      // Fundo com imagem de carro desportivo elegante e escuro + overlay transparente
       backgroundImage: `linear-gradient(rgba(7, 8, 12, 0.93), rgba(7, 8, 12, 0.95)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80')`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
@@ -258,13 +297,12 @@ export default function Home() {
       fontFamily: 'system-ui, sans-serif', 
       display: 'flex', 
       flexDirection: 'column',
-      fontSize: '16px' // Letras maiores em todo o app
+      fontSize: '16px'
     }}>
       
-      {/* HEADER COM LOGÓTIPO CARBOX */}
+      {/* HEADER */}
       <header style={{ backgroundColor: 'rgba(11, 13, 20, 0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1f293d', padding: '22px 36px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* Logo Estilizada Carbox77 */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: '26px', fontWeight: '900', letterSpacing: '1px', color: '#d4af37', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
               CARBOX<span style={{ color: '#fff' }}>77</span>
@@ -329,13 +367,13 @@ export default function Home() {
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-          {/* ABA 1: VEÍCULOS NO PÁTIO */}
+          {/* ABA 1: VEÍCULOS NO PÁTIO (COM BOTÃO WHATSAPP) */}
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                   <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Veículos no Pátio</h2>
-                  <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Acompanhe o status em tempo real.</p>
+                  <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Acompanhe o status e envie avisos por WhatsApp.</p>
                 </div>
                 <button 
                   onClick={() => setTab('ordem-servico')}
@@ -370,16 +408,26 @@ export default function Home() {
                       </div>
 
                       <div style={{ backgroundColor: 'rgba(9, 10, 15, 0.7)', padding: '18px', borderRadius: '14px', fontSize: '16px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #1f293d' }}>
-                        <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente} {os.contacto && <span style={{ color: '#94a3b8', fontSize: '14px' }}>({os.contacto})</span>}</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente} ({os.contacto})</p>
+                          <button 
+                            onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)}
+                            style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                          >
+                            💬 WhatsApp
+                          </button>
+                        </div>
                         <div>
                           <p style={{ margin: '0 0 6px 0', color: '#d4af37', fontWeight: 'bold', fontSize: '15px' }}>Serviços:</p>
-                          {os.servicosDetalhes ? (
-                            os.servicosDetalhes.map((s: any, idx: number) => (
-                              <p key={idx} style={{ margin: '3px 0', color: '#cbd5e1', fontSize: '15px' }}>• {s.descricao} - <b>{(s.valor - (s.desconto || 0)).toFixed(2)}€</b></p>
-                            ))
-                          ) : (
-                            <p style={{ margin: 0, color: '#cbd5e1' }}>{(os as any).servico}</p>
-                          )}
+                          {os.servicosDetalhes.map((s: any, idx: number) => (
+                            <div key={idx} style={{ margin: '4px 0', color: '#cbd5e1', fontSize: '15px', display: 'flex', justifyContent: 'space-between' }}>
+                              <span>• {s.descricao} ({s.funcionario})</span>
+                              <b>{(s.valor - (s.desconto || 0)).toFixed(2)}€</b>
+                            </div>
+                          ))}
+                          {os.custoTotalMateriais ? (
+                            <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#f87171' }}>Custo Material Aplicado: -{os.custoTotalMateriais.toFixed(2)}€</p>
+                          ) : null}
                         </div>
                       </div>
 
@@ -433,7 +481,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 3: OS / ORÇAMENTO */}
+          {/* ABA 3: OS / ORÇAMENTO (COM CONSUMO DE STOCK) */}
           {tab === 'ordem-servico' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
@@ -489,13 +537,10 @@ export default function Home() {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '32px' }}>
                 
-                {/* FORMULÁRIO */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(6px)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
                   <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>Marcar Nova Avaliação</h3>
                   
                   <form onSubmit={criarAgendamentoAvaliacao} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                    
-                    {/* Nome do Cliente */}
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Nome do Cliente *</label>
                       <input 
@@ -508,13 +553,10 @@ export default function Home() {
                       />
                     </div>
 
-                    {/* Telefone Principal +351 */}
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Contacto / Telefone Principal *</label>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ padding: '14px 16px', backgroundColor: '#1e2235', border: '1px solid #222b45', borderRight: 'none', borderRadius: '10px 0 0 10px', color: '#d4af37', fontSize: '16px', fontWeight: 'bold' }}>
-                          +351
-                        </span>
+                        <span style={{ padding: '14px 16px', backgroundColor: '#1e2235', border: '1px solid #222b45', borderRight: 'none', borderRadius: '10px 0 0 10px', color: '#d4af37', fontSize: '16px', fontWeight: 'bold' }}>+351</span>
                         <input 
                           type="text" 
                           required
@@ -526,7 +568,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Telefone 2 (Opcional) */}
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Contacto / Telefone 2 (Opcional)</label>
                       <input 
@@ -538,7 +579,6 @@ export default function Home() {
                       />
                     </div>
 
-                    {/* Viatura e Matrícula */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Viatura</label>
@@ -562,7 +602,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Data & Hora Separada */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Data *</label>
@@ -600,9 +639,8 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Notas */}
                     <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Notas / Motivo da Avaliação</label>
+                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '8px', fontWeight: 'bold' }}>Notas / Motivo</label>
                       <textarea 
                         rows={3}
                         value={agNotas}
@@ -618,38 +656,36 @@ export default function Home() {
                     >
                       Confirmar Agendamento de Avaliação
                     </button>
-
                   </form>
                 </div>
 
-                {/* LISTA DE AVALIAÇÕES MARCADAS */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(6px)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
                   <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Avaliações Marcadas</h3>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '620px', overflowY: 'auto' }}>
-                    {agendamentos.length === 0 ? (
-                      <p style={{ color: '#94a3b8', textAlign: 'center', padding: '40px 0', fontSize: '16px' }}>Nenhuma avaliação agendada.</p>
-                    ) : (
-                      agendamentos.map(ag => (
-                        <div key={ag.id} style={{ backgroundColor: '#090a0f', border: '1px solid #1f293d', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                              <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
-                              <p style={{ fontSize: '15px', color: '#d4af37', margin: '6px 0 0 0' }}>🚗 {ag.veiculo} ({ag.matricula})</p>
-                            </div>
-                            <span style={{ backgroundColor: 'rgba(212, 175, 55, 0.2)', color: '#d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', padding: '6px 12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold' }}>
-                              📅 {ag.data} às {ag.hora}
-                            </span>
+                    {agendamentos.map(ag => (
+                      <div key={ag.id} style={{ backgroundColor: '#090a0f', border: '1px solid #1f293d', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
+                            <p style={{ fontSize: '15px', color: '#d4af37', margin: '6px 0 0 0' }}>🚗 {ag.veiculo} ({ag.matricula})</p>
                           </div>
-
-                          <div style={{ fontSize: '15px', color: '#cbd5e1', borderTop: '1px solid #1f293d', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <p style={{ margin: 0 }}>📞 Principal: <b>{ag.telefone1}</b></p>
-                            {ag.telefone2 && <p style={{ margin: 0 }}>📞 Tel 2: <b>{ag.telefone2}</b></p>}
-                            <p style={{ margin: '8px 0 0 0', color: '#94a3b8', fontStyle: 'italic', backgroundColor: '#131722', padding: '10px', borderRadius: '8px' }}>&quot;{ag.notasAvaliacao}&quot;</p>
-                          </div>
+                          <span style={{ backgroundColor: 'rgba(212, 175, 55, 0.2)', color: '#d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', padding: '6px 12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold' }}>
+                            📅 {ag.data} às {ag.hora}
+                          </span>
                         </div>
-                      ))
-                    )}
+
+                        <div style={{ fontSize: '15px', color: '#cbd5e1', borderTop: '1px solid #1f293d', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <p style={{ margin: 0 }}>📞 Principal: <b>{ag.telefone1}</b></p>
+                          <button 
+                            onClick={() => enviarWhatsApp(ag.cliente, ag.veiculo, ag.matricula, ag.telefone1)}
+                            style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', width: 'fit-content', marginTop: '6px' }}
+                          >
+                            💬 Enviar Confirmação WhatsApp
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -710,42 +746,139 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 7: FUNCIONÁRIOS */}
+          {/* ABA 7: FUNCIONÁRIOS & FECHO DE SALÁRIOS */}
           {tab === 'funcionarios' && (
             <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(6px)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
-              <h2 style={{ fontSize: '26px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Gestão de Funcionários</h2>
-              <p style={{ color: '#94a3b8', fontSize: '16px' }}>Colaboradores e modelos de remuneração.</p>
+              <h2 style={{ fontSize: '26px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Gestão de Funcionários & Fecho de Salários</h2>
+              <p style={{ color: '#94a3b8', fontSize: '16px' }}>Registe colaboradores, defina comissões/fixo/diária e controle adiantamentos automaticamente.</p>
               
-              <form onSubmit={adicionarFuncionario} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <form onSubmit={adicionarFuncionario} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: '#090a0f', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d' }}>
                 <input 
                   type="text" 
                   placeholder="Nome do funcionário" 
+                  required
                   value={novoFuncNome}
                   onChange={(e) => setNovoFuncNome(e.target.value)}
-                  style={{ flex: 1, minWidth: '200px', padding: '12px 16px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
+                  style={{ flex: 1, minWidth: '180px', padding: '12px 16px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
                 />
                 <input 
                   type="text" 
                   placeholder="Cargo (ex: Detailer)" 
+                  required
                   value={novoFuncCargo}
                   onChange={(e) => setNovoFuncCargo(e.target.value)}
-                  style={{ flex: 1, minWidth: '180px', padding: '12px 16px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
+                  style={{ flex: 1, minWidth: '150px', padding: '12px 16px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
                 />
-                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}>Adicionar</button>
+                <select
+                  value={tipoRemuneracao}
+                  onChange={(e) => setTipoRemuneracao(e.target.value as any)}
+                  style={{ padding: '12px 16px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', cursor: 'pointer' }}
+                >
+                  <option value="comissao">Porcentagem (%)</option>
+                  <option value="fixo">Salário Fixo (€)</option>
+                  <option value="diaria">Diária (€)</option>
+                </select>
+                <input 
+                  type="text" 
+                  placeholder={tipoRemuneracao === 'comissao' ? 'Taxa (%)' : 'Valor (€)'}
+                  value={valorRemuneracao}
+                  onChange={(e) => setValorRemuneracao(e.target.value)}
+                  style={{ width: '130px', padding: '12px 16px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
+                />
+                <input 
+                  type="text" 
+                  placeholder="Adiantamento (€)"
+                  value={novoFuncAdiantamento}
+                  onChange={(e) => setNovoFuncAdiantamento(e.target.value)}
+                  style={{ width: '150px', padding: '12px 16px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
+                />
+                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', width: '100%' }}>Adicionar Funcionário</button>
+              </form>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
+                {funcionarios.map(f => {
+                  // Calcular produção se for comissão
+                  let producaoTotal = 0;
+                  if (f.tipoRemuneracao === 'comissao') {
+                    ordensServico.forEach(os => {
+                      os.servicosDetalhes.forEach(s => {
+                        if (s.funcionario === f.nome) {
+                          const liqServico = s.valor - (s.desconto || 0);
+                          producaoTotal += liqServico * (f.valorPctOuFixo / 100);
+                        }
+                      });
+                    });
+                  }
+
+                  const salarioBruto = f.tipoRemuneracao === 'fixo' ? f.valorPctOuFixo : (f.tipoRemuneracao === 'diaria' ? f.valorPctOuFixo * 20 : producaoTotal);
+                  const liquidoAReceber = Math.max(0, salarioBruto - (f.adiantamento || 0));
+
+                  return (
+                    <div key={f.id} style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+                      <div>
+                        <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>{f.nome}</span> <span style={{ color: '#94a3b8', fontSize: '15px' }}>({f.cargo})</span>
+                        <div style={{ marginTop: '8px', display: 'flex', gap: '16px', fontSize: '15px', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#d4af37' }}>
+                            Base: <b>{f.tipoRemuneracao === 'comissao' ? `${f.valorPctOuFixo}% (Comissão)` : f.tipoRemuneracao === 'fixo' ? `${f.valorPctOuFixo}€ (Fixo)` : `${f.valorPctOuFixo}€ (Diária)`}</b>
+                          </span>
+                          <span style={{ color: '#f87171' }}>Adiantamento: <b>{Number(f.adiantamento || 0).toFixed(2)} €</b></span>
+                          <span style={{ color: '#34d399' }}>Líquido a Pagar: <b>{liquidoAReceber.toFixed(2)} €</b></span>
+                        </div>
+                      </div>
+                      <button onClick={() => removerFuncionario(f.id)} style={{ backgroundColor: 'rgba(239, 68, 68, 0.25)', color: '#f87171', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>Remover</button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ABA 8: CONTROLO DE STOCK */}
+          {tab === 'stock' && (
+            <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(6px)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
+              <h2 style={{ fontSize: '26px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Controlo de Stock & Materiais</h2>
+              <p style={{ color: '#94a3b8', fontSize: '16px' }}>Registe os materiais caros em stock (películas, cerâmicos, etc.).</p>
+              
+              <form onSubmit={adicionarStock} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: '#090a0f', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d' }}>
+                <input 
+                  type="text" 
+                  placeholder="Nome do Material" 
+                  required
+                  value={novoStockNome}
+                  onChange={(e) => setNovoStockNome(e.target.value)}
+                  style={{ flex: 1, minWidth: '200px', padding: '12px 16px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
+                />
+                <input 
+                  type="text" 
+                  placeholder="Quantidade" 
+                  required
+                  value={novoStockQtd}
+                  onChange={(e) => setNovoStockQtd(e.target.value)}
+                  style={{ width: '130px', padding: '12px 16px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
+                />
+                <input 
+                  type="text" 
+                  placeholder="Custo Unitário (€)" 
+                  required
+                  value={novoStockCusto}
+                  onChange={(e) => setNovoStockCusto(e.target.value)}
+                  style={{ width: '150px', padding: '12px 16px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}
+                />
+                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', width: '100%' }}>Adicionar ao Stock</button>
               </form>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
-                {funcionarios.map(f => (
-                  <div key={f.id} style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#fff', fontSize: '16px' }}><b>{f.nome}</b> - {f.cargo}</span>
-                    <button onClick={() => removerFuncionario(f.id)} style={{ backgroundColor: 'rgba(239, 68, 68, 0.25)', color: '#f87171', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>Remover</button>
+                {stock.map(s => (
+                  <div key={s.id} style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '10px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: '16px' }}><b>{s.nome}</b> - Qtd: {s.qtd}</span>
+                    <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '16px' }}>Custo Unit.: {s.custoUnitario.toFixed(2)} €</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* ABA 8: EMPRESA */}
+          {/* ABA 9: EMPRESA */}
           {tab === 'config' && (
             <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(6px)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
               <h2 style={{ fontSize: '26px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Dados da Empresa</h2>
