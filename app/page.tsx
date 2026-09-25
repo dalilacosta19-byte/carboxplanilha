@@ -41,7 +41,7 @@ export default function Home() {
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
       notasAvaliacao: 'Avaliação inicial do estado da pintura e proteções.', 
-      data: '2026-09-23', 
+      data: '2026-09-30', 
       hora: '14:00', 
       status: 'Agendado' 
     }
@@ -54,30 +54,28 @@ export default function Home() {
   const [agVeiculo, setAgVeiculo] = useState('');
   const [agMatricula, setAgMatricula] = useState('');
   const [agData, setAgData] = useState('');
-  const [agHora, setAgHora] = useState('');
+  const [agHoraSel, setAgHoraSel] = useState('09');
+  const [agMinSel, setAgMinSel] = useState('00');
   const [agNotas, setAgNotas] = useState('');
 
   // Navegação do Calendário
   const [anoAtualCal, setAnoAtualCal] = useState(2026);
   const [mesAtualCal, setMesAtualCal] = useState(8); // Setembro
 
-  // Formulário Unificado (OS / Orçamento / Agendamento)
+  // Formulário OS / Orçamento
   const [tipoDocumentoGerar, setTipoDocumentoGerar] = useState<'ORÇAMENTO' | 'ORDEM DE SERVIÇO'>('ORÇAMENTO');
-  
   const [osCliente, setOsCliente] = useState('Carla Monteiro');
   const [osContacto, setOsContacto] = useState('+351 922 333 444');
   const [osVeiculo, setOsVeiculo] = useState('Renault Captur');
   const [osMatricula, setOsMatricula] = useState('AZ-91-GI');
   const [osObs, setOsObs] = useState('Renault Captur matrícula AZ-91-GI. Regime de isenção.');
 
-  // Múltiplos serviços com técnicos, valores e descontos individuais
   const [listaItensServico, setListaItensServico] = useState([
     { id: 1, descricao: '13 - LIMPEZA DETALHADA', funcionario: 'João Silva', valor: '120.00', desconto: '120.00' },
     { id: 2, descricao: '57 - APLICAÇÃO DE PPF NOS BLACK PIANO', funcionario: 'Kevin', valor: '400.00', desconto: '0.00' },
     { id: 3, descricao: '111 - FUSION COATING', funcionario: 'Ricardo Costa', valor: '900.00', desconto: '0.00' }
   ]);
 
-  // Custos detalhados
   const [listaCustosDetalhados, setListaCustosDetalhados] = useState([
     { id: 1, descricao: 'Película PPF', valor: '150.00' }
   ]);
@@ -125,7 +123,7 @@ export default function Home() {
   const [novaTransVal, setNovaTransVal] = useState('');
   const [novaTransData, setNovaTransData] = useState(new Date().toISOString().split('T')[0]);
 
-  // Funções
+  // Funções de Apoio
   const adicionarLinhaServico = () => {
     setListaItensServico([...listaItensServico, { id: Date.now(), descricao: '', funcionario: '', valor: '', desconto: '0.00' }]);
   };
@@ -228,10 +226,12 @@ export default function Home() {
 
   const criarAgendamentoAvaliacao = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agClient || !agTel1 || !agData || !agHora) {
-      alert('Por favor, preencha o Nome do Cliente, o Telefone Principal, a Data e a Hora.');
+    if (!agClient || !agTel1 || !agData) {
+      alert('Por favor, preencha o Nome do Cliente, o Telefone Principal e a Data.');
       return;
     }
+
+    const horaFormatada = `${agHoraSel}:${agMinSel}`;
 
     const novoAg = {
       id: Date.now(),
@@ -243,7 +243,7 @@ export default function Home() {
       matricula: agMatricula ? agMatricula.toUpperCase() : 'Não informada',
       notasAvaliacao: agNotas || 'Avaliação técnica agendada.',
       data: agData,
-      hora: agHora,
+      hora: horaFormatada,
       status: 'Agendado'
     };
 
@@ -254,7 +254,6 @@ export default function Home() {
     setAgVeiculo('');
     setAgMatricula('');
     setAgData('');
-    setAgHora('');
     setAgNotas('');
     alert('Agendamento de Avaliação registado com sucesso!');
   };
@@ -334,7 +333,7 @@ export default function Home() {
 
       <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
         
-        {/* MENU LATERAL */}
+        {/* MENU LATERAL COMPLETO */}
         <nav style={{ 
           width: '280px', 
           backgroundColor: '#0d0f17', 
@@ -416,7 +415,7 @@ export default function Home() {
                       <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', fontSize: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #1e2235' }}>
                         <p style={{ margin: 0, color: '#f1f5f9' }}><b>Cliente:</b> {os.cliente} {os.contacto && <span style={{ color: '#94a3b8', fontSize: '13px' }}>({os.contacto})</span>}</p>
                         <div>
-                          <p style={{ margin: '0 0 4px 0', color: '#d4af37', fontWeight: 'bold', fontSize: '14px' }}>Serviços e Descontos:</p>
+                          <p style={{ margin: '0 0 4px 0', color: '#d4af37', fontWeight: 'bold', fontSize: '14px' }}>Serviços:</p>
                           {os.servicosDetalhes ? (
                             os.servicosDetalhes.map((s: any, idx: number) => (
                               <p key={idx} style={{ margin: '2px 0', color: '#cbd5e1', fontSize: '14px' }}>• {s.descricao} - <b>{(s.valor - (s.desconto || 0)).toFixed(2)}€</b></p>
@@ -480,11 +479,9 @@ export default function Home() {
           {/* ABA 3: OS / ORÇAMENTO */}
           {tab === 'ordem-servico' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                  <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Emissão de Orçamento / OS</h2>
-                  <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Regime de isenção de IVA (Art. 53º do CIVA).</p>
-                </div>
+              <div>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Emissão de Orçamento / OS</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Regime de isenção de IVA (Art. 53º do CIVA).</p>
               </div>
 
               <form onSubmit={criarOSOuOrcamento} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -525,7 +522,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: AGENDAMENTO (AVALIAÇÃO) - CORRIGIDO CONFORME PEDIDO */}
+          {/* ABA 4: AGENDAMENTO (AVALIAÇÃO) - HORA COM SELETORES SEPARADOS */}
           {tab === 'agendamento' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -554,7 +551,7 @@ export default function Home() {
                       />
                     </div>
 
-                    {/* Telefone Principal: Apenas +351 fixo (sem a escrita PT) */}
+                    {/* Telefone Principal: Apenas +351 fixo (sem PT) */}
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Contacto / Telefone Principal *</label>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -572,7 +569,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Telefone 2: Sem país, apenas o espaço do número */}
+                    {/* Telefone 2: Apenas espaço livre (sem país) */}
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Contacto / Telefone 2 (Opcional)</label>
                       <input 
@@ -608,7 +605,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Data (Calendário) & Hora (Com setinha para baixo nativa) */}
+                    {/* Data (Calendário) & Hora (Setas separadas para Hora e Minutos) */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Data *</label>
@@ -620,15 +617,29 @@ export default function Home() {
                           style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box', cursor: 'pointer' }}
                         />
                       </div>
+
                       <div>
                         <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Hora *</label>
-                        <input 
-                          type="time" 
-                          required
-                          value={agHora}
-                          onChange={(e) => setAgHora(e.target.value)}
-                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box', cursor: 'pointer' }}
-                        />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                          <select
+                            value={agHoraSel}
+                            onChange={(e) => setAgHoraSel(e.target.value)}
+                            style={{ padding: '12px 8px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                          >
+                            {['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'].map(h => (
+                              <option key={h} value={h}>{h}h</option>
+                            ))}
+                          </select>
+                          <select
+                            value={agMinSel}
+                            onChange={(e) => setAgMinSel(e.target.value)}
+                            style={{ padding: '12px 8px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                          >
+                            {['00', '15', '30', '45'].map(m => (
+                              <option key={m} value={m}>{m}m</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                     </div>
 
@@ -691,33 +702,108 @@ export default function Home() {
 
           {/* ABA 5: CALENDÁRIO & AGENDA */}
           {tab === 'agenda' && (
-            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Calendário & Agenda</h2>
-              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Visualização de todos os compromissos agendados.</p>
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Calendário & Agenda</h2>
+              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Visualização de compromissos e avaliações agendadas.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {agendamentos.map(ag => (
+                  <div key={ag.id} style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '8px', border: '1px solid #1e2235', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: '15px' }}><b>{ag.cliente}</b> - {ag.veiculo} ({ag.matricula})</span>
+                    <span style={{ color: '#d4af37', fontSize: '14px', fontWeight: 'bold' }}>{ag.data} às {ag.hora}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {/* ABA 6: LIVRO-CAIXA */}
           {tab === 'financeiro' && (
-            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Livro-Caixa & Finanças</h2>
-              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Registo de receitas e despesas.</p>
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Livro-Caixa & Finanças</h2>
+              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Registo de receitas, despesas e saldo geral.</p>
+              
+              <form onSubmit={adicionarTransacaoManual} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <input 
+                  type="text" 
+                  placeholder="Descrição da transação" 
+                  value={novaTransDesc}
+                  onChange={(e) => setNovaTransDesc(e.target.value)}
+                  style={{ flex: 1, minWidth: '200px', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }}
+                />
+                <input 
+                  type="text" 
+                  placeholder="Valor (€)" 
+                  value={novaTransVal}
+                  onChange={(e) => setNovaTransVal(e.target.value)}
+                  style={{ width: '100px', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }}
+                />
+                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Adicionar</button>
+              </form>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                {transacoes.map(tr => (
+                  <div key={tr.id} style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '8px', border: '1px solid #1e2235', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: '14px' }}>{tr.descricao} ({tr.data})</span>
+                    <span style={{ color: tr.tipo === 'receita' ? '#34d399' : '#f87171', fontWeight: 'bold' }}>
+                      {tr.tipo === 'receita' ? '+' : '-'}{tr.valor.toFixed(2)} €
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {/* ABA 7: FUNCIONÁRIOS */}
           {tab === 'funcionarios' && (
-            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Gestão de Funcionários</h2>
-              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Colaboradores e comissões.</p>
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Gestão de Funcionários</h2>
+              <p style={{ color: '#94a3b8', fontSize: '15px' }}>Colaboradores e modelos de remuneração.</p>
+              
+              <form onSubmit={adicionarFuncionario} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <input 
+                  type="text" 
+                  placeholder="Nome do funcionário" 
+                  value={novoFuncNome}
+                  onChange={(e) => setNovoFuncNome(e.target.value)}
+                  style={{ flex: 1, minWidth: '180px', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }}
+                />
+                <input 
+                  type="text" 
+                  placeholder="Cargo (ex: Detailer)" 
+                  value={novoFuncCargo}
+                  onChange={(e) => setNovoFuncCargo(e.target.value)}
+                  style={{ flex: 1, minWidth: '150px', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }}
+                />
+                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Adicionar</button>
+              </form>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                {funcionarios.map(f => (
+                  <div key={f.id} style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '8px', border: '1px solid #1e2235', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: '14px' }}><b>{f.nome}</b> - {f.cargo}</span>
+                    <button onClick={() => removerFuncionario(f.id)} style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}>Remover</button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {/* ABA 8: EMPRESA */}
           {tab === 'config' && (
-            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Dados da Empresa</h2>
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Dados da Empresa</h2>
               <p style={{ color: '#94a3b8', fontSize: '15px' }}>Informações fiscais e de faturação.</p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '13px', marginBottom: '6px' }}>Nome</label>
+                  <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '13px', marginBottom: '6px' }}>NIF</label>
+                  <input type="text" value={dadosEmpresa.nif} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nif: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
+                </div>
+              </div>
             </div>
           )}
 
