@@ -7,13 +7,26 @@ import {
   Users, 
   Car, 
   FileText, 
-  Settings, 
   DollarSign, 
   Building, 
-  LayoutDashboard,
-  CheckCircle2,
-  Plus
+  LayoutDashboard
 } from 'lucide-react';
+
+interface Agendamento {
+  id: number;
+  nome: string;
+  paisTel1: string;
+  telefonePrincipal: string;
+  paisTel2: string;
+  telefone2: string;
+  viatura: string;
+  matricula: string;
+  data: string;
+  hora: string;
+  notas: string;
+  telPrincipal?: string;
+  tel2?: string;
+}
 
 export default function AgendamentoPage() {
   // Estado do formulário
@@ -31,16 +44,21 @@ export default function AgendamentoPage() {
   });
 
   // Lista de agendamentos (para exibir no painel da direita)
-  const [agendamentos, setAgendamentos] = useState([
+  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([
     {
       id: 1,
       nome: 'Carla Monteiro',
-      viatura: 'Renault Captur (AZ-91-GI)',
-      telPrincipal: '+351 922 333 444',
-      tel2: '+351 911 222 333',
+      viatura: 'Renault Captur',
+      matricula: 'AZ-91-GI',
+      paisTel1: '+351',
+      telefonePrincipal: '922 333 444',
+      paisTel2: '+351',
+      telefone2: '911 222 333',
       notas: 'Avaliação inicial do estado da pintura',
       data: '2026-09-30',
-      hora: '10:00'
+      hora: '10:00',
+      telPrincipal: '+351 922 333 444',
+      tel2: '+351 911 222 333'
     }
   ]);
 
@@ -50,14 +68,14 @@ export default function AgendamentoPage() {
     '15:30', '16:00', '16:30', '17:00'
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.nome || !formData.telefonePrincipal || !formData.data || !formData.hora) {
       alert('Por favor, preencha os campos obrigatórios (*)');
       return;
     }
 
-    const novoAgendamento = {
+    const novoAgendamento: Agendamento = {
       id: Date.now(),
       ...formData,
       telPrincipal: `${formData.paisTel1} ${formData.telefonePrincipal}`,
@@ -271,7 +289,7 @@ export default function AgendamentoPage() {
               <div>
                 <label className="block text-xs font-medium text-zinc-400 mb-1">Notas / Motivo da Avaliação</label>
                 <textarea
-                  rows="3"
+                  rows={3}
                   placeholder="Descreva o que será avaliado no veículo..."
                   value={formData.notas}
                   onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
