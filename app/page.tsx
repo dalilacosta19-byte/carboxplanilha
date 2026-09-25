@@ -1,355 +1,381 @@
-"use client";
+'use client';
+import { useState } from 'react';
 
-import React, { useState } from 'react';
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Users, 
-  Car, 
-  FileText, 
-  DollarSign, 
-  Building, 
-  LayoutDashboard
-} from 'lucide-react';
+export default function Home() {
+  const [tab, setTab] = useState('agendamento');
+  const [user, setUser] = useState('admin');
 
-interface Agendamento {
-  id: number;
-  nome: string;
-  paisTel1: string;
-  telefonePrincipal: string;
-  paisTel2: string;
-  telefone2: string;
-  viatura: string;
-  matricula: string;
-  data: string;
-  hora: string;
-  notas: string;
-  telPrincipal?: string;
-  tel2?: string;
-}
-
-export default function AgendamentoPage() {
-  // Estado do formulário
-  const [formData, setFormData] = useState({
-    nome: '',
-    paisTel1: '+351',
-    telefonePrincipal: '',
-    paisTel2: '', // Deixado em branco por padrão para aceitar qualquer país
-    telefone2: '',
-    viatura: '',
-    matricula: '',
-    data: '',
-    hora: '',
-    notas: ''
+  // Dados da Empresa
+  const [dadosEmpresa] = useState({
+    nome: 'CARBOX77 DETAILING, UNIPESSOAL LDA',
+    nif: '513 401 890',
+    morada: 'Rua da Torre, Pavilhão Guilherme Pinto Basto, 2750-748 Cascais, Portugal',
+    telefone: '+351 211 515 449',
+    email: 'carbox77detailing@gmail.com',
+    iban: 'PT50 0033 0000 4546 1405 9370 5'
   });
 
-  // Lista de agendamentos (para exibir no painel da direita)
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([
-    {
-      id: 1,
-      nome: 'Carla Monteiro',
-      viatura: 'Renault Captur',
-      matricula: 'AZ-91-GI',
+  // Lista de Agendamentos / Avaliações
+  const [agendamentos, setAgendamentos] = useState([
+    { 
+      id: 1, 
+      tipo: 'Avaliação', 
+      cliente: 'Carla Monteiro', 
       paisTel1: '+351',
-      telefonePrincipal: '922 333 444',
+      telefone1: '922 333 444', 
       paisTel2: '+351',
-      telefone2: '911 222 333',
-      notas: 'Avaliação inicial do estado da pintura',
-      data: '2026-09-30',
-      hora: '10:00',
-      telPrincipal: '+351 922 333 444',
-      tel2: '+351 911 222 333'
+      telefone2: '911 222 333', 
+      veiculo: 'Renault Captur', 
+      matricula: 'AZ-91-GI', 
+      notasAvaliacao: 'Avaliação inicial do estado da pintura e proteções.', 
+      data: '2026-09-30', 
+      hora: '14:00', 
+      status: 'Agendado' 
     }
   ]);
 
-  const horariosDisponiveis = [
-    '08:30', '09:00', '09:30', '10:00', '10:30', 
-    '11:00', '11:30', '14:00', '14:30', '15:00', 
-    '15:30', '16:00', '16:30', '17:00'
-  ];
+  // Estados para Novo Agendamento / Avaliação
+  const [agClient, setAgClient] = useState('');
+  const [paisTel1, setPaisTel1] = useState('+351');
+  const [agTel1, setAgTel1] = useState('');
+  const [paisTel2, setPaisTel2] = useState(''); // Em branco por padrão
+  const [agTel2, setAgTel2] = useState('');
+  const [agVeiculo, setAgVeiculo] = useState('');
+  const [agMatricula, setAgMatricula] = useState('');
+  const [agData, setAgData] = useState('');
+  const [agHora, setAgHora] = useState('');
+  const [agNotas, setAgNotas] = useState('');
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const horariosRapidos = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+
+  const criarAgendamentoAvaliacao = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nome || !formData.telefonePrincipal || !formData.data || !formData.hora) {
-      alert('Por favor, preencha os campos obrigatórios (*)');
+    if (!agClient || !agTel1 || !agData || !agHora) {
+      alert('Por favor, preencha o Nome do Cliente, o Telefone Principal, a Data e a Hora.');
       return;
     }
 
-    const novoAgendamento: Agendamento = {
+    const novoAg = {
       id: Date.now(),
-      ...formData,
-      telPrincipal: `${formData.paisTel1} ${formData.telefonePrincipal}`,
-      tel2: formData.telefone2 ? `${formData.paisTel2} ${formData.telefone2}` : 'Não informado'
+      tipo: 'Avaliação',
+      cliente: agClient,
+      paisTel1,
+      telefone1: agTel1,
+      paisTel2,
+      telefone2: agTel2,
+      veiculo: agVeiculo || 'Viatura Geral',
+      matricula: agMatricula ? agMatricula.toUpperCase() : 'Não informada',
+      notasAvaliacao: agNotas || 'Avaliação técnica agendada.',
+      data: agData,
+      hora: agHora,
+      status: 'Agendado'
     };
 
-    setAgendamentos([novoAgendamento, ...agendamentos]);
-    
-    // Limpar formulário
-    setFormData({
-      nome: '',
-      paisTel1: '+351',
-      telefonePrincipal: '',
-      paisTel2: '',
-      telefone2: '',
-      viatura: '',
-      matricula: '',
-      data: '',
-      hora: '',
-      notas: ''
-    });
-
-    alert('Agendamento confirmado com sucesso!');
+    setAgendamentos([novoAg, ...agendamentos]);
+    setAgClient('');
+    setAgTel1('');
+    setAgTel2('');
+    setPaisTel2('');
+    setAgVeiculo('');
+    setAgMatricula('');
+    setAgData('');
+    setAgHora('');
+    setAgNotas('');
+    alert('Agendamento de Avaliação registado com sucesso!');
   };
 
+  const menuItems = [
+    { id: 'pateo', label: '🚗 Veículos no Pátio' },
+    { id: 'metricas', label: '📊 Painel & Gráficos' },
+    { id: 'ordem-servico', label: '📋 OS / Orçamento' },
+    { id: 'agendamento', label: '📅 Agendamento (Avaliação)' },
+    { id: 'agenda', label: '🗓️ Calendário & Agenda' },
+    { id: 'financeiro', label: '💰 Livro-Caixa' },
+    { id: 'funcionarios', label: '👥 Funcionários' },
+    { id: 'config', label: '⚙️ Empresa' },
+  ];
+
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-100 font-sans overflow-hidden">
+    <div style={{ minHeight: '100vh', backgroundColor: '#090a0f', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
       
-      {/* SIDEBAR ESQUERDA */}
-      <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col justify-between hidden md:flex">
-        <div className="p-4 space-y-1">
-          <div className="text-xl font-bold text-yellow-500 mb-6 px-3 tracking-wide">CARBOX77</div>
-          
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition">
-            <Car size={18} /> Veículos no Pátio
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition">
-            <LayoutDashboard size={18} /> Painel & Gráficos
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition">
-            <FileText size={18} /> OS / Orçamento
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm bg-yellow-500/10 text-yellow-400 font-medium">
-            <CalendarIcon size={18} /> Agendamento (Avaliação)
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition">
-            <Clock size={18} /> Calendário & Agenda
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition">
-            <DollarSign size={18} /> Livro-Caixa
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition">
-            <Users size={18} /> Funcionários
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition">
-            <Building size={18} /> Empresa
-          </a>
+      {/* HEADER */}
+      <header style={{ backgroundColor: '#0d0f17', borderBottom: '1px solid #1e2235', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div>
+            <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>CARBOX77 DETAILING</h1>
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Estética Automotiva de Alta Performance • Cascais</p>
+          </div>
         </div>
-      </aside>
 
-      {/* CONTEÚDO PRINCIPAL */}
-      <main className="flex-1 flex flex-col md:flex-row overflow-y-auto">
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', backgroundColor: '#131722', padding: '6px', borderRadius: '10px', border: '1px solid #222b45' }}>
+            <button onClick={() => setUser('admin')} style={{ backgroundColor: user === 'admin' ? '#d4af37' : 'transparent', color: user === 'admin' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>Admin</button>
+            <button onClick={() => setUser('funcionario')} style={{ backgroundColor: user === 'funcionario' ? '#d4af37' : 'transparent', color: user === 'funcionario' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>Equipa</button>
+          </div>
+        </div>
+      </header>
+
+      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
         
-        {/* FORMULÁRIO */}
-        <div className="flex-1 p-6 lg:p-10 max-w-3xl">
-          <h1 className="text-2xl font-bold text-zinc-100 mb-6">Agendamento de Avaliações</h1>
+        {/* MENU LATERAL COM TODAS AS OPÇÕES */}
+        <nav style={{ 
+          width: '280px', 
+          backgroundColor: '#0d0f17', 
+          borderRight: '1px solid #1e2235', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '6px', 
+          padding: '24px 16px',
+          boxSizing: 'border-box',
+          flexShrink: 0
+        }}>
+          <p style={{ fontSize: '12px', textTransform: 'uppercase', color: '#d4af37', fontWeight: 'bold', padding: '0 12px', marginBottom: '8px', letterSpacing: '1px' }}>Menu Principal</p>
+          {menuItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              style={{
+                textAlign: 'left',
+                padding: '14px 16px',
+                fontSize: '14px',
+                fontWeight: tab === item.id ? 'bold' : '500',
+                cursor: 'pointer',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: tab === item.id ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
+                color: tab === item.id ? '#d4af37' : '#e2e8f0',
+                borderLeft: tab === item.id ? '4px solid #d4af37' : '4px solid transparent',
+                transition: 'all 0.2s'
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-yellow-500 mb-5">Marcar Nova Avaliação</h2>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              
-              {/* Nome do Cliente */}
+        {/* CONTEÚDO PRINCIPAL */}
+        <main style={{ flex: 1, padding: '36px 44px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
+          
+          {tab === 'agendamento' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Nome do Cliente *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Nome completo do cliente"
-                  value={formData.nome}
-                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500 transition"
-                />
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Agendamento de Avaliações</h2>
+                <p style={{ fontSize: '16px', color: '#94a3b8', margin: 0 }}>Agende avaliações de veículos sem custos, sinal ou IVA.</p>
               </div>
 
-              {/* Telefone Principal */}
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Contacto / Telefone Principal *</label>
-                <div className="flex gap-2">
-                  <select
-                    value={formData.paisTel1}
-                    onChange={(e) => setFormData({ ...formData, paisTel1: e.target.value })}
-                    className="w-28 bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500"
-                  >
-                    <option value="+351">+351 (PT)</option>
-                    <option value="+55">+55 (BR)</option>
-                    <option value="+41">+41 (CH)</option>
-                    <option value="+33">+33 (FR)</option>
-                    <option value="+34">+34 (ES)</option>
-                  </select>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="911 222 333"
-                    value={formData.telefonePrincipal}
-                    onChange={(e) => setFormData({ ...formData, telefonePrincipal: e.target.value })}
-                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500"
-                  />
-                </div>
-              </div>
-
-              {/* Segundo Telefone (Opcional - País em branco por padrão) */}
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Contacto / Telefone 2 (Opcional)</label>
-                <div className="flex gap-2">
-                  <select
-                    value={formData.paisTel2}
-                    onChange={(e) => setFormData({ ...formData, paisTel2: e.target.value })}
-                    className="w-28 bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500"
-                  >
-                    <option value="">País</option>
-                    <option value="+351">+351 (PT)</option>
-                    <option value="+55">+55 (BR)</option>
-                    <option value="+41">+41 (CH)</option>
-                    <option value="+33">+33 (FR)</option>
-                    <option value="+34">+34 (ES)</option>
-                    <option value="+44">+44 (UK)</option>
-                    <option value="+1">+1 (US/CA)</option>
-                  </select>
-                  <input
-                    type="tel"
-                    placeholder="Número alternativo"
-                    value={formData.telefone2}
-                    onChange={(e) => setFormData({ ...formData, telefone2: e.target.value })}
-                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500"
-                  />
-                </div>
-              </div>
-
-              {/* Viatura e Matrícula */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Viatura</label>
-                  <input
-                    type="text"
-                    placeholder="Ex: Renault Captur"
-                    value={formData.viatura}
-                    onChange={(e) => setFormData({ ...formData, viatura: e.target.value })}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Matrícula (Opcional)</label>
-                  <input
-                    type="text"
-                    placeholder="Ex: AZ-91-GI"
-                    value={formData.matricula}
-                    onChange={(e) => setFormData({ ...formData, matricula: e.target.value })}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500"
-                  />
-                </div>
-              </div>
-
-              {/* Data (Calendário Nativo) & Hora (Clique Rápido) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Data *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.data}
-                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500 cursor-pointer"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Hora *</label>
-                  <input
-                    type="time"
-                    required
-                    value={formData.hora}
-                    onChange={(e) => setFormData({ ...formData, hora: e.target.value })}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500 mb-2"
-                  />
-                </div>
-              </div>
-
-              {/* Números/Horários para Clicar Rápido */}
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">Ou selecione um horário rápido:</label>
-                <div className="grid grid-cols-7 gap-1.5">
-                  {horariosDisponiveis.map((horario) => (
-                    <button
-                      key={horario}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, hora: horario })}
-                      className={`py-1.5 rounded text-xs font-medium transition ${
-                        formData.hora === horario
-                          ? 'bg-yellow-500 text-black font-bold shadow'
-                          : 'bg-zinc-950 border border-zinc-800 text-zinc-300 hover:bg-zinc-800'
-                      }`}
-                    >
-                      {horario}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notas / Motivo */}
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1">Notas / Motivo da Avaliação</label>
-                <textarea
-                  rows={3}
-                  placeholder="Descreva o que será avaliado no veículo..."
-                  value={formData.notas}
-                  onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-yellow-500 resize-none"
-                />
-              </div>
-
-              {/* Botão de Envio */}
-              <button
-                type="submit"
-                className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-semibold py-3 rounded-lg transition shadow-lg text-sm mt-4 cursor-pointer"
-              >
-                Confirmar Agendamento de Avaliação
-              </button>
-
-            </form>
-          </div>
-        </div>
-
-        {/* PAINEL DIREITO: AVALIAÇÕES MARCADAS */}
-        <div className="w-full md:w-80 bg-zinc-900 border-l border-zinc-800 p-6 flex flex-col">
-          <h2 className="text-lg font-bold text-zinc-100 mb-4">Avaliações Marcadas</h2>
-
-          <div className="space-y-3 overflow-y-auto flex-1 pr-1">
-            {agendamentos.length === 0 ? (
-              <p className="text-xs text-zinc-500 text-center py-6">Nenhum agendamento recente.</p>
-            ) : (
-              agendamentos.map((item) => (
-                <div key={item.id} className="bg-zinc-950 border border-zinc-800/80 rounded-lg p-3.5 space-y-2 shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold text-sm text-zinc-200">{item.nome}</span>
-                    <span className="text-[10px] bg-yellow-500/10 text-yellow-400 font-medium px-2 py-0.5 rounded">
-                      {item.data ? `${item.data} às ${item.hora}` : item.hora}
-                    </span>
-                  </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '28px' }}>
+                
+                {/* FORMULÁRIO */}
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>Marcar Nova Avaliação</h3>
                   
-                  {item.viatura && (
-                    <div className="text-xs text-zinc-400 flex items-center gap-1.5">
-                      <Car size={13} className="text-yellow-500" /> 
-                      <span>{item.viatura} {item.matricula ? `(${item.matricula})` : ''}</span>
+                  <form onSubmit={criarAgendamentoAvaliacao} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    
+                    {/* Nome */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Nome do Cliente *</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={agClient}
+                        onChange={(e) => setAgClient(e.target.value)}
+                        placeholder="Ex: Carla Monteiro"
+                        style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                      />
                     </div>
-                  )}
 
-                  <div className="text-[11px] text-zinc-400 space-y-0.5 pt-1 border-t border-zinc-900">
-                    <div><strong className="text-zinc-300">Principal:</strong> {item.telPrincipal}</div>
-                    {item.telefone2 && <div><strong className="text-zinc-300">Tel 2:</strong> {item.tel2}</div>}
-                  </div>
+                    {/* Telefone Principal */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Contacto / Telefone Principal *</label>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <select 
+                          value={paisTel1}
+                          onChange={(e) => setPaisTel1(e.target.value)}
+                          style={{ width: '110px', padding: '12px 10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#d4af37', fontSize: '14px', fontWeight: 'bold' }}
+                        >
+                          <option value="+351">+351 (PT)</option>
+                          <option value="+55">+55 (BR)</option>
+                          <option value="+41">+41 (CH)</option>
+                          <option value="+33">+33 (FR)</option>
+                          <option value="+34">+34 (ES)</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          required
+                          value={agTel1}
+                          onChange={(e) => setAgTel1(e.target.value)}
+                          placeholder="922 333 444"
+                          style={{ flex: 1, padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
 
-                  {item.notas && (
-                    <p className="text-[11px] text-zinc-500 italic mt-1 bg-zinc-900/50 p-1.5 rounded">
-                      "{item.notas}"
-                    </p>
-                  )}
+                    {/* Telefone 2 Opcional (País em branco) */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Contacto / Telefone 2 (Opcional)</label>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <select 
+                          value={paisTel2}
+                          onChange={(e) => setPaisTel2(e.target.value)}
+                          style={{ width: '110px', padding: '12px 10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#94a3b8', fontSize: '14px' }}
+                        >
+                          <option value="">País</option>
+                          <option value="+351">+351 (PT)</option>
+                          <option value="+55">+55 (BR)</option>
+                          <option value="+41">+41 (CH)</option>
+                          <option value="+33">+33 (FR)</option>
+                          <option value="+34">+34 (ES)</option>
+                          <option value="+44">+44 (UK)</option>
+                          <option value="+1">+1 (US/CA)</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          value={agTel2}
+                          onChange={(e) => setAgTel2(e.target.value)}
+                          placeholder="Número alternativo"
+                          style={{ flex: 1, padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Viatura e Matrícula */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Viatura</label>
+                        <input 
+                          type="text" 
+                          value={agVeiculo}
+                          onChange={(e) => setAgVeiculo(e.target.value)}
+                          placeholder="Renault Captur"
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Matrícula</label>
+                        <input 
+                          type="text" 
+                          value={agMatricula}
+                          onChange={(e) => setAgMatricula(e.target.value)}
+                          placeholder="AZ-91-GI"
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', textTransform: 'uppercase', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Data (Calendário Nativo) & Hora */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Data *</label>
+                        <input 
+                          type="date" 
+                          required
+                          value={agData}
+                          onChange={(e) => setAgData(e.target.value)}
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box', cursor: 'pointer' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Hora *</label>
+                        <input 
+                          type="time" 
+                          required
+                          value={agHora}
+                          onChange={(e) => setAgHora(e.target.value)}
+                          style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Botões de Horários Rápidos para Clicar */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Ou clique num horário rápido:</label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {horariosRapidos.map(h => (
+                          <button
+                            key={h}
+                            type="button"
+                            onClick={() => setAgHora(h)}
+                            style={{
+                              backgroundColor: agHora === h ? '#d4af37' : '#090a0f',
+                              color: agHora === h ? '#090a0f' : '#cbd5e1',
+                              border: '1px solid #222b45',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              fontSize: '13px',
+                              fontWeight: agHora === h ? 'bold' : 'normal',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {h}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Notas */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', color: '#cbd5e1', marginBottom: '6px', fontWeight: 'bold' }}>Notas / Motivo da Avaliação</label>
+                      <textarea 
+                        rows={3}
+                        value={agNotas}
+                        onChange={(e) => setAgNotas(e.target.value)}
+                        placeholder="Descreva o que será avaliado..."
+                        style={{ width: '100%', padding: '12px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', boxSizing: 'border-box', resize: 'vertical' }}
+                      />
+                    </div>
+
+                    <button 
+                      type="submit"
+                      style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', marginTop: '6px', width: '100%' }}
+                    >
+                      Confirmar Agendamento de Avaliação
+                    </button>
+
+                  </form>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
 
-      </main>
+                {/* LISTA DE AVALIAÇÕES MARCADAS */}
+                <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Avaliações Marcadas</h3>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '600px', overflowY: 'auto' }}>
+                    {agendamentos.length === 0 ? (
+                      <p style={{ color: '#94a3b8', textAlign: 'center', padding: '32px 0' }}>Nenhuma avaliação agendada.</p>
+                    ) : (
+                      agendamentos.map(ag => (
+                        <div key={ag.id} style={{ backgroundColor: '#090a0f', border: '1px solid #1e2235', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
+                              <p style={{ fontSize: '13px', color: '#d4af37', margin: '4px 0 0 0' }}>🚗 {ag.veiculo} ({ag.matricula})</p>
+                            </div>
+                            <span style={{ backgroundColor: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '5px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }}>
+                              📅 {ag.data} às {ag.hora}
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '13px', color: '#cbd5e1', borderTop: '1px solid #1e2235', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <p style={{ margin: 0 }}>📞 Principal: <b>{ag.paisTel1} {ag.telefone1}</b></p>
+                            {ag.telefone2 && <p style={{ margin: 0 }}>📞 Tel 2: <b>{ag.paisTel2} {ag.telefone2}</b></p>}
+                            <p style={{ margin: '6px 0 0 0', color: '#94a3b8', fontStyle: 'italic', backgroundColor: '#131722', padding: '8px', borderRadius: '6px' }}>&quot;{ag.notasAvaliacao}&quot;</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          ) : (
+            <div style={{ backgroundColor: '#131722', border: '1px solid #1e2235', borderRadius: '16px', padding: '40px', textAlign: 'center' }}>
+              <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0' }}>Módulo Selecionado</h3>
+              <p style={{ color: '#94a3b8', fontSize: '16px', margin: 0 }}>Secção integrada no sistema principal CARBOX77.</p>
+            </div>
+          )}
+
+        </main>
+      </div>
     </div>
   );
 }
