@@ -20,7 +20,8 @@ import {
   User, 
   Users,
   Plus, 
-  X 
+  X,
+  ClipboardList
 } from 'lucide-react';
 
 interface ServicoHistorico {
@@ -45,8 +46,20 @@ interface Cliente {
   historico: ServicoHistorico[];
 }
 
+interface AgendamentoAvaliacao {
+  id: string;
+  cliente: string;
+  telefone1: string;
+  telefone2?: string;
+  matricula?: string;
+  viatura: string;
+  data: string;
+  hora: string;
+  notasAvaliacao: string;
+}
+
 export default function CarboxDashboard() {
-  const [activeTab, setActiveTab] = useState('clientes');
+  const [activeTab, setActiveTab] = useState('agendamento');
 
   const [clientes, setClientes] = useState<Cliente[]>([
     {
@@ -72,6 +85,20 @@ export default function CarboxDashboard() {
     },
   ]);
 
+  const [agendamentos, setAgendamentos] = useState<AgendamentoAvaliacao[]>([
+    {
+      id: "a1",
+      cliente: "Carla Monteiro",
+      telefone1: "+351 922 333 444",
+      telefone2: "+351 911 222 333",
+      matricula: "AZ-91-GI",
+      viatura: "Renault Captur",
+      data: "2026-09-25",
+      hora: "14:00",
+      notasAvaliacao: "Avaliação do estado da pintura e estofos em pele."
+    }
+  ]);
+
   const [busca, setBusca] = useState("");
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
   
@@ -92,6 +119,18 @@ export default function CarboxDashboard() {
     matricula: "",
     modelo: "",
     ano: "",
+  });
+
+  // Estado para o Formulário de Agendamento (Avaliação)
+  const [novoAgendamento, setNovoAgendamento] = useState({
+    cliente: "",
+    telefone1Numero: "",
+    telefone2: "",
+    matricula: "",
+    viatura: "",
+    data: "",
+    hora: "",
+    notasAvaliacao: ""
   });
 
   const handleCadastrar = (e: React.FormEvent) => {
@@ -120,6 +159,39 @@ export default function CarboxDashboard() {
     setClientes([item, ...clientes]);
     setNovoCliente({ nome: "", apelido: "", telefone: "", email: "", matricula: "", modelo: "", ano: "" });
     alert("Cliente e Veículo registados com sucesso!");
+  };
+
+  const handleCriarAgendamento = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!novoAgendamento.cliente || !novoAgendamento.telefone1Numero || !novoAgendamento.data || !novoAgendamento.hora) {
+      alert("Por favor, preencha o Nome do Cliente, o Telefone Principal, a Data e a Hora!");
+      return;
+    }
+
+    const agendamentoItem: AgendamentoAvaliacao = {
+      id: Date.now().toString(),
+      cliente: novoAgendamento.cliente,
+      telefone1: `+351 ${novoAgendamento.telefone1Numero}`,
+      telefone2: novoAgendamento.telefone2 ? novoAgendamento.telefone2 : undefined,
+      matricula: novoAgendamento.matricula ? novoAgendamento.matricula.toUpperCase() : undefined,
+      viatura: novoAgendamento.viatura || "Não especificada",
+      data: novoAgendamento.data,
+      hora: novoAgendamento.hora,
+      notasAvaliacao: novoAgendamento.notasAvaliacao || "Agendamento para avaliação técnica."
+    };
+
+    setAgendamentos([agendamentoItem, ...agendamentos]);
+    setNovoAgendamento({
+      cliente: "",
+      telefone1Numero: "",
+      telefone2: "",
+      matricula: "",
+      viatura: "",
+      data: "",
+      hora: "",
+      notasAvaliacao: ""
+    });
+    alert("Agendamento de Avaliação registado com sucesso!");
   };
 
   const handleAdicionarServico = (e: React.FormEvent) => {
@@ -236,7 +308,7 @@ export default function CarboxDashboard() {
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Calendar className="w-4 h-4" /> Agendamento
+          <Calendar className="w-4 h-4" /> Agendamento (Avaliação)
         </button>
         <button 
           onClick={() => setActiveTab('servicos')}
@@ -298,8 +370,191 @@ export default function CarboxDashboard() {
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
               <h3 className="text-lg font-semibold text-white mb-4">Bem-vindo ao Sistema CARBOX77</h3>
               <p className="text-sm text-slate-400">
-                Selecione a aba &quot;Gestão de Clientes&quot; no menu superior para gerir cadastros, consultar o histórico de viaturas e prontuários 360º.
+                Selecione a aba &quot;Gestão de Clientes&quot; ou &quot;Agendamento&quot; no menu superior para gerir cadastros e marcar avaliações.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* MÓDULO DE AGENDAMENTO (AVALIAÇÃO) */}
+        {activeTab === 'agendamento' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <Calendar className="text-cyan-400" /> Agendamento de Avaliações
+                </h2>
+                <p className="text-xs text-slate-400">Agende avaliações de veículos sem custos, sinal ou atribuição de funcionários</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Formulário de Agendamento */}
+              <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4 shadow-xl">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-cyan-400" /> Marcar Nova Avaliação
+                </h3>
+
+                <form onSubmit={handleCriarAgendamento} className="space-y-3 text-sm">
+                  {/* Nome do Cliente */}
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Cliente *</label>
+                    <input
+                      type="text"
+                      required
+                      value={novoAgendamento.cliente}
+                      onChange={(e) => setNovoAgendamento({ ...novoAgendamento, cliente: e.target.value })}
+                      className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
+                      placeholder="Ex: Carla Monteiro"
+                    />
+                  </div>
+
+                  {/* Telefone 1 com +351 fixo */}
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Contacto / Telefone Principal *</label>
+                    <div className="flex items-center">
+                      <span className="px-3 py-2 bg-slate-800 border border-r-0 border-slate-700 rounded-l-lg text-slate-300 font-mono text-xs">
+                        +351
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        value={novoAgendamento.telefone1Numero}
+                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, telefone1Numero: e.target.value })}
+                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-r-lg text-white text-xs"
+                        placeholder="922 333 444"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Telefone 2 Opção */}
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Contacto / Telefone 2 (Opcional)</label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+                      <input
+                        type="text"
+                        value={novoAgendamento.telefone2}
+                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, telefone2: e.target.value })}
+                        className="w-full pl-9 p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                        placeholder="Ex: +351 911 222 333"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Matrícula (Opcional) e Viatura */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Matrícula (Opcional)</label>
+                      <input
+                        type="text"
+                        value={novoAgendamento.matricula}
+                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, matricula: e.target.value })}
+                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white uppercase font-mono text-xs"
+                        placeholder="AZ-91-GI"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Viatura</label>
+                      <input
+                        type="text"
+                        value={novoAgendamento.viatura}
+                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, viatura: e.target.value })}
+                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                        placeholder="Renault Captur"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Data e Hora */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Data *</label>
+                      <input
+                        type="date"
+                        required
+                        value={novoAgendamento.data}
+                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, data: e.target.value })}
+                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Hora *</label>
+                      <input
+                        type="time"
+                        required
+                        value={novoAgendamento.hora}
+                        onChange={(e) => setNovoAgendamento({ ...novoAgendamento, hora: e.target.value })}
+                        className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Notas da Avaliação */}
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Notas / Detalhes da Avaliação</label>
+                    <textarea
+                      rows={3}
+                      value={novoAgendamento.notasAvaliacao}
+                      onChange={(e) => setNovoAgendamento({ ...novoAgendamento, notasAvaliacao: e.target.value })}
+                      className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                      placeholder="Descreva o motivo da avaliação (ex: verificar danos na pintura, polimento, faróis...)"
+                    ></textarea>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-all mt-2 shadow-lg shadow-cyan-500/20"
+                  >
+                    Confirmar Agendamento de Avaliação
+                  </button>
+                </form>
+              </div>
+
+              {/* Lista de Avaliações Agendadas */}
+              <div className="lg:col-span-2 bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4 shadow-xl">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-cyan-400" /> Avaliações Marcadas
+                </h3>
+
+                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                  {agendamentos.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-8">Nenhum agendamento de avaliação encontrado.</p>
+                  ) : (
+                    agendamentos.map((ag) => (
+                      <div
+                        key={ag.id}
+                        className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between gap-3 hover:border-slate-700 transition-all"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-bold text-white text-base block">{ag.cliente}</span>
+                            <span className="text-xs text-cyan-400 font-mono">
+                              {ag.viatura} {ag.matricula ? `(${ag.matricula})` : ''}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="bg-cyan-950 text-cyan-300 text-xs px-2.5 py-1 rounded border border-cyan-800 font-medium block">
+                              📅 {ag.data} às {ag.hora}
+                            </span>
+                            <span className="text-[10px] text-emerald-400 mt-1 block">Avaliação Sem Custo</span>
+                          </div>
+                        </div>
+
+                        <div className="text-xs text-slate-400 space-y-1 border-t border-slate-900 pt-2">
+                          <p className="flex items-center gap-3">
+                            <span>📞 Principal: {ag.telefone1}</span>
+                            {ag.telefone2 && <span>📞 Tel 2: {ag.telefone2}</span>}
+                          </p>
+                          <p className="text-slate-300 italic bg-slate-900/60 p-2 rounded border border-slate-800/80 mt-1">
+                            &quot;{ag.notasAvaliacao}&quot;
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -488,12 +743,12 @@ export default function CarboxDashboard() {
           </div>
         )}
 
-        {activeTab !== 'dashboard' && activeTab !== 'clientes' && (
+        {activeTab !== 'dashboard' && activeTab !== 'clientes' && activeTab !== 'agendamento' && (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl text-center py-16">
             <Car className="w-12 h-12 text-slate-600 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-white mb-2">Módulo em Exibição</h3>
             <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Esta secção está pronta a ser integrada. Podes navegar livremente entre a Visão Geral e a Gestão de Clientes.
+              Esta secção está pronta a ser integrada. Podes navegar livremente entre a Visão Geral, Gestão de Clientes e Agendamentos.
             </p>
           </div>
         )}
