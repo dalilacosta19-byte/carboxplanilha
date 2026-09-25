@@ -26,9 +26,6 @@ export default function Home() {
     { id: 1, nome: 'Película PPF (metros)', qtd: 20, custoUnitario: 35.00 },
     { id: 2, nome: 'Fusion Coating (ml)', qtd: 250, custoUnitario: 45.00 }
   ]);
-  const [novoStockNome, setNovoStockNome] = useState('');
-  const [novoStockQtd, setNovoStockQtd] = useState('');
-  const [novoStockCusto, setNovoStockCusto] = useState('');
 
   // Funcionários
   const [funcionarios, setFuncionarios] = useState([
@@ -71,7 +68,7 @@ export default function Home() {
   const [agMinSel, setAgMinSel] = useState('00');
   const [agNotas, setAgNotas] = useState('');
 
-  // OS / Orçamento (Com campos detalhados pedidos)
+  // OS / Orçamento
   const [osCliente, setOsCliente] = useState('');
   const [osTel1, setOsTel1] = useState('');
   const [osTel2, setOsTel2] = useState('');
@@ -80,7 +77,7 @@ export default function Home() {
   const [osServicoDesc, setOsServicoDesc] = useState('');
   const [osFuncionario, setOsFuncionario] = useState('João Silva');
   const [osValorTotal, setOsValorTotal] = useState('');
-  const [osComIva, setOsComIva] = useState(false); // 23% IVA opcional
+  const [osComIva, setOsComIva] = useState(false);
   const [osDesconto, setOsDesconto] = useState('0');
   const [osSinal, setOsSinal] = useState('0');
 
@@ -108,10 +105,6 @@ export default function Home() {
   const [transacoes, setTransacoes] = useState([
     { id: 1, descricao: 'Sinal OS #101 (Renault Captur)', matricula: 'AZ-91-GI', categoria: 'Serviço', tipo: 'receita', valor: 150.00, data: '2026-09-23' }
   ]);
-
-  const [novaTransDesc, setNovaTransDesc] = useState('');
-  const [novaTransVal, setNovaTransVal] = useState('');
-  const [novaTransData, setNovaTransData] = useState(new Date().toISOString().split('T')[0]);
 
   // Função WhatsApp
   const enviarWhatsApp = (cliente: string, veiculo: string, matricula: string, telefone: string) => {
@@ -207,14 +200,6 @@ export default function Home() {
     { id: 'config', label: '⚙️ Empresa' },
   ];
 
-  const getBadgeStyle = (status: string) => {
-    switch (status) {
-      case 'Em Execução': return { bg: 'rgba(37, 99, 235, 0.25)', color: '#93c5fd', border: '1px solid rgba(37, 99, 235, 0.5)' };
-      case 'Pronto / Entregue': return { bg: 'rgba(52, 211, 153, 0.25)', color: '#6ee7b7', border: '1px solid rgba(52, 211, 153, 0.5)' };
-      default: return { bg: 'rgba(251, 191, 36, 0.25)', color: '#fde047', border: '1px solid rgba(251, 191, 36, 0.5)' };
-    }
-  };
-
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -297,7 +282,6 @@ export default function Home() {
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-          {/* ABA HUB: TUDO EM UMA SÓ PÁGINA COM BOTÕES PARA ABRIR POPUPS */}
           {tab === 'hub' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -321,10 +305,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* GRELHA RESUMO DA AGENDA E PÁTIO */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px' }}>
-                
-                {/* AGENDA ATUAL */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(6px)', border: '1px solid #1f293d', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>📅 Próximos Agendamentos</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '450px', overflowY: 'auto' }}>
@@ -340,7 +321,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* VEÍCULOS NO PÁTIO */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(6px)', border: '1px solid #1f293d', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>🚗 Veículos em Execução (OS)</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '450px', overflowY: 'auto' }}>
@@ -360,12 +340,10 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-
               </div>
             </div>
           )}
 
-          {/* OUTRAS ABAS */}
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff' }}>Veículos no Pátio</h2>
@@ -494,7 +472,7 @@ export default function Home() {
                   <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px' }}>Hora *</label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                     <select value={agHoraSel} onChange={(e) => setAgHoraSel(e.target.value)} style={{ padding: '12px', backgroundColor: '#090a0f', color: '#fff', border: '1px solid #222b45', borderRadius: '8px' }}>
-                      {['09','10','11','12','14','15','16','17','18','19'].h => <option key={h} value={h}>{h}h</option>}
+                      {['09','10','11','12','14','15','16','17','18','19'].map(h => <option key={h} value={h}>{h}h</option>)}
                     </select>
                     <select value={agMinSel} onChange={(e) => setAgMinSel(e.target.value)} style={{ padding: '12px', backgroundColor: '#090a0f', color: '#fff', border: '1px solid #222b45', borderRadius: '8px' }}>
                       {['00','15','30','45'].map(m => <option key={m} value={m}>{m}m</option>)}
@@ -519,7 +497,6 @@ export default function Home() {
             </div>
 
             <form onSubmit={criarOS} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Cliente *</label>
@@ -546,7 +523,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* SERVIÇO INTELIGENTE (COM SETINHA E ESCRITA LIVRE) */}
               <div>
                 <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px' }}>Serviço Realizado / Descrição</label>
                 <input 
@@ -566,7 +542,6 @@ export default function Home() {
                 </datalist>
               </div>
 
-              {/* QUEM VAI REALIZAR O SERVIÇO */}
               <div>
                 <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px' }}>Quem vai realizar o serviço (Técnico/Funcionário)</label>
                 <select value={osFuncionario} onChange={(e) => setOsFuncionario(e.target.value)} style={{ width: '100%', padding: '12px', backgroundColor: '#090a0f', color: '#fff', border: '1px solid #222b45', borderRadius: '8px', fontSize: '15px' }}>
@@ -576,7 +551,6 @@ export default function Home() {
                 </select>
               </div>
 
-              {/* VALORES, IVA 23%, DESCONTO */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', color: '#cbd5e1', marginBottom: '6px' }}>Valor Total (€) *</label>
