@@ -90,7 +90,7 @@ export default function Home() {
   const [osMatricula, setOsMatricula] = useState('');
   const [osSinal, setOsSinal] = useState('0');
 
-  // Lista dinâMica de Serviços da OS
+  // Lista dinâmica de Serviços da OS
   const [osItensServicos, setOsItensServicos] = useState<Array<{ id: number; descricao: string; valor: number; desconto: number; comIva: boolean }>>([
     { id: 1, descricao: 'Limpeza Detalhada & Polimento', valor: 350, desconto: 0, comIva: true }
   ]);
@@ -117,7 +117,7 @@ export default function Home() {
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
       servicos: [{ descricao: '13 - Limpeza Detalhada', valor: 400, desconto: 50, valorFinal: 350 }],
-      gastos: [],
+      gastos: [] as Array<{ id: number; tipo: string; descricao: string; valor: number }>,
       profissionais: ['João Silva'],
       valorTotalBruto: 400.00,
       descontoTotal: 50.00,
@@ -265,6 +265,14 @@ export default function Home() {
     const sinal = Number(osSinal) || 0;
     const restante = Math.max(0, valorFinal - sinal);
 
+    // Mapeamento correto para corresponder à estrutura exigida com valorFinal
+    const servicosMapeados = osItensServicos.map(item => ({
+      descricao: item.descricao,
+      valor: item.valor,
+      desconto: item.desconto,
+      valorFinal: Math.max(0, item.valor - item.desconto)
+    }));
+
     const novaOS = {
       id: Date.now(),
       cliente: osCliente,
@@ -272,7 +280,7 @@ export default function Home() {
       contacto2: osTel2,
       veiculo: osVeiculo || 'Viatura',
       matricula: osMatricula.toUpperCase(),
-      servicos: osItensServicos,
+      servicos: servicosMapeados,
       gastos: osGastos,
       profissionais: osProfissionaisSelecionados,
       valorTotalBruto,
@@ -861,7 +869,7 @@ export default function Home() {
                   <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', color: 'cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>NIF</label>
+                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>NIF</label>
                   <input type="text" value={dadosEmpresa.nif} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nif: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
                 </div>
               </div>
@@ -888,7 +896,7 @@ export default function Home() {
                 style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} 
               />
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                <button type="button" onClick={() => setModalAdiantamentoOpen5(false)} style={{ backgroundColor: '#1f293d', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Cancelar</button>
+                <button type="button" onClick={() => setModalAdiantamentoOpen(false)} style={{ backgroundColor: '#1f293d', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Cancelar</button>
                 <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Confirmar</button>
               </div>
             </form>
