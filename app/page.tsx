@@ -82,20 +82,31 @@ export default function Home() {
   const [agMinSel, setAgMinSel] = useState('00');
   const [agNotas, setAgNotas] = useState('');
 
-  // OS / Orçamento com Custos de Pintor e PPF
+  // OS / Orçamento com múltiplos serviços, gastos e múltiplos profissionais
   const [osCliente, setOsCliente] = useState('');
   const [osTel1, setOsTel1] = useState('');
   const [osTel2, setOsTel2] = useState('');
   const [osVeiculo, setOsVeiculo] = useState('');
   const [osMatricula, setOsMatricula] = useState('');
-  const [osServicoDesc, setOsServicoDesc] = useState('');
-  const [osFuncionario, setOsFuncionario] = useState('João Silva');
-  const [osValorTotal, setOsValorTotal] = useState('');
-  const [osCustoPintor, setOsCustoPintor] = useState('0');
-  const [osCustoPPF, setOsCustoPPF] = useState('0');
-  const [osComIva, setOsComIva] = useState(false);
-  const [osDesconto, setOsDesconto] = useState('0');
   const [osSinal, setOsSinal] = useState('0');
+
+  // Lista dinâMica de Serviços da OS
+  const [osItensServicos, setOsItensServicos] = useState<Array<{ id: number; descricao: string; valor: number; desconto: number; comIva: boolean }>>([
+    { id: 1, descricao: 'Limpeza Detalhada & Polimento', valor: 350, desconto: 0, comIva: true }
+  ]);
+  const [novoServDesc, setNovoServDesc] = useState('');
+  const [novoServValor, setNovoServValor] = useState('');
+  const [novoServDesconto, setNovoServDesconto] = useState('0');
+  const [novoServComIva, setNovoServComIva] = useState(true);
+
+  // Lista dinâmica de Gastos (Pintor, Peças, PPF, etc.)
+  const [osGastos, setOsGastos] = useState<Array<{ id: number; tipo: string; descricao: string; valor: number }>>([]);
+  const [novoGastoTipo, setNovoGastoTipo] = useState('Pintor');
+  const [novoGastoDesc, setNovoGastoDesc] = useState('');
+  const [novoGastoValor, setNovoGastoValor] = useState('');
+
+  // Múltiplos Profissionais Selecionados
+  const [osProfissionaisSelecionados, setOsProfissionaisSelecionados] = useState<string[]>(['João Silva']);
 
   const [ordensServico, setOrdensServico] = useState([
     { 
@@ -105,13 +116,11 @@ export default function Home() {
       contacto2: '911 222 333',
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
-      servico: '13 - Limpeza Detalhada',
-      funcionario: 'João Silva',
-      valorTotal: 400.00,
-      custoPintor: 0.00,
-      custoPPF: 0.00,
-      iva23: 0.00,
-      desconto: 50.00,
+      servicos: [{ descricao: '13 - Limpeza Detalhada', valor: 400, desconto: 50, valorFinal: 350 }],
+      gastos: [],
+      profissionais: ['João Silva'],
+      valorTotalBruto: 400.00,
+      descontoTotal: 50.00,
       valorFinal: 350.00,
       sinalPago: 150.00,
       restanteAPagar: 200.00,
@@ -176,7 +185,49 @@ export default function Home() {
     window.open(`https://wa.me/351${telLimpo}?text=${msg}`, '_blank');
   };
 
-  // Funções de Registo
+  // Adicionar Serviço à OS atual
+  const adicionarServicoOS = () => {
+    if (!novoServDesc || !novoServValor) return;
+    const val = Number(novoServValor) || 0;
+    const desc = Number(novoServDesconto) || 0;
+    const valorComIva = novoServComIva ? val * 1.23 : val;
+
+    setOsItensServicos([
+      ...osItensServicos,
+      { id: Date.now(), descricao: novoServDesc, valor: valorComIva, desconto: desc, comIva: novoServComIva }
+    ]);
+    setNovoServDesc('');
+    setNovoServValor('');
+    setNovoServDesconto('0');
+  };
+
+  const removerServicoOS = (id: number) => {
+    setOsItensServicos(osItensServicos.filter(i => i.id !== id));
+  };
+
+  // Adicionar Gasto à OS (Pintor, Peças, PPF)
+  const adicionarGastoOS = () => {
+    if (!novoGastoDesc || !novoGastoValor) return;
+    setOsGastos([
+      ...osGastos,
+      { id: Date.now(), tipo: novoGastoTipo, descricao: novoGastoDesc, valor: Number(novoGastoValor) || 0 }
+    ]);
+    setNovoGastoDesc('');
+    setNovoGastoValor('');
+  };
+
+  const removerGastoOS = (id: number) => {
+    setOsGastos(osGastos.filter(g => g.id !== id));
+  };
+
+  const toggleProfissionalOS = (nomeFunc: string) => {
+    if (osProfissionaisSelecionados.includes(nomeFunc)) {
+      setOsProfissionaisSelecionados(osProfissionaisSelecionados.filter(n => n !== nomeFunc));
+    } else {
+      setOsProfissionaisSelecionados([...osProfissionaisSelecionados, nomeFunc]);
+    }
+  };
+
   const criarAgendamento = (e: React.FormEvent) => {
     e.preventDefault();
     if (!agClient || !agTel1 || !agData) return;
@@ -203,14 +254,14 @@ export default function Home() {
 
   const criarOS = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!osCliente || !osMatricula || !osValorTotal) return;
+    if (!osCliente || !osMatricula || osItensServicos.length === 0) {
+      alert('Preencha o cliente, matrícula e adicione pelo menos um serviço.');
+      return;
+    }
 
-    const valOrig = Number(osValorTotal) || 0;
-    const pintor = Number(osCustoPintor) || 0;
-    const ppf = Number(osCustoPPF) || 0;
-    const desc = Number(osDesconto) || 0;
-    const ivaVal = osComIva ? (valOrig * 0.23) : 0;
-    const valorFinal = (valOrig + ivaVal) - desc;
+    const valorTotalBruto = osItensServicos.reduce((acc, item) => acc + item.valor, 0);
+    const descontoTotal = osItensServicos.reduce((acc, item) => acc + item.desconto, 0);
+    const valorFinal = Math.max(0, valorTotalBruto - descontoTotal);
     const sinal = Number(osSinal) || 0;
     const restante = Math.max(0, valorFinal - sinal);
 
@@ -221,14 +272,12 @@ export default function Home() {
       contacto2: osTel2,
       veiculo: osVeiculo || 'Viatura',
       matricula: osMatricula.toUpperCase(),
-      servico: osServicoDesc || 'Serviço de Detail',
-      funcionario: osFuncionario,
-      valorTotal: valOrig,
-      custoPintor: pintor,
-      custoPPF: ppf,
-      iva23: ivaVal,
-      desconto: desc,
-      valorFinal: valorFinal,
+      servicos: osItensServicos,
+      gastos: osGastos,
+      profissionais: osProfissionaisSelecionados,
+      valorTotalBruto,
+      descontoTotal,
+      valorFinal,
       sinalPago: sinal,
       restanteAPagar: restante,
       status: 'Em Execução',
@@ -241,7 +290,9 @@ export default function Home() {
     }
 
     alert('Ordem de Serviço emitida com sucesso!');
-    setOsCliente(''); setOsTel1(''); setOsTel2(''); setOsVeiculo(''); setOsMatricula(''); setOsServicoDesc(''); setOsValorTotal(''); setOsCustoPintor('0'); setOsCustoPPF('0'); setOsDesconto('0'); setOsSinal('0');
+    setOsCliente(''); setOsTel1(''); setOsTel2(''); setOsVeiculo(''); setOsMatricula(''); setOsSinal('0');
+    setOsItensServicos([{ id: Date.now(), descricao: 'Limpeza Detalhada', valor: 250, desconto: 0, comIva: true }]);
+    setOsGastos([]);
   };
 
   const adicionarFuncionario = (e: React.FormEvent) => {
@@ -390,9 +441,8 @@ export default function Home() {
                 {ordensServico.map(os => (
                   <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.veiculo} ({os.matricula})</h3>
-                    <p style={{ margin: 0, color: '#cbd5e1' }}><b>Cliente:</b> {os.cliente} ({os.contacto})</p>
-                    <p style={{ margin: 0, color: '#cbd5e1' }}><b>Serviço:</b> {os.servico}</p>
-                    <p style={{ margin: 0, color: '#d4af37' }}><b>Técnico Responsável:</b> {os.funcionario}</p>
+                    <p style={{ margin: 0, color: '#cbd5e1' }}><b>Cliente:</b> {os.cliente} (+351 {os.contacto}) {os.contacto2 ? `| 2º: ${os.contacto2}` : ''}</p>
+                    <p style={{ margin: 0, color: '#d4af37' }}><b>Técnicos:</b> {os.profissionais ? os.profissionais.join(', ') : 'N/D'}</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1f293d', paddingTop: '10px', alignItems: 'center' }}>
                       <span>Total: <b>{os.valorFinal.toFixed(2)}€</b></span>
                       <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>💬 WhatsApp</button>
@@ -429,12 +479,12 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 3: OPERACIONAL (COM CUSTOS DE PINTOR E PPF PARA COMISSÃO) */}
+          {/* ABA 3: OPERACIONAL (COM MÚLTIPLOS SERVIÇOS, IVA, GASTOS E PROFISSIONAIS) */}
           {tab === 'operacional' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
                 <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Central de Operações</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Emita OS, Orçamentos ou Agendamentos com abatimento de custos para comissões:</p>
+                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Emita OS, Orçamentos ou Agendamentos com total flexibilidade:</p>
               </div>
 
               <div style={{ display: 'flex', gap: '12px' }}>
@@ -456,7 +506,7 @@ export default function Home() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telefone Principal *</label>
+                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel Principal (+351) *</label>
                       <input type="text" required value={agTel1} onChange={(e) => setAgTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                     <div>
@@ -479,11 +529,12 @@ export default function Home() {
               )}
 
               {(subAbaOperacional === 'os' || subAbaOperacional === 'orcamento') && (
-                <form onSubmit={criarOS} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '750px' }}>
+                <form onSubmit={criarOS} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '850px' }}>
                   <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>
                     {subAbaOperacional === 'os' ? '📋 Emitir Ordem de Serviço (OS)' : '📑 Emitir Orçamento'}
                   </h3>
 
+                  {/* Dados do Cliente e Veículo */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Cliente *</label>
@@ -495,10 +546,17 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel</label>
-                      <input type="text" value={osTel1} onChange={(e) => setOsTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel 1 (PT)</label>
+                      <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', padding: '0 10px' }}>
+                        <span style={{ color: '#d4af37', fontWeight: 'bold', marginRight: '8px' }}>+351</span>
+                        <input type="text" value={osTel1} onChange={(e) => setOsTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', padding: '14px 0', backgroundColor: 'transparent', border: 'none', color: '#fff', fontSize: '16px', outline: 'none' }} />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel 2 (Opcional)</label>
+                      <input type="text" value={osTel2} onChange={(e) => setOsTel2(e.target.value)} placeholder="911 222 333" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Viatura</label>
@@ -506,39 +564,79 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Serviço Realizado</label>
-                    <input type="text" value={osServicoDesc} onChange={(e) => setOsServicoDesc(e.target.value)} placeholder="Ex: 13 - Limpeza Detalhada" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                  {/* SEÇÃO DE MÚLTIPLOS SERVIÇOS */}
+                  <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <h4 style={{ fontSize: '17px', color: '#d4af37', margin: 0 }}>🛠️ Serviços Incluídos</h4>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {osItensServicos.map((item, idx) => (
+                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#090a0f', padding: '10px 14px', borderRadius: '8px', border: '1px solid #1f293d' }}>
+                          <span style={{ color: '#fff' }}><b>{idx + 1}.</b> {item.descricao} — <b>{item.valor.toFixed(2)}€</b> {item.comIva ? '(c/ IVA 23%)' : ''} {item.desconto > 0 ? `| Desc: -${item.desconto}€` : ''}</span>
+                          <button type="button" onClick={() => removerServicoOS(item.id)} style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Remover</button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '10px', alignItems: 'center', marginTop: '6px' }}>
+                      <input type="text" placeholder="Nome do Serviço (ex: Polimento Comercial)" value={novoServDesc} onChange={(e) => setNovoServDesc(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
+                      <input type="text" placeholder="Valor (€)" value={novoServValor} onChange={(e) => setNovoServValor(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
+                      <input type="text" placeholder="Desconto (€)" value={novoServDesconto} onChange={(e) => setNovoServDesconto(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
+                      <button type="button" onClick={adicionarServicoOS} style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>+ Adicionar</button>
+                    </div>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Técnico Responsável (para Comissão)</label>
-                    <select value={osFuncionario} onChange={(e) => setOsFuncionario(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', color: '#fff', border: '1px solid #222b45', borderRadius: '10px', fontSize: '16px' }}>
-                      {funcionarios.map(f => <option key={f.id} value={f.nome}>{f.nome} ({f.cargo})</option>)}
-                    </select>
+                  {/* SEÇÃO DE GASTOS (Pintor, Peças, PPF) */}
+                  <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <h4 style={{ fontSize: '17px', color: '#f87171', margin: 0 }}>💸 Gastos / Custos Associados (Pintor, Peças, PPF)</h4>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {osGastos.map((gasto) => (
+                        <div key={gasto.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#090a0f', padding: '10px 14px', borderRadius: '8px', border: '1px solid #1f293d' }}>
+                          <span style={{ color: '#fff' }}>[{gasto.tipo}] {gasto.descricao} — <b style={{ color: '#f87171' }}>-{gasto.valor.toFixed(2)}€</b></span>
+                          <button type="button" onClick={() => removerGastoOS(gasto.id)} style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Remover</button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr auto', gap: '10px', alignItems: 'center', marginTop: '6px' }}>
+                      <select value={novoGastoTipo} onChange={(e) => setNovoGastoTipo(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }}>
+                        <option value="Pintor">Pintor</option>
+                        <option value="PPF">Material PPF</option>
+                        <option value="Peças">Peças</option>
+                        <option value="Outro">Outro Gasto</option>
+                      </select>
+                      <input type="text" placeholder="Descrição (ex: Pintura guarda-lamas)" value={novoGastoDesc} onChange={(e) => setNovoGastoDesc(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
+                      <input type="text" placeholder="Valor (€)" value={novoGastoValor} onChange={(e) => setNovoGastoValor(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
+                      <button type="button" onClick={adicionarGastoOS} style={{ backgroundColor: '#f87171', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>+ Gasto</button>
+                    </div>
                   </div>
 
-                  {/* Campos de Custos para abatimento na comissão */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', backgroundColor: '#131722', padding: '16px', borderRadius: '12px', border: '1px solid #222b45' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', color: '#d4af37', marginBottom: '4px', fontWeight: 'bold' }}>Valor Total (€)</label>
-                      <input type="text" required value={osValorTotal} onChange={(e) => setOsValorTotal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', color: '#f87171', marginBottom: '4px', fontWeight: 'bold' }}>Custo Pintor (€)</label>
-                      <input type="text" value={osCustoPintor} onChange={(e) => setOsCustoPintor(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', color: '#f87171', marginBottom: '4px', fontWeight: 'bold' }}>Custo Material PPF (€)</label>
-                      <input type="text" value={osCustoPPF} onChange={(e) => setOsCustoPPF(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', boxSizing: 'border-box' }} />
+                  {/* SEÇÃO DE MÚLTIPLOS PROFISSIONAIS */}
+                  <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <h4 style={{ fontSize: '17px', color: '#38bdf8', margin: 0 }}>👥 Profissionais Responsáveis (Múltiplos)</h4>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      {funcionarios.map(f => {
+                        const selecionado = osProfissionaisSelecionados.includes(f.nome);
+                        return (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => toggleProfissionalOS(f.nome)}
+                            style={{
+                              padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px',
+                              backgroundColor: selecionado ? '#38bdf8' : '#090a0f',
+                              color: selecionado ? '#090a0f' : '#cbd5e1',
+                              border: selecionado ? '1px solid #38bdf8' : '1px solid #222b45'
+                            }}
+                          >
+                            {selecionado ? '✓ ' : '+ '} {f.nome} ({f.cargo})
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Desconto (€)</label>
-                      <input type="text" value={osDesconto} onChange={(e) => setOsDesconto(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                    </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Sinal Pago (€)</label>
                       <input type="text" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
@@ -546,7 +644,7 @@ export default function Home() {
                   </div>
 
                   <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer', marginTop: '10px' }}>
-                    Emitir Ordem de Serviço
+                    Emitir Ordem de Serviço Completa
                   </button>
                 </form>
               )}
@@ -638,7 +736,7 @@ export default function Home() {
                         </div>
                         <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.cliente}</h4>
                         <p style={{ margin: 0, color: '#e2e8f0', fontSize: '15px' }}>🚗 {os.veiculo} ({os.matricula})</p>
-                        <p style={{ margin: 0, color: '#d4af37', fontSize: '14px' }}>👤 Técnico: {os.funcionario}</p>
+                        <p style={{ margin: 0, color: '#38bdf8', fontSize: '14px' }}>👥 Técnicos: {os.profissionais ? os.profissionais.join(', ') : 'N/D'}</p>
                         <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
                       </div>
                     ))}
@@ -677,7 +775,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS COM BOTÃO DE ADIANTAMENTO */}
+          {/* ABA 6: FUNCIONÁRIOS */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -763,7 +861,7 @@ export default function Home() {
                   <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>NIF</label>
+                  <label style={{ display: 'block', color: 'cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>NIF</label>
                   <input type="text" value={dadosEmpresa.nif} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nif: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
                 </div>
               </div>
@@ -790,7 +888,7 @@ export default function Home() {
                 style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} 
               />
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                <button type="button" onClick={() => setModalAdiantamentoOpen(false)} style={{ backgroundColor: '#1f293d', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Cancelar</button>
+                <button type="button" onClick={() => setModalAdiantamentoOpen5(false)} style={{ backgroundColor: '#1f293d', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Cancelar</button>
                 <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Confirmar</button>
               </div>
             </form>
