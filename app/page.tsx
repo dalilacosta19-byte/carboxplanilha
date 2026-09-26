@@ -66,7 +66,7 @@ export default function Home() {
       servicoAgendado: '13 - Limpeza Detalhada',
       notasAvaliacao: 'Avaliação inicial do estado da pintura e proteções.', 
       data: new Date().toISOString().split('T')[0], 
-      hora: '14:00', 
+      hora: '10:00', 
       status: 'Agendado' 
     }
   ]);
@@ -265,7 +265,6 @@ export default function Home() {
     const sinal = Number(osSinal) || 0;
     const restante = Math.max(0, valorFinal - sinal);
 
-    // Mapeamento correto para corresponder à estrutura exigida com valorFinal
     const servicosMapeados = osItensServicos.map(item => ({
       descricao: item.descricao,
       valor: item.valor,
@@ -487,7 +486,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 3: OPERACIONAL (COM MÚLTIPLOS SERVIÇOS, IVA, GASTOS E PROFISSIONAIS) */}
+          {/* ABA 3: OPERACIONAL */}
           {tab === 'operacional' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -528,8 +527,15 @@ export default function Home() {
                       <input type="date" required value={agData} onChange={(e) => setAgData(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Hora *</label>
-                      <input type="text" value={`${agHoraSel}:${agMinSel}`} onChange={(e) => setAgHoraSel(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Hora e Minutos *</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <select value={agHoraSel} onChange={(e) => setAgHoraSel(e.target.value)} style={{ padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}>
+                          {['08','09','10','11','12','13','14','15','16','17','18','19','20'].map(h => <option key={h} value={h}>{h}h</option>)}
+                        </select>
+                        <select value={agMinSel} onChange={(e) => setAgMinSel(e.target.value)} style={{ padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px' }}>
+                          {['00','15','30','45'].map(m => <option key={m} value={m}>{m}m</option>)}
+                        </select>
+                      </div>
                     </div>
                   </div>
                   <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer' }}>Guardar Agendamento</button>
@@ -542,7 +548,6 @@ export default function Home() {
                     {subAbaOperacional === 'os' ? '📋 Emitir Ordem de Serviço (OS)' : '📑 Emitir Orçamento'}
                   </h3>
 
-                  {/* Dados do Cliente e Veículo */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Cliente *</label>
@@ -593,7 +598,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* SEÇÃO DE GASTOS (Pintor, Peças, PPF) */}
+                  {/* SEÇÃO DE GASTOS */}
                   <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <h4 style={{ fontSize: '17px', color: '#f87171', margin: 0 }}>💸 Gastos / Custos Associados (Pintor, Peças, PPF)</h4>
                     
