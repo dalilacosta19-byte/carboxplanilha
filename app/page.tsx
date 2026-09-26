@@ -63,7 +63,7 @@ export default function Home() {
       telefone2: '911 222 333', 
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
-      servicoAgendado: '13 - Limpeza Detalhada',
+      servicoAgendado: 'Limpeza Detalhada & Polimento',
       notasAvaliacao: 'Avaliação inicial do estado da pintura e proteções.', 
       data: new Date().toISOString().split('T')[0], 
       hora: '10:00', 
@@ -115,14 +115,14 @@ export default function Home() {
       contacto2: '911 222 333',
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
-      servicos: [{ descricao: '13 - Limpeza Detalhada', valor: 400, desconto: 50, valorFinal: 350 }],
+      servicos: [{ descricao: 'Limpeza Detalhada', valor: 430.50, desconto: 0, valorFinal: 430.50 }],
       gastos: [] as Array<{ id: number; tipo: string; descricao: string; valor: number }>,
       profissionais: ['João Silva'],
-      valorTotalBruto: 400.00,
-      descontoTotal: 50.00,
-      valorFinal: 350.00,
+      valorTotalBruto: 430.50,
+      descontoTotal: 0.00,
+      valorFinal: 430.50,
       sinalPago: 150.00,
-      restanteAPagar: 200.00,
+      restanteAPagar: 280.50,
       status: 'Em Execução', 
       data: new Date().toISOString().split('T')[0] 
     }
@@ -135,7 +135,7 @@ export default function Home() {
       contacto: '912 345 678',
       veiculo: 'BMW Série 3',
       matricula: '45-GH-89',
-      servicos: [{ descricao: 'Proteção PPF Frontal', valor: 1200, desconto: 0, valorFinal: 1200 }],
+      servicos: [{ descricao: 'Proteção PPF Frontal', valorFinal: 1200.00 }],
       valorFinal: 1200.00,
       data: new Date().toISOString().split('T')[0]
     }
@@ -199,7 +199,6 @@ export default function Home() {
     window.open(`https://wa.me/351${telLimpo}?text=${msg}`, '_blank');
   };
 
-  // WhatsApp para Orçamento
   const enviarWhatsAppOrcamento = (orc: any) => {
     const telLimpo = (orc.contacto || '').replace(/\D/g, '');
     const servicosStr = orc.servicos.map((s: any) => `• ${s.descricao}: ${s.valorFinal.toFixed(2)}€`).join('%0A');
@@ -207,7 +206,6 @@ export default function Home() {
     window.open(`https://wa.me/351${telLimpo}?text=${msg}`, '_blank');
   };
 
-  // Imprimir Orçamento (Abre janela limpa de impressão)
   const imprimirOrcamento = (orc: any) => {
     const janelaPrint = window.open('', '_blank', 'width=800,height=600');
     if (!janelaPrint) return;
@@ -254,7 +252,7 @@ export default function Home() {
           <thead>
             <tr>
               <th>Descrição do Serviço</th>
-              <th>Valor Unitário / Total (c/ IVA)</th>
+              <th>Valor Total (c/ IVA 23%)</th>
             </tr>
           </thead>
           <tbody>
@@ -284,7 +282,6 @@ export default function Home() {
     setTimeout(() => { janelaPrint.print(); }, 500);
   };
 
-  // Adicionar Serviço
   const adicionarServicoOS = () => {
     if (!novoServDesc || !novoServValor) return;
     const val = Number(novoServValor) || 0;
@@ -304,7 +301,6 @@ export default function Home() {
     setOsItensServicos(osItensServicos.filter(i => i.id !== id));
   };
 
-  // Adicionar Gasto
   const adicionarGastoOS = () => {
     if (!novoGastoDesc || !novoGastoValor) return;
     setOsGastos([
@@ -339,7 +335,7 @@ export default function Home() {
       telefone2: agTel2,
       veiculo: agVeiculo || 'Viatura',
       matricula: agMatricula ? agMatricula.toUpperCase() : 'N/D',
-      servicoAgendado: agServico || 'Avaliação técnica',
+      servicoAgendado: agServico || 'Limpeza Detalhada',
       notasAvaliacao: agNotas || 'Agendado.',
       data: agData,
       hora: `${agHoraSel}:${agMinSel}`,
@@ -638,6 +634,10 @@ export default function Home() {
                       <input type="text" value={agVeiculo} onChange={(e) => setAgVeiculo(e.target.value)} placeholder="Renault Captur" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                     </div>
                   </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Serviço Pretendido</label>
+                    <input type="text" value={agServico} onChange={(e) => setAgServico(e.target.value)} placeholder="Ex: Limpeza Detalhada, Polimento, PPF..." style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data *</label>
@@ -898,6 +898,7 @@ export default function Home() {
                         </div>
                         <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
                         <p style={{ margin: 0, color: '#e2e8f0', fontSize: '15px' }}>🚗 {ag.veiculo} ({ag.matricula})</p>
+                        <p style={{ margin: 0, color: '#d4af37', fontSize: '15px' }}>🛠️ Serviço: {ag.servicoAgendado}</p>
                         <button onClick={() => enviarWhatsApp(ag.cliente, ag.veiculo, ag.matricula, ag.telefone1)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
                       </div>
                     ))}
