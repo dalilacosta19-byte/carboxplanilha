@@ -623,8 +623,8 @@ export default function Home() {
                     {/* Cabeçalho do Card: Viatura, Matrícula e Seletor de Estado */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
                       <div>
-                        <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.veiculo}</h3>
-                        <span style={{ fontSize: '14px', color: '#d4af37', fontWeight: 'bold' }}>Matrícula: {os.matricula}</span>
+                        <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>🚗 {os.veiculo}</h3>
+                        <span style={{ fontSize: '15px', color: '#d4af37', fontWeight: 'bold', backgroundColor: 'rgba(212, 175, 55, 0.15)', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', marginTop: '4px' }}>Matrícula: {os.matricula}</span>
                       </div>
                       <select 
                         value={os.status} 
@@ -785,10 +785,7 @@ export default function Home() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data *</label>
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <input type="date" required value={agData} onChange={(e) => setAgData(e.target.value)} style={{ width: '100%', padding: '14px', paddingRight: '45px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
-                        <span style={{ position: 'absolute', right: '14px', pointerEvents: 'none', fontSize: '18px' }}>📅</span>
-                      </div>
+                      <input type="date" required value={agData} onChange={(e) => setAgData(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Hora e Minutos *</label>
@@ -838,7 +835,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* VIATURA E DATA DE ENTREGA (POSICIONADA NA COLUNA DA DIREITA NA OS) */}
+                    {/* VIATURA E DATA DE ENTREGA (POSICIONADA NO LADO DIREITO NA OS) */}
                     <div style={{ display: 'grid', gridTemplateColumns: subAbaOperacional === 'os' ? '1fr 1fr' : '1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Viatura</label>
@@ -847,10 +844,7 @@ export default function Home() {
                       {subAbaOperacional === 'os' && (
                         <div>
                           <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data de Entrega Prevista *</label>
-                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <input type="date" required value={osDataEntrega} onChange={(e) => setOsDataEntrega(e.target.value)} style={{ width: '100%', padding: '14px', paddingRight: '45px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
-                            <span style={{ position: 'absolute', right: '14px', pointerEvents: 'none', fontSize: '18px' }}>📅</span>
-                          </div>
+                          <input type="date" required value={osDataEntrega} onChange={(e) => setOsDataEntrega(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
                         </div>
                       )}
                     </div>
@@ -1110,7 +1104,7 @@ export default function Home() {
                       type="date" 
                       value={dataRelatorioSel} 
                       onChange={(e) => setDataRelatorioSel(e.target.value)} 
-                      style={{ padding: '10px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '15px', cursor: 'pointer' }} 
+                      style={{ padding: '10px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '15px', cursor: 'pointer', colorScheme: 'dark' }} 
                     />
                   </div>
                 </div>
