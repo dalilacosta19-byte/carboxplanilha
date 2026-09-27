@@ -39,16 +39,15 @@ export default function Home() {
   const [novoStockQtd, setNovoStockQtd] = useState('');
   const [novoStockCusto, setNovoStockCusto] = useState('');
 
-  // Funcionários
+  // Funcionários (Sem Cargo)
   const [funcionarios, setFuncionarios] = useState([
-    { id: 1, nome: 'João Silva', cargo: 'Detailer Master', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 150.00 },
-    { id: 2, nome: 'Miguel Santos', cargo: 'Rececionista', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000.00, adiantamento: 0.00 },
-    { id: 3, nome: 'Ricardo Costa', cargo: 'Polidor Externo', tipoRemuneracao: 'diaria', valorPctOuFixo: 75.00, adiantamento: 50.00 },
-    { id: 4, nome: 'Kevin', cargo: 'Detailer', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 0.00 }
+    { id: 1, nome: 'João Silva', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 150.00 },
+    { id: 2, nome: 'Miguel Santos', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000.00, adiantamento: 0.00 },
+    { id: 3, nome: 'Ricardo Costa', tipoRemuneracao: 'diaria', valorPctOuFixo: 75.00, adiantamento: 50.00 },
+    { id: 4, nome: 'Kevin', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 0.00 }
   ]);
 
   const [novoFuncNome, setNovoFuncNome] = useState('');
-  const [novoFuncCargo, setNovoFuncCargo] = useState('');
   const [tipoRemuneracao, setTipoRemuneracao] = useState<'comissao' | 'fixo' | 'diaria'>('comissao');
   const [valorRemuneracao, setValorRemuneracao] = useState('30');
   const [novoFuncAdiantamento, setNovoFuncAdiantamento] = useState('0');
@@ -90,6 +89,8 @@ export default function Home() {
   const [osMatricula, setOsMatricula] = useState('');
   const [osSinal, setOsSinal] = useState('0');
   const [osDescontoPct, setOsDescontoPct] = useState('0');
+  const [osStatusInput, setOsStatusInput] = useState('Em Execução');
+  const [osFormaPagamentoInput, setOsFormaPagamentoInput] = useState('MBWay');
 
   // Lista dinâmica de Serviços
   const [osItensServicos, setOsItensServicos] = useState<Array<{ id: number; descricao: string; valorBase: number; valorComIva: number; desconto: number; comIva: boolean }>>([
@@ -124,6 +125,7 @@ export default function Home() {
       sinalPago: 150.00,
       restanteAPagar: 280.50,
       status: 'Em Execução', 
+      formaPagamento: 'MBWay',
       data: new Date().toISOString().split('T')[0] 
     }
   ]);
@@ -233,8 +235,7 @@ export default function Home() {
           <div>
             <div class="title">CARBOX77 DETAILING</div>
             <div>${dadosEmpresa.nome}</div>
-            <div>NIF: ${dadosEmpresa.nif}</div>
-            <div>${dadosEmpresa.morada}</div>
+            <div>NIF: ${dadosEmpresa.nif} | Endereço: ${dadosEmpresa.morada}</div>
           </div>
           <div style="text-align: right;">
             <h2>ORÇAMENTO #${orc.id}</h2>
@@ -400,7 +401,8 @@ export default function Home() {
         valorFinal,
         sinalPago: sinal,
         restanteAPagar: restante,
-        status: 'Em Execução',
+        status: osStatusInput,
+        formaPagamento: osFormaPagamentoInput,
         data: new Date().toISOString().split('T')[0]
       };
       setOrdensServico([novaOS, ...ordensServico]);
@@ -417,19 +419,18 @@ export default function Home() {
 
   const adicionarFuncionario = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!novoFuncNome || !novoFuncCargo) return;
+    if (!novoFuncNome) return;
     setFuncionarios([
       ...funcionarios, 
       { 
         id: Date.now(), 
         nome: novoFuncNome, 
-        cargo: novoFuncCargo, 
         tipoRemuneracao, 
         valorPctOuFixo: Number(valorRemuneracao) || 0, 
         adiantamento: Number(novoFuncAdiantamento) || 0 
       }
     ]);
-    setNovoFuncNome(''); setNovoFuncCargo(''); setValorRemuneracao('30'); setNovoFuncAdiantamento('0');
+    setNovoFuncNome(''); setValorRemuneracao('30'); setNovoFuncAdiantamento('0');
   };
 
   const removerFuncionario = (id: number) => {
@@ -554,15 +555,21 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
                 <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Veículos no Pátio</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Acompanhe o status e envie avisos por WhatsApp.</p>
+                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Acompanhe o estado, forma de pagamento e envie avisos por WhatsApp.</p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '20px' }}>
                 {ordensServico.map(os => (
                   <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.veiculo} ({os.matricula})</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.veiculo} ({os.matricula})</h3>
+                      <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', backgroundColor: os.status === 'Em Execução' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(239, 68, 68, 0.2)', color: os.status === 'Em Execução' ? '#d4af37' : '#f87171' }}>
+                        {os.status || 'Em Execução'}
+                      </span>
+                    </div>
                     <p style={{ margin: 0, color: '#cbd5e1' }}><b>Cliente:</b> {os.cliente} (+351 {os.contacto}) {os.contacto2 ? `| 2º: ${os.contacto2}` : ''}</p>
                     <p style={{ margin: 0, color: '#d4af37' }}><b>Técnicos:</b> {os.profissionais && os.profissionais.length > 0 ? os.profissionais.join(', ') : 'N/D'}</p>
+                    <p style={{ margin: 0, color: '#38bdf8', fontSize: '14px' }}>💳 <b>Forma de Pagamento:</b> {os.formaPagamento || 'MBWay'}</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1f293d', paddingTop: '10px', alignItems: 'center' }}>
                       <span>Total: <b>{os.valorFinal.toFixed(2)}€</b></span>
                       <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>💬 WhatsApp</button>
@@ -750,7 +757,7 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* SEÇÃO DE PROFISSIONAIS (Apenas para OS - Omitido no Orçamento) */}
+                    {/* SEÇÃO DE PROFISSIONAIS (Apenas para OS) */}
                     {subAbaOperacional === 'os' && (
                       <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <h4 style={{ fontSize: '17px', color: '#38bdf8', margin: 0 }}>👥 Profissionais Responsáveis (Múltiplos)</h4>
@@ -769,7 +776,7 @@ export default function Home() {
                                   border: selecionado ? '1px solid #38bdf8' : '1px solid #222b45'
                                 }}
                               >
-                                {selecionado ? '✓ ' : '+ '} {f.nome} ({f.cargo})
+                                {selecionado ? '✓ ' : '+ '} {f.nome}
                               </button>
                             );
                           })}
@@ -777,26 +784,47 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* DESCONTO EM PORCENTAGEM E SINAL */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    {/* ESTADO, FORMA DE PAGAMENTO E DESCONTO */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Desconto Global (%)</label>
                         <input type="text" value={osDescontoPct} onChange={(e) => setOsDescontoPct(e.target.value)} placeholder="0" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                       </div>
                       {subAbaOperacional === 'os' && (
-                        <div>
-                          <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Sinal Pago (€)</label>
-                          <input type="text" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                        </div>
+                        <>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Estado</label>
+                            <select value={osStatusInput} onChange={(e) => setOsStatusInput(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}>
+                              <option value="Em Execução">Em Execução</option>
+                              <option value="Aguardando Pagamento">Aguardando Pagamento</option>
+                              <option value="Concluído">Concluído</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Forma de Pagamento</label>
+                            <select value={osFormaPagamentoInput} onChange={(e) => setOsFormaPagamentoInput(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}>
+                              <option value="MBWay">MBWay</option>
+                              <option value="Dinheiro">Dinheiro</option>
+                              <option value="Empresa">Empresa / Transf.</option>
+                            </select>
+                          </div>
+                        </>
                       )}
                     </div>
+
+                    {subAbaOperacional === 'os' && (
+                      <div>
+                        <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Sinal Pago (€)</label>
+                        <input type="text" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                      </div>
+                    )}
 
                     <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer', marginTop: '10px' }}>
                       {subAbaOperacional === 'os' ? 'Emitir Ordem de Serviço Completa' : 'Gerar Orçamento'}
                     </button>
                   </form>
 
-                  {/* LISTA DE ORÇAMENTOS EMITIDOS COM BOTÕES DE IMPRESSÃO E WHATSAPP */}
+                  {/* LISTA DE ORÇAMENTOS EMITIDOS */}
                   {subAbaOperacional === 'orcamento' && (
                     <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', maxWidth: '850px' }}>
                       <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', marginBottom: '20px' }}>📑 Orçamentos Emitidos</h3>
@@ -825,7 +853,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: CALENDÁRIO */}
+          {/* ABA 4: CALENDÁRIO COMPACTO & PAINEL ALARGADO */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -840,22 +868,22 @@ export default function Home() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 520px', gap: '28px', alignItems: 'start' }}>
-                <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1f293d', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 700px', gap: '28px', alignItems: 'start' }}>
+                <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1f293d', borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{nomesMeses[mesCalendario]} de {anoCalendario}</h3>
+                    <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{nomesMeses[mesCalendario]} de {anoCalendario}</h3>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={() => mudarMes(-1)} style={{ backgroundColor: '#090a0f', color: '#d4af37', border: '1px solid #222b45', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer' }}>◀</button>
-                      <button onClick={() => mudarMes(1)} style={{ backgroundColor: '#090a0f', color: '#d4af37', border: '1px solid #222b45', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer' }}>▶</button>
+                      <button onClick={() => mudarMes(-1)} style={{ backgroundColor: '#090a0f', color: '#d4af37', border: '1px solid #222b45', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer' }}>◀</button>
+                      <button onClick={() => mudarMes(1)} style={{ backgroundColor: '#090a0f', color: '#d4af37', border: '1px solid #222b45', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer' }}>▶</button>
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontWeight: 'bold', color: '#94a3b8', fontSize: '14px', paddingBottom: '8px', borderBottom: '1px solid #1f293d' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontWeight: 'bold', color: '#94a3b8', fontSize: '13px', paddingBottom: '6px', borderBottom: '1px solid #1f293d' }}>
                     <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
-                    {Array.from({ length: primeiroDiaMes }).map((_, idx) => <div key={`empty-${idx}`} style={{ padding: '12px', height: '65px' }}></div>)}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+                    {Array.from({ length: primeiroDiaMes }).map((_, idx) => <div key={`empty-${idx}`} style={{ padding: '8px', height: '50px' }}></div>)}
 
                     {Array.from({ length: totalDiasMes }).map((_, idx) => {
                       const diaNum = idx + 1;
@@ -869,14 +897,14 @@ export default function Home() {
                       const ossDoDia = ordensServico.filter(o => o.data === dataFormatada);
 
                       return (
-                        <div key={dataFormatada} onClick={() => setDiaSelecionado(dataFormatada)} style={{ backgroundColor: isSelecionado ? 'rgba(212, 175, 55, 0.3)' : isFeriado ? 'rgba(239, 68, 68, 0.15)' : '#090a0f', border: isSelecionado ? '2px solid #d4af37' : isFeriado ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid #1f293d', borderRadius: '10px', padding: '10px', minHeight: '70px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}>
+                        <div key={dataFormatada} onClick={() => setDiaSelecionado(dataFormatada)} style={{ backgroundColor: isSelecionado ? 'rgba(212, 175, 55, 0.3)' : isFeriado ? 'rgba(239, 68, 68, 0.15)' : '#090a0f', border: isSelecionado ? '2px solid #d4af37' : isFeriado ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid #1f293d', borderRadius: '8px', padding: '6px', minHeight: '55px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: isFeriado ? '#f87171' : '#fff' }}>{diaNum}</span>
-                            {isFeriado && <span style={{ fontSize: '9px', backgroundColor: '#f87171', color: '#090a0f', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>Feriado</span>}
+                            <span style={{ fontSize: '14px', fontWeight: 'bold', color: isFeriado ? '#f87171' : '#fff' }}>{diaNum}</span>
+                            {isFeriado && <span style={{ fontSize: '8px', backgroundColor: '#f87171', color: '#090a0f', padding: '1px 3px', borderRadius: '3px', fontWeight: 'bold' }}>Feriado</span>}
                           </div>
-                          <div style={{ display: 'flex', gap: '5px', marginTop: '2px' }}>
-                            {agsDoDia.map((_, i) => <div key={`ag-${i}`} style={{ width: '9px', height: '9px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>)}
-                            {ossDoDia.map((_, i) => <div key={`os-${i}`} style={{ width: '9px', height: '9px', backgroundColor: '#d4af37', borderRadius: '50%' }}></div>)}
+                          <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
+                            {agsDoDia.map((_, i) => <div key={`ag-${i}`} style={{ width: '7px', height: '7px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>)}
+                            {ossDoDia.map((_, i) => <div key={`os-${i}`} style={{ width: '7px', height: '7px', backgroundColor: '#d4af37', borderRadius: '50%' }}></div>)}
                           </div>
                         </div>
                       );
@@ -884,7 +912,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* PAINEL LATERAL */}
+                {/* PAINEL LATERAL ALARGADO */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.95)', border: '1px solid #222b45', borderRadius: '20px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <h3 style={{ fontSize: '21px', fontWeight: 'bold', color: '#d4af37', margin: 0, borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
                     📅 Agenda de {diaSelecionado}
@@ -949,7 +977,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS */}
+          {/* ABA 6: FUNCIONÁRIOS (Sem Cargo) */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -958,8 +986,7 @@ export default function Home() {
               </div>
 
               <form onSubmit={adicionarFuncionario} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '24px', borderRadius: '16px', border: '1px solid #1f293d' }}>
-                <input type="text" placeholder="Nome" required value={novoFuncNome} onChange={(e) => setNovoFuncNome(e.target.value)} style={{ flex: 1, minWidth: '180px', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
-                <input type="text" placeholder="Cargo" required value={novoFuncCargo} onChange={(e) => setNovoFuncCargo(e.target.value)} style={{ flex: 1, minWidth: '150px', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
+                <input type="text" placeholder="Nome do Funcionário" required value={novoFuncNome} onChange={(e) => setNovoFuncNome(e.target.value)} style={{ flex: 1, minWidth: '220px', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
                 <select value={tipoRemuneracao} onChange={(e) => setTipoRemuneracao(e.target.value as any)} style={{ padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', cursor: 'pointer' }}>
                   <option value="comissao">Porcentagem (%)</option>
                   <option value="fixo">Salário Fixo (€)</option>
@@ -973,7 +1000,7 @@ export default function Home() {
                 {funcionarios.map(f => (
                   <div key={f.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
                     <div>
-                      <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>{f.nome}</span> <span style={{ color: '#94a3b8', fontSize: '15px' }}>({f.cargo})</span>
+                      <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>{f.nome}</span>
                       <div style={{ marginTop: '8px', display: 'flex', gap: '18px', fontSize: '15px', flexWrap: 'wrap' }}>
                         <span style={{ color: '#d4af37' }}>
                           Remuneração: <b>{f.tipoRemuneracao === 'comissao' ? `${f.valorPctOuFixo}% (Comissão Líquida)` : f.tipoRemuneracao === 'fixo' ? `${f.valorPctOuFixo}€ (Fixo)` : `${f.valorPctOuFixo}€ (Diária)`}</b>
@@ -1021,22 +1048,34 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 8: EMPRESA */}
+          {/* ABA 8: EMPRESA (Com Endereço) */}
           {tab === 'config' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '800px' }}>
               <div>
                 <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Dados da Empresa</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Informações fiscais.</p>
+                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Informações fiscais e endereço.</p>
               </div>
 
               <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 <div>
-                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>Nome</label>
-                  <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
+                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>Nome da Empresa</label>
+                  <input type="text" value={dadosEmpresa.nome} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nome: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', boxSizing: 'border-box' }} />
                 </div>
                 <div>
                   <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>NIF</label>
-                  <input type="text" value={dadosEmpresa.nif} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nif: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
+                  <input type="text" value={dadosEmpresa.nif} onChange={(e) => setDadosEmpresa({...dadosEmpresa, nif: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>Endereço / Morada</label>
+                  <input type="text" value={dadosEmpresa.morada} onChange={(e) => setDadosEmpresa({...dadosEmpresa, morada: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>Telefone</label>
+                  <input type="text" value={dadosEmpresa.telefone} onChange={(e) => setDadosEmpresa({...dadosEmpresa, telefone: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', color: '#cbd5e1', fontSize: '15px', marginBottom: '8px', fontWeight: 'bold' }}>IBAN</label>
+                  <input type="text" value={dadosEmpresa.iban} onChange={(e) => setDadosEmpresa({...dadosEmpresa, iban: e.target.value})} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', boxSizing: 'border-box' }} />
                 </div>
               </div>
             </div>
