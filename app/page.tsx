@@ -48,6 +48,20 @@ export default function Home() {
   const [novoStockQtd, setNovoStockQtd] = useState('');
   const [novoStockCusto, setNovoStockCusto] = useState('');
 
+  // Despesas Fixas e Variáveis da Empresa
+  const [despesas, setDespesas] = useState<Array<{ id: number; tipo: 'Fixa' | 'Variável'; categoria: string; descricao: string; valor: number; data: string; anexoNome?: string }>>([
+    { id: 1, tipo: 'Fixa', categoria: 'Aluguel / Renda', descricao: 'Renda Pavilhão', valor: 1200.00, data: '2026-09-01' },
+    { id: 2, tipo: 'Fixa', categoria: 'Contabilidade', descricao: 'Honorários Contabilista', valor: 200.00, data: '2026-09-05' },
+    { id: 3, tipo: 'Variável', categoria: 'Produtos & Insumos', descricao: 'Compra de microfibras e champô', valor: 150.00, data: '2026-09-10' }
+  ]);
+
+  const [novaDespTipo, setNovaDespTipo] = useState<'Fixa' | 'Variável'>('Fixa');
+  const [novaDespCat, setNovaDespCat] = useState('Aluguel / Renda');
+  const [novaDespDesc, setNovaDespDesc] = useState('');
+  const [novaDespVal, setNovaDespVal] = useState('');
+  const [novaDespData, setNovaDespData] = useState(new Date().toISOString().split('T')[0]);
+  const [novaDespAnexo, setNovaDespAnexo] = useState<string | null>(null);
+
   // Funcionários
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 150.00 },
@@ -205,6 +219,36 @@ export default function Home() {
       }
       return os;
     }));
+  };
+
+  // Adicionar Despesa com suporte a foto/PDF
+  const adicionarDespesa = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!novaDespDesc || !novaDespVal) return;
+
+    const nova = {
+      id: Date.now(),
+      tipo: novaDespTipo,
+      categoria: novaDespCat,
+      descricao: novaDespDesc,
+      valor: Number(novaDespVal) || 0,
+      data: novaDespData,
+      anexoNome: novaDespAnexo || undefined
+    };
+
+    setDespesas([nova, ...despesas]);
+    setNovaDespDesc('');
+    setNovaDespVal('');
+    setNovaDespAnexo(null);
+    alert('Despesa registada com sucesso!');
+  };
+
+  const lidarComFicheiroAnexo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNovaDespAnexo(file.name);
+      // Aqui podes futuramente processar a leitura por IA/OCR se desejado
+    }
   };
 
   // Feriados Nacionais de Portugal
@@ -531,6 +575,7 @@ export default function Home() {
     { id: 'pateo', label: '🚗 Veículos no Pátio' },
     { id: 'metricas', label: '📊 Painel & Gráficos' },
     { id: 'operacional', label: '📋 OS / Orçamento / Agendamento' },
+    { id: 'despesas', label: '📉 Despesas & Custos' },
     { id: 'agenda', label: '🗓️ Calendário & Agenda' },
     { id: 'financeiro', label: '💰 Livro-Caixa & Relatório Diário' },
     { id: 'funcionarios', label: '👥 Funcionários & Salários' },
@@ -620,7 +665,6 @@ export default function Home() {
                 {ordensServico.map(os => (
                   <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     
-                    {/* Cabeçalho do Card: Viatura, Matrícula e Seletor de Estado */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
                       <div>
                         <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>🚗 {os.veiculo}</h3>
@@ -642,7 +686,6 @@ export default function Home() {
                       </select>
                     </div>
 
-                    {/* Informações detalhadas do Cliente, Trabalho e Técnicos */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '15px' }}>
                       <p style={{ margin: 0, color: '#e2e8f0' }}><b>👤 Cliente:</b> {os.cliente} (+351 {os.contacto})</p>
                       <p style={{ margin: 0, color: '#38bdf8' }}><b>🛠️ Trabalho em Execução:</b> {os.servicos.map(s => s.descricao).join(', ')}</p>
@@ -650,7 +693,6 @@ export default function Home() {
                       <p style={{ margin: 0, color: '#cbd5e1' }}><b>📅 Data de Entrega:</b> {os.data}</p>
                     </div>
 
-                    {/* Bloco de Gastos Adicionais da OS */}
                     {os.gastos && os.gastos.length > 0 && (
                       <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '10px', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <span style={{ fontSize: '13px', color: '#f87171', fontWeight: 'bold' }}>💸 Gastos Registados:</span>
@@ -663,7 +705,6 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* Botão e Input para Adicionar Gasto Rápido */}
                     {osAdicionandoGastoId === os.id ? (
                       <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div style={{ display: 'flex', gap: '8px' }}>
@@ -687,7 +728,6 @@ export default function Home() {
                       </button>
                     )}
 
-                    {/* Bloco Financeiro: Valores, Sinal e Forma de Pagamento */}
                     <div style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                         <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span>
@@ -695,7 +735,6 @@ export default function Home() {
                         <span style={{ color: '#34d399' }}>Falta: <b>{os.restanteAPagar.toFixed(2)}€</b></span>
                       </div>
 
-                      {/* Forma de Pagamento Final */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', borderTop: '1px solid #1f293d', paddingTop: '8px' }}>
                         <span style={{ fontSize: '13px', color: '#94a3b8' }}>Forma Pagamento Final:</span>
                         <select value={os.formaPagamentoFinal || 'MBWay'} onChange={(e) => alterarFormaPagamentoOS(os.id, e.target.value)} style={{ padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>
@@ -706,7 +745,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Rodapé com botão WhatsApp */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>💬 Enviar WhatsApp</button>
                     </div>
@@ -727,15 +765,21 @@ export default function Home() {
 
               {(() => {
                 const rec = transacoes.filter(t => t.tipo === 'receita').reduce((a, b) => a + b.valor, 0);
+                const totalDesp = despesas.reduce((a, b) => a + b.valor, 0);
+                const liquido = rec - totalDesp;
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                     <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '28px', borderRadius: '16px', border: '1px solid #1f293d' }}>
-                      <p style={{ color: '#d4af37', fontWeight: 'bold', margin: '0 0 10px 0' }}>LÍQUIDO</p>
-                      <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#34d399', margin: 0 }}>{rec.toFixed(2)} €</p>
+                      <p style={{ color: '#d4af37', fontWeight: 'bold', margin: '0 0 10px 0' }}>LÍQUIDI REAL</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'bold', color: liquido >= 0 ? '#34d399' : '#f87171', margin: 0 }}>{liquido.toFixed(2)} €</p>
                     </div>
                     <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '28px', borderRadius: '16px', border: '1px solid #1f293d' }}>
-                      <p style={{ color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0' }}>RECEITAS</p>
+                      <p style={{ color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0' }}>TOTAL RECEITAS</p>
                       <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#34d399', margin: 0 }}>+{rec.toFixed(2)} €</p>
+                    </div>
+                    <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '28px', borderRadius: '16px', border: '1px solid #1f293d' }}>
+                      <p style={{ color: '#94a3b8', fontWeight: 'bold', margin: '0 0 10px 0' }}>TOTAL DESPESAS</p>
+                      <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#f87171', margin: 0 }}>-{totalDesp.toFixed(2)} €</p>
                     </div>
                   </div>
                 );
@@ -835,7 +879,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* VIATURA E DATA DE ENTREGA (POSICIONADA NO LADO DIREITO NA OS) */}
                     <div style={{ display: 'grid', gridTemplateColumns: subAbaOperacional === 'os' ? '1fr 1fr' : '1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Viatura</label>
@@ -849,7 +892,6 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* SEÇÃO DE MÚLTIPLOS SERVIÇOS COM IVA 23% */}
                     <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                       <h4 style={{ fontSize: '17px', color: '#d4af37', margin: 0 }}>🛠️ Serviços Incluídos</h4>
                       
@@ -876,7 +918,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* SEÇÃO DE GASTOS (Apenas para OS) */}
                     {subAbaOperacional === 'os' && (
                       <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         <h4 style={{ fontSize: '17px', color: '#f87171', margin: 0 }}>💸 Gastos / Custos Associados (Pintor, Peças, PPF)</h4>
@@ -904,7 +945,6 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* SEÇÃO DE PROFISSIONAIS (Apenas para OS) */}
                     {subAbaOperacional === 'os' && (
                       <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <h4 style={{ fontSize: '17px', color: '#38bdf8', margin: 0 }}>👥 Profissionais Responsáveis (Múltiplos)</h4>
@@ -931,7 +971,6 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* DESCONTO, SINAL E FORMA DE PAGAMENTO DO SINAL */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Desconto Global (%)</label>
@@ -960,7 +999,6 @@ export default function Home() {
                     </button>
                   </form>
 
-                  {/* LISTA DE ORÇAMENTOS EMITIDOS */}
                   {subAbaOperacional === 'orcamento' && (
                     <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', maxWidth: '850px' }}>
                       <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', marginBottom: '20px' }}>📑 Orçamentos Emitidos</h3>
@@ -989,7 +1027,95 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: CALENDÁRIO & AGENDA */}
+          {/* ABA 4: DESPESAS & CUSTOS (COM SUPORTE A FOTO / PDF) */}
+          {tab === 'despesas' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '900px' }}>
+              <div>
+                <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>📉 Despesas Fixas & Variáveis</h2>
+                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Registe custos como aluguer, contabilidade, produtos e adicione fotos ou PDFs das faturas.</p>
+              </div>
+
+              <form onSubmit={adicionarDespesa} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>➕ Nova Despesa ou Fatura</h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Tipo de Despesa *</label>
+                    <select value={novaDespTipo} onChange={(e) => setNovaDespTipo(e.target.value as any)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', cursor: 'pointer' }}>
+                      <option value="Fixa">Fixa (Ex: Aluguer, Contabilidade)</option>
+                      <option value="Variável">Variável (Ex: Produtos, Ferramentas)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Categoria *</label>
+                    <select value={novaDespCat} onChange={(e) => setNovaDespCat(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', cursor: 'pointer' }}>
+                      <option value="Aluguel / Renda">Aluguel / Renda</option>
+                      <option value="Contabilidade">Contabilidade</option>
+                      <option value="Produtos & Insumos">Produtos & Insumos</option>
+                      <option value="Ferramentas & Equipamentos">Ferramentas & Equipamentos</option>
+                      <option value="Água / Luz / Internet">Água / Luz / Internet</option>
+                      <option value="Outras Despesas">Outras Despesas</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Descrição *</label>
+                    <input type="text" required placeholder="Ex: Renda Setembro ou Compra Polidores" value={novaDespDesc} onChange={(e) => setNovaDespDesc(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Valor (€) *</label>
+                    <input type="text" required placeholder="0.00" value={novaDespVal} onChange={(e) => setNovaDespVal(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data *</label>
+                    <input type="date" required value={novaDespData} onChange={(e) => setNovaDespData(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
+                  </div>
+                </div>
+
+                {/* BOTÃO PARA TIRAR FOTO OU INSERIR PDF */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1' }}>Anexar Fatura (Tirar Foto ou Inserir PDF)</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <label style={{ backgroundColor: '#2563eb', color: '#fff', padding: '12px 20px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px' }}>
+                      📷 Tirar Foto / Carregar PDF
+                      <input type="file" accept="image/*,application/pdf" capture="environment" onChange={lidarComFicheiroAnexo} style={{ display: 'none' }} />
+                    </label>
+                    {novaDespAnexo ? (
+                      <span style={{ color: '#34d399', fontSize: '14px', fontWeight: 'bold' }}>✓ Ficheiro anexado: {novaDespAnexo}</span>
+                    ) : (
+                      <span style={{ color: '#94a3b8', fontSize: '14px' }}>Nenhum ficheiro selecionado</span>
+                    )}
+                  </div>
+                </div>
+
+                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer', marginTop: '6px' }}>
+                  Guardar Despesa
+                </button>
+              </form>
+
+              {/* LISTA DE DESPESAS REGISTADAS */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Despesas Registadas</h3>
+                {despesas.map(d => (
+                  <div key={d.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '14px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+                    <div>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '12px', backgroundColor: d.tipo === 'Fixa' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(249, 115, 22, 0.2)', color: d.tipo === 'Fixa' ? '#60a5fa' : '#f97316', padding: '2px 8px', borderRadius: '6px', fontWeight: 'bold' }}>{d.tipo}</span>
+                        <span style={{ fontSize: '13px', color: '#d4af37' }}>{d.categoria}</span>
+                      </div>
+                      <h4 style={{ fontSize: '18px', color: '#fff', margin: 0 }}>{d.descricao}</h4>
+                      <p style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '13px' }}>Data: {d.data} {d.anexoNome ? `| 📎 Anexo: ${d.anexoNome}` : ''}</p>
+                    </div>
+                    <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#f87171' }}>-{d.valor.toFixed(2)} €</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ABA 5: CALENDÁRIO & AGENDA */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -1087,7 +1213,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 5: LIVRO-CAIXA & RELATÓRIO DIÁRIO INTELIGENTE */}
+          {/* ABA 6: LIVRO-CAIXA & RELATÓRIO DIÁRIO */}
           {tab === 'financeiro' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
@@ -1181,7 +1307,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS */}
+          {/* ABA 7: FUNCIONÁRIOS */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -1226,7 +1352,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 7: STOCK */}
+          {/* ABA 8: STOCK */}
           {tab === 'stock' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -1252,7 +1378,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 8: EMPRESA */}
+          {/* ABA 9: EMPRESA */}
           {tab === 'config' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '800px' }}>
               <div>
@@ -1288,7 +1414,6 @@ export default function Home() {
         </main>
       </div>
 
-      {/* MODAL DE REGISTO DE ADIANTAMENTO */}
       {modalAdiantamentoOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: '#131722', border: '1px solid #1f293d', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
