@@ -10,7 +10,7 @@ export default function DespesasCustos() {
     descricao: '',
     valor: '',
     data: new Date().toISOString().split('T')[0],
-    ficheiro: null,
+    ficheiro: null as File | null,
   });
 
   // Lista de despesas (exemplo inicial)
@@ -23,16 +23,18 @@ export default function DespesasCustos() {
   const [filtroPedido, setFiltroPedido] = useState('');
   const [filtroData, setFiltroData] = useState('');
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e) => {
-    setFormData({ ...formData, ficheiro: e.target.files[0] });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData({ ...formData, ficheiro: e.target.files[0] });
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.categoria || !formData.tipoDespesa || !formData.descricao || !formData.valor || !formData.data) {
       alert('Por favor, preencha todos os campos obrigatórios.');
@@ -41,7 +43,11 @@ export default function DespesasCustos() {
 
     const novaDespesa = {
       id: Date.now(),
-      ...formData,
+      categoria: formData.categoria,
+      tipoDespesa: formData.tipoDespesa,
+      descricao: formData.descricao,
+      valor: formData.valor,
+      data: formData.data,
     };
 
     setDespesas([novaDespesa, ...despesas]);
