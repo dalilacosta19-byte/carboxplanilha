@@ -39,7 +39,7 @@ export default function Home() {
   const [novoStockQtd, setNovoStockQtd] = useState('');
   const [novoStockCusto, setNovoStockCusto] = useState('');
 
-  // Funcionários (Sem Cargo)
+  // Funcionários
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: 'João Silva', tipoRemuneracao: 'comissao', valorPctOuFixo: 30, adiantamento: 150.00 },
     { id: 2, nome: 'Miguel Santos', tipoRemuneracao: 'fixo', valorPctOuFixo: 1000.00, adiantamento: 0.00 },
@@ -81,16 +81,15 @@ export default function Home() {
   const [agMinSel, setAgMinSel] = useState('00');
   const [agNotas, setAgNotas] = useState('');
 
-  // OS / Orçamento
+  // OS / Orçamento (Apenas Sinal e Forma de Pagamento do Sinal)
   const [osCliente, setOsCliente] = useState('');
   const [osTel1, setOsTel1] = useState('');
   const [osTel2, setOsTel2] = useState('');
   const [osVeiculo, setOsVeiculo] = useState('');
   const [osMatricula, setOsMatricula] = useState('');
   const [osSinal, setOsSinal] = useState('0');
+  const [osFormaPagamentoSinal, setOsFormaPagamentoSinal] = useState('MBWay');
   const [osDescontoPct, setOsDescontoPct] = useState('0');
-  const [osStatusInput, setOsStatusInput] = useState('Em Execução');
-  const [osFormaPagamentoInput, setOsFormaPagamentoInput] = useState('MBWay');
 
   // Lista dinâmica de Serviços
   const [osItensServicos, setOsItensServicos] = useState<Array<{ id: number; descricao: string; valorBase: number; valorComIva: number; desconto: number; comIva: boolean }>>([
@@ -125,7 +124,7 @@ export default function Home() {
       sinalPago: 150.00,
       restanteAPagar: 280.50,
       status: 'Em Execução', 
-      formaPagamento: 'MBWay',
+      formaPagamentoFinal: 'MBWay',
       data: new Date().toISOString().split('T')[0] 
     }
   ]);
@@ -149,6 +148,15 @@ export default function Home() {
 
   const [novaTransDesc, setNovaTransDesc] = useState('');
   const [novaTransVal, setNovaTransVal] = useState('');
+
+  // Funções para alterar estado e forma de pagamento diretamente no Pátio
+  const alterarEstadoOS = (id: number, novoStatus: string) => {
+    setOrdensServico(ordensServico.map(os => os.id === id ? { ...os, status: novoStatus } : os));
+  };
+
+  const alterarFormaPagamentoOS = (id: number, novaForma: string) => {
+    setOrdensServico(ordensServico.map(os => os.id === id ? { ...os, formaPagamentoFinal: novaForma } : os));
+  };
 
   // Feriados Nacionais de Portugal
   const isFeriadoPortugal = (ano: number, mes: number, dia: number) => {
@@ -400,14 +408,15 @@ export default function Home() {
         descontoTotal: descontoGlobal,
         valorFinal,
         sinalPago: sinal,
+        formaPagamentoSinal: osFormaPagamentoSinal,
         restanteAPagar: restante,
-        status: osStatusInput,
-        formaPagamento: osFormaPagamentoInput,
+        status: 'Em Execução',
+        formaPagamentoFinal: 'Pendente',
         data: new Date().toISOString().split('T')[0]
       };
       setOrdensServico([novaOS, ...ordensServico]);
       if (sinal > 0) {
-        setTransacoes([{ id: Date.now(), descricao: `Sinal OS #${novaOS.id} (${novaOS.matricula})`, matricula: novaOS.matricula, categoria: 'Serviço', tipo: 'receita', valor: sinal, data: novaOS.data }, ...transacoes]);
+        setTransacoes([{ id: Date.now(), descricao: `Sinal OS #${novaOS.id} (${novaOS.matricula}) - ${osFormaPagamentoSinal}`, matricula: novaOS.matricula, categoria: 'Serviço', tipo: 'receita', valor: sinal, data: novaOS.data }, ...transacoes]);
       }
       alert('Ordem de Serviço emitida com sucesso!');
     }
@@ -550,30 +559,57 @@ export default function Home() {
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-          {/* ABA 1: VEÍCULOS NO PÁTIO */}
+          {/* ABA 1: VEÍCULOS NO PÁTIO (Com controlo direto de Estado e Pagamento) */}
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
                 <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Veículos no Pátio</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Acompanhe o estado, forma de pagamento e envie avisos por WhatsApp.</p>
+                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Altere o estado e a forma de pagamento diretamente aqui para gerir a saída dos veículos:</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
                 {ordensServico.map(os => (
                   <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.veiculo} ({os.matricula})</h3>
-                      <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', backgroundColor: os.status === 'Em Execução' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(239, 68, 68, 0.2)', color: os.status === 'Em Execução' ? '#d4af37' : '#f87171' }}>
-                        {os.status || 'Em Execução'}
+                      <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', backgroundColor: os.status === 'Em Execução' ? 'rgba(212, 175, 55, 0.2)' : os.status === 'Aguardando Pagamento' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(52, 211, 153, 0.2)', color: os.status === 'Em Execução' ? '#d4af37' : os.status === 'Aguardando Pagamento' ? '#f97316' : '#34d399' }}>
+                        {os.status}
                       </span>
                     </div>
-                    <p style={{ margin: 0, color: '#cbd5e1' }}><b>Cliente:</b> {os.cliente} (+351 {os.contacto}) {os.contacto2 ? `| 2º: ${os.contacto2}` : ''}</p>
+
+                    <p style={{ margin: 0, color: '#cbd5e1' }}><b>Cliente:</b> {os.cliente} (+351 {os.contacto})</p>
                     <p style={{ margin: 0, color: '#d4af37' }}><b>Técnicos:</b> {os.profissionais && os.profissionais.length > 0 ? os.profissionais.join(', ') : 'N/D'}</p>
-                    <p style={{ margin: 0, color: '#38bdf8', fontSize: '14px' }}>💳 <b>Forma de Pagamento:</b> {os.formaPagamento || 'MBWay'}</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1f293d', paddingTop: '10px', alignItems: 'center' }}>
-                      <span>Total: <b>{os.valorFinal.toFixed(2)}€</b></span>
+
+                    <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                        <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span>
+                        <span style={{ color: '#f87171' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b></span>
+                        <span style={{ color: '#34d399' }}>Falta: <b>{os.restanteAPagar.toFixed(2)}€</b></span>
+                      </div>
+
+                      {/* CONTROLO DIRETO DE ESTADO */}
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                        <button onClick={() => alterarEstadoOS(os.id, 'Em Execução')} style={{ flex: 1, backgroundColor: os.status === 'Em Execução' ? '#d4af37' : '#131722', color: os.status === 'Em Execução' ? '#090a0f' : '#cbd5e1', border: '1px solid #222b45', padding: '6px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Em Execução</button>
+                        <button onClick={() => alterarEstadoOS(os.id, 'Aguardando Pagamento')} style={{ flex: 1, backgroundColor: os.status === 'Aguardando Pagamento' ? '#f97316' : '#131722', color: '#fff', border: '1px solid #222b45', padding: '6px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Aguar. Pagamento</button>
+                        <button onClick={() => alterarEstadoOS(os.id, 'Pago / Concluído')} style={{ flex: 1, backgroundColor: os.status === 'Pago / Concluído' ? '#34d399' : '#131722', color: os.status === 'Pago / Concluído' ? '#090a0f' : '#cbd5e1', border: '1px solid #222b45', padding: '6px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Pago / Sair</button>
+                      </div>
+
+                      {/* CONTROLO DIRETO DE FORMA DE PAGAMENTO */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                        <span style={{ fontSize: '13px', color: '#94a3b8' }}>Forma Pagamento Final:</span>
+                        <select value={os.formaPagamentoFinal || 'MBWay'} onChange={(e) => alterarFormaPagamentoOS(os.id, e.target.value)} style={{ padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px' }}>
+                          <option value="MBWay">MBWay</option>
+                          <option value="Dinheiro">Dinheiro</option>
+                          <option value="Empresa">Empresa / Transf.</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #1f293d', paddingTop: '10px' }}>
                       <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>💬 WhatsApp</button>
                     </div>
+
                   </div>
                 ))}
               </div>
@@ -784,7 +820,7 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* ESTADO, FORMA DE PAGAMENTO E DESCONTO */}
+                    {/* DESCONTO, SINAL E FORMA DE PAGAMENTO DO SINAL */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Desconto Global (%)</label>
@@ -793,16 +829,12 @@ export default function Home() {
                       {subAbaOperacional === 'os' && (
                         <>
                           <div>
-                            <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Estado</label>
-                            <select value={osStatusInput} onChange={(e) => setOsStatusInput(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}>
-                              <option value="Em Execução">Em Execução</option>
-                              <option value="Aguardando Pagamento">Aguardando Pagamento</option>
-                              <option value="Concluído">Concluído</option>
-                            </select>
+                            <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Sinal Pago (€)</label>
+                            <input type="text" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                           </div>
                           <div>
-                            <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Forma de Pagamento</label>
-                            <select value={osFormaPagamentoInput} onChange={(e) => setOsFormaPagamentoInput(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}>
+                            <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Forma Pagamento Sinal</label>
+                            <select value={osFormaPagamentoSinal} onChange={(e) => setOsFormaPagamentoSinal(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}>
                               <option value="MBWay">MBWay</option>
                               <option value="Dinheiro">Dinheiro</option>
                               <option value="Empresa">Empresa / Transf.</option>
@@ -811,13 +843,6 @@ export default function Home() {
                         </>
                       )}
                     </div>
-
-                    {subAbaOperacional === 'os' && (
-                      <div>
-                        <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Sinal Pago (€)</label>
-                        <input type="text" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                      </div>
-                    )}
 
                     <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer', marginTop: '10px' }}>
                       {subAbaOperacional === 'os' ? 'Emitir Ordem de Serviço Completa' : 'Gerar Orçamento'}
@@ -853,7 +878,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: CALENDÁRIO COMPACTO & PAINEL ALARGADO */}
+          {/* ABA 4: CALENDÁRIO & AGENDA */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -977,7 +1002,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 6: FUNCIONÁRIOS (Sem Cargo) */}
+          {/* ABA 6: FUNCIONÁRIOS */}
           {tab === 'funcionarios' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div>
@@ -1048,7 +1073,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 8: EMPRESA (Com Endereço) */}
+          {/* ABA 8: EMPRESA */}
           {tab === 'config' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '800px' }}>
               <div>
