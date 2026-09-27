@@ -580,41 +580,54 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
                 <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Veículos no Pátio</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Altere o estado e a forma de pagamento diretamente aqui para gerir a saída dos veículos:</p>
+                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte as informações completas e altere o estado ou forma de pagamento de cada viatura:</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
                 {ordensServico.map(os => (
-                  <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.veiculo} ({os.matricula})</h3>
-                      <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', backgroundColor: os.status === 'Em Execução' ? 'rgba(212, 175, 55, 0.2)' : os.status === 'Aguardando Pagamento' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(52, 211, 153, 0.2)', color: os.status === 'Em Execução' ? '#d4af37' : os.status === 'Aguardando Pagamento' ? '#f97316' : '#34d399' }}>
-                        {os.status}
-                      </span>
+                    {/* Cabeçalho do Card: Viatura e Seletor de Estado */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.veiculo}</h3>
+                        <span style={{ fontSize: '14px', color: '#d4af37', fontWeight: 'bold' }}>Matrícula: {os.matricula}</span>
+                      </div>
+                      <select 
+                        value={os.status} 
+                        onChange={(e) => alterarEstadoOS(os.id, e.target.value)} 
+                        style={{ 
+                          padding: '8px 14px', 
+                          backgroundColor: os.status === 'Em Execução' ? 'rgba(212, 175, 55, 0.2)' : os.status === 'Aguardando Pagamento' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(52, 211, 153, 0.2)', 
+                          color: os.status === 'Em Execução' ? '#d4af37' : os.status === 'Aguardando Pagamento' ? '#f97316' : '#34d399',
+                          border: '1px solid #222b45', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' 
+                        }}
+                      >
+                        <option value="Em Execução">Em Execução</option>
+                        <option value="Aguardando Pagamento">Aguardando Pagamento</option>
+                        <option value="Pago / Concluído">Pago / Concluído</option>
+                      </select>
                     </div>
 
-                    <p style={{ margin: 0, color: '#cbd5e1' }}><b>Cliente:</b> {os.cliente} (+351 {os.contacto})</p>
-                    <p style={{ margin: 0, color: '#d4af37' }}><b>Técnicos:</b> {os.profissionais && os.profissionais.length > 0 ? os.profissionais.join(', ') : 'N/D'}</p>
+                    {/* Informações detalhadas do Cliente, Técnicos e Data */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '15px' }}>
+                      <p style={{ margin: 0, color: '#e2e8f0' }}><b>👤 Cliente:</b> {os.cliente} (+351 {os.contacto})</p>
+                      <p style={{ margin: 0, color: '#e2e8f0' }}><b>🛠️ Técnico(s) Executando:</b> {os.profissionais && os.profissionais.length > 0 ? os.profissionais.join(', ') : 'N/D'}</p>
+                      <p style={{ margin: 0, color: '#e2e8f0' }}><b>📅 Data / Entrega:</b> {os.data}</p>
+                    </div>
 
-                    <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {/* Bloco Financeiro: Valores, Sinal e Forma de Pagamento */}
+                    <div style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                         <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span>
-                        <span style={{ color: '#f87171' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b></span>
+                        <span style={{ color: '#f87171' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b> ({os.formaPagamentoSinal || 'N/D'})</span>
                         <span style={{ color: '#34d399' }}>Falta: <b>{os.restanteAPagar.toFixed(2)}€</b></span>
                       </div>
 
-                      {/* CONTROLO DIRETO DE ESTADO */}
-                      <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                        <button onClick={() => alterarEstadoOS(os.id, 'Em Execução')} style={{ flex: 1, backgroundColor: os.status === 'Em Execução' ? '#d4af37' : '#131722', color: os.status === 'Em Execução' ? '#090a0f' : '#cbd5e1', border: '1px solid #222b45', padding: '6px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Em Execução</button>
-                        <button onClick={() => alterarEstadoOS(os.id, 'Aguardando Pagamento')} style={{ flex: 1, backgroundColor: os.status === 'Aguardando Pagamento' ? '#f97316' : '#131722', color: '#fff', border: '1px solid #222b45', padding: '6px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Aguar. Pagamento</button>
-                        <button onClick={() => alterarEstadoOS(os.id, 'Pago / Concluído')} style={{ flex: 1, backgroundColor: os.status === 'Pago / Concluído' ? '#34d399' : '#131722', color: os.status === 'Pago / Concluído' ? '#090a0f' : '#cbd5e1', border: '1px solid #222b45', padding: '6px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Pago / Sair</button>
-                      </div>
-
-                      {/* CONTROLO DIRETO DE FORMA DE PAGAMENTO */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                      {/* Forma de Pagamento Final */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', borderTop: '1px solid #1f293d', paddingTop: '8px' }}>
                         <span style={{ fontSize: '13px', color: '#94a3b8' }}>Forma Pagamento Final:</span>
-                        <select value={os.formaPagamentoFinal || 'MBWay'} onChange={(e) => alterarFormaPagamentoOS(os.id, e.target.value)} style={{ padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px' }}>
+                        <select value={os.formaPagamentoFinal || 'MBWay'} onChange={(e) => alterarFormaPagamentoOS(os.id, e.target.value)} style={{ padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>
                           <option value="MBWay">MBWay</option>
                           <option value="Dinheiro">Dinheiro</option>
                           <option value="Empresa">Empresa / Transf.</option>
@@ -622,8 +635,9 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #1f293d', paddingTop: '10px' }}>
-                      <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>💬 WhatsApp</button>
+                    {/* Rodapé com botão WhatsApp */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>💬 Enviar WhatsApp</button>
                     </div>
 
                   </div>
@@ -894,7 +908,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: CALENDÁRIO & AGENDA (Restaurado como antes, limpo e focado) */}
+          {/* ABA 4: CALENDÁRIO & AGENDA */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -953,7 +967,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* PAINEL LATERAL ALARGADO (Apenas Agenda do Dia) */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.95)', border: '1px solid #222b45', borderRadius: '20px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <h3 style={{ fontSize: '21px', fontWeight: 'bold', color: '#d4af37', margin: 0, borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
                     📅 Agenda de {diaSelecionado}
@@ -1001,7 +1014,6 @@ export default function Home() {
                 <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte o resumo financeiro detalhado de qualquer dia ou registe transações manuais.</p>
               </div>
 
-              {/* SECÇÃO DO RELATÓRIO DIÁRIO COM SELETOR DE DATA */}
               <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #222b45', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>🔍 Relatório Diário por Data</h3>
@@ -1016,7 +1028,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* RESUMO DO DIA SELECIONADO */}
                 {(() => {
                   const transDia = transacoes.filter(t => t.data === dataRelatorioSel && t.tipo === 'receita');
                   const totalEntradasDia = transDia.reduce((acc, t) => acc + t.valor, 0);
@@ -1041,7 +1052,6 @@ export default function Home() {
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                        {/* Lista de transações do dia */}
                         <div style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                           <h4 style={{ fontSize: '16px', color: '#34d399', margin: 0 }}>💰 Entradas Financeiras ({dataRelatorioSel})</h4>
                           {transDia.map(tr => (
@@ -1053,7 +1063,6 @@ export default function Home() {
                           {transDia.length === 0 && <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Nenhuma receita registada neste dia.</p>}
                         </div>
 
-                        {/* Lista de viaturas/OS do dia */}
                         <div style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                           <h4 style={{ fontSize: '16px', color: '#d4af37', margin: 0 }}>🚗 Viaturas & Serviços ({dataRelatorioSel})</h4>
                           {osDia.map(os => (
@@ -1070,7 +1079,6 @@ export default function Home() {
                 })()}
               </div>
 
-              {/* SECÇÃO DE REGISTO MANUAL & HISTÓRICO GERAL */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Registo Manual & Livro-Caixa Geral</h3>
                 <form onSubmit={adicionarTransacaoManual} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d', maxWidth: '800px' }}>
