@@ -785,7 +785,10 @@ export default function Home() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data *</label>
-                      <input type="date" required value={agData} onChange={(e) => setAgData(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input type="date" required value={agData} onChange={(e) => setAgData(e.target.value)} style={{ width: '100%', padding: '14px', paddingRight: '45px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
+                        <span style={{ position: 'absolute', right: '14px', pointerEvents: 'none', fontSize: '18px' }}>📅</span>
+                      </div>
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Hora e Minutos *</label>
@@ -839,10 +842,13 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* CAMPO DE DATA DE ENTREGA COM CALENDÁRIO */}
+                    {/* CAMPO DE DATA DE ENTREGA COM ÍCONE DE CALENDÁRIO À DIREITA */}
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data de Entrega Prevista *</label>
-                      <input type="date" required value={osDataEntrega} onChange={(e) => setOsDataEntrega(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer' }} />
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input type="date" required value={osDataEntrega} onChange={(e) => setOsDataEntrega(e.target.value)} style={{ width: '100%', padding: '14px', paddingRight: '45px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
+                        <span style={{ position: 'absolute', right: '14px', pointerEvents: 'none', fontSize: '18px' }}>📅</span>
+                      </div>
                     </div>
 
                     {/* SEÇÃO DE MÚLTIPLOS SERVIÇOS COM IVA 23% */}
