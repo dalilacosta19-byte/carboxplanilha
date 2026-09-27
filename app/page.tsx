@@ -99,6 +99,7 @@ export default function Home() {
   const [osSinal, setOsSinal] = useState('0');
   const [osFormaPagamentoSinal, setOsFormaPagamentoSinal] = useState('MBWay');
   const [osDescontoPct, setOsDescontoPct] = useState('0');
+  const [osDataEntrega, setOsDataEntrega] = useState(new Date().toISOString().split('T')[0]);
 
   // Lista dinâmica de Serviços
   const [osItensServicos, setOsItensServicos] = useState<Array<{ id: number; descricao: string; valorBase: number; valorComIva: number; desconto: number; comIva: boolean }>>([
@@ -437,7 +438,7 @@ export default function Home() {
         matricula: osMatricula.toUpperCase(),
         servicos: servicosMapeados,
         valorFinal,
-        data: new Date().toISOString().split('T')[0]
+        data: osDataEntrega
       };
       setOrcamentos([novoOrc, ...orcamentos]);
       alert('Orçamento gerado com sucesso!');
@@ -460,7 +461,7 @@ export default function Home() {
         restanteAPagar: restante,
         status: 'Em Execução',
         formaPagamentoFinal: 'MBWay',
-        data: new Date().toISOString().split('T')[0]
+        data: osDataEntrega
       };
       setOrdensServico([novaOS, ...ordensServico]);
       if (sinal > 0) {
@@ -646,7 +647,7 @@ export default function Home() {
                       <p style={{ margin: 0, color: '#e2e8f0' }}><b>👤 Cliente:</b> {os.cliente} (+351 {os.contacto})</p>
                       <p style={{ margin: 0, color: '#38bdf8' }}><b>🛠️ Trabalho em Execução:</b> {os.servicos.map(s => s.descricao).join(', ')}</p>
                       <p style={{ margin: 0, color: '#cbd5e1' }}><b>👥 Técnico(s):</b> {os.profissionais && os.profissionais.length > 0 ? os.profissionais.join(', ') : 'N/D'}</p>
-                      <p style={{ margin: 0, color: '#cbd5e1' }}><b>📅 Data / Entrega:</b> {os.data}</p>
+                      <p style={{ margin: 0, color: '#cbd5e1' }}><b>📅 Data de Entrega:</b> {os.data}</p>
                     </div>
 
                     {/* Bloco de Gastos Adicionais da OS */}
@@ -836,6 +837,12 @@ export default function Home() {
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Viatura</label>
                         <input type="text" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} placeholder="Renault Captur" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                       </div>
+                    </div>
+
+                    {/* CAMPO DE DATA DE ENTREGA COM CALENDÁRIO */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data de Entrega Prevista *</label>
+                      <input type="date" required value={osDataEntrega} onChange={(e) => setOsDataEntrega(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer' }} />
                     </div>
 
                     {/* SEÇÃO DE MÚLTIPLOS SERVIÇOS COM IVA 23% */}
