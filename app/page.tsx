@@ -81,7 +81,7 @@ export default function Home() {
   const [agMinSel, setAgMinSel] = useState('00');
   const [agNotas, setAgNotas] = useState('');
 
-  // OS / Orçamento (Apenas Sinal e Forma de Pagamento do Sinal)
+  // OS / Orçamento
   const [osCliente, setOsCliente] = useState('');
   const [osTel1, setOsTel1] = useState('');
   const [osTel2, setOsTel2] = useState('');
@@ -122,6 +122,7 @@ export default function Home() {
       descontoTotal: 0.00,
       valorFinal: 430.50,
       sinalPago: 150.00,
+      formaPagamentoSinal: 'MBWay',
       restanteAPagar: 280.50,
       status: 'Em Execução', 
       formaPagamentoFinal: 'MBWay',
@@ -151,7 +152,20 @@ export default function Home() {
 
   // Funções para alterar estado e forma de pagamento diretamente no Pátio
   const alterarEstadoOS = (id: number, novoStatus: string) => {
-    setOrdensServico(ordensServico.map(os => os.id === id ? { ...os, status: novoStatus } : os));
+    setOrdensServico(ordensServico.map(os => {
+      if (os.id === id) {
+        const atualizada = { ...os, status: novoStatus };
+        if (novoStatus === 'Pago / Concluído') {
+          // Adiciona transação automática ao concluir pagamento total
+          setTransacoes(prev => [
+            { id: Date.now(), descricao: `Pagamento Final OS #${os.id} (${os.matricula}) - ${os.formaPagamentoFinal}`, matricula: os.matricula, categoria: 'Serviço', tipo: 'receita', valor: os.restanteAPagar, data: new Date().toISOString().split('T')[0] },
+            ...prev
+          ]);
+        }
+        return atualizada;
+      }
+      return os;
+    }));
   };
 
   const alterarFormaPagamentoOS = (id: number, novaForma: string) => {
@@ -411,7 +425,7 @@ export default function Home() {
         formaPagamentoSinal: osFormaPagamentoSinal,
         restanteAPagar: restante,
         status: 'Em Execução',
-        formaPagamentoFinal: 'Pendente',
+        formaPagamentoFinal: 'MBWay',
         data: new Date().toISOString().split('T')[0]
       };
       setOrdensServico([novaOS, ...ordensServico]);
@@ -482,7 +496,7 @@ export default function Home() {
     { id: 'pateo', label: '🚗 Veículos no Pátio' },
     { id: 'metricas', label: '📊 Painel & Gráficos' },
     { id: 'operacional', label: '📋 OS / Orçamento / Agendamento' },
-    { id: 'agenda', label: '🗓️ Calendário & Agenda' },
+    { id: 'agenda', label: '🗓️ Calendário & Relatório Diário' },
     { id: 'financeiro', label: '💰 Livro-Caixa' },
     { id: 'funcionarios', label: '👥 Funcionários & Salários' },
     { id: 'stock', label: '📦 Controlo de Stock' },
@@ -559,7 +573,7 @@ export default function Home() {
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-          {/* ABA 1: VEÍCULOS NO PÁTIO (Com controlo direto de Estado e Pagamento) */}
+          {/* ABA 1: VEÍCULOS NO PÁTIO */}
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
@@ -878,13 +892,13 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: CALENDÁRIO & AGENDA */}
+          {/* ABA 4: CALENDÁRIO & RELATÓRIO INTELIGENTE DO DIA */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário & Agenda</h2>
-                  <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte agendamentos e feriados nacionais de Portugal.</p>
+                  <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário & Relatório Inteligente do Dia</h2>
+                  <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Selecione um dia para ver o balanço financeiro, viaturas e serviços realizados.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '16px', backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '12px 20px', borderRadius: '12px', border: '1px solid #1f293d', fontSize: '14px' }}>
                   <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>● Avaliações</span>
@@ -893,7 +907,9 @@ export default function Home() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 700px', gap: '28px', alignItems: 'start' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 750px', gap: '28px', alignItems: 'start' }}>
+                
+                {/* CALENDÁRIO */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1f293d', borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{nomesMeses[mesCalendario]} de {anoCalendario}</h3>
@@ -937,42 +953,85 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* PAINEL LATERAL ALARGADO */}
+                {/* PAINEL RELATÓRIO DO DIA SELECIONADO */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.95)', border: '1px solid #222b45', borderRadius: '20px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <h3 style={{ fontSize: '21px', fontWeight: 'bold', color: '#d4af37', margin: 0, borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
-                    📅 Agenda de {diaSelecionado}
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '600px', overflowY: 'auto' }}>
-                    {agendamentos.filter(a => a.data === diaSelecionado).map(ag => (
-                      <div key={ag.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', borderLeft: '6px solid #3b82f6', border: '1px solid rgba(59, 130, 246, 0.4)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '13px', backgroundColor: 'rgba(59, 130, 246, 0.25)', color: '#60a5fa', padding: '3px 10px', borderRadius: '6px', fontWeight: 'bold' }}>AVALIAÇÃO</span>
-                          <span style={{ fontSize: '15px', color: '#60a5fa', fontWeight: 'bold' }}>{ag.hora}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
+                    <h3 style={{ fontSize: '21px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>
+                      📊 Relatório de {diaSelecionado}
+                    </h3>
+                    <button onClick={() => window.print()} style={{ backgroundColor: '#38bdf8', color: '#090a0f', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>🖨️ Imprimir Fecho</button>
+                  </div>
+
+                  {/* CAIXINHAS DE RESUMO FINANCEIRO DO DIA */}
+                  {(() => {
+                    const transDia = transacoes.filter(t => t.data === diaSelecionado && t.tipo === 'receita');
+                    const totalRecebidoDia = transDia.reduce((acc, t) => acc + t.valor, 0);
+                    const numOSDia = ordensServico.filter(o => o.data === diaSelecionado).length;
+                    const numAgDia = agendamentos.filter(a => a.data === diaSelecionado).length;
+
+                    return (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                        <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #1f293d', textAlign: 'center' }}>
+                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>Entradas Dia</span>
+                          <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#34d399', margin: '4px 0 0 0' }}>+{totalRecebidoDia.toFixed(2)}€</p>
                         </div>
-                        <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
-                        <p style={{ margin: 0, color: '#e2e8f0', fontSize: '15px' }}>🚗 {ag.veiculo} ({ag.matricula})</p>
-                        <p style={{ margin: 0, color: '#d4af37', fontSize: '15px' }}>🛠️ Serviço: {ag.servicoAgendado}</p>
-                        <button onClick={() => enviarWhatsApp(ag.cliente, ag.veiculo, ag.matricula, ag.telefone1)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
+                        <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #1f293d', textAlign: 'center' }}>
+                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>OS Emitidas</span>
+                          <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: '4px 0 0 0' }}>{numOSDia}</p>
+                        </div>
+                        <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #1f293d', textAlign: 'center' }}>
+                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>Avaliações</span>
+                          <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#3b82f6', margin: '4px 0 0 0' }}>{numAgDia}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '450px', overflowY: 'auto' }}>
+                    
+                    {/* TRANSAÇÕES / DINHEIRO QUE ENTROU */}
+                    <h4 style={{ fontSize: '15px', color: '#34d399', margin: '10px 0 0 0' }}>💰 Dinheiro / Entradas Registadas</h4>
+                    {transacoes.filter(t => t.data === diaSelecionado).map(tr => (
+                      <div key={tr.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', border: '1px solid #1f293d', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#fff', fontSize: '14px' }}>{tr.descricao}</span>
+                        <span style={{ color: '#34d399', fontWeight: 'bold', fontSize: '14px' }}>+{tr.valor.toFixed(2)} €</span>
                       </div>
                     ))}
-
-                    {ordensServico.filter(o => o.data === diaSelecionado).map(os => (
-                      <div key={os.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', borderLeft: '6px solid #d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '13px', backgroundColor: 'rgba(212, 175, 55, 0.25)', color: '#fde047', padding: '3px 10px', borderRadius: '6px', fontWeight: 'bold' }}>ORDEM DE SERVIÇO</span>
-                          <span style={{ fontSize: '16px', color: '#34d399', fontWeight: 'bold' }}>{os.valorFinal.toFixed(2)} €</span>
-                        </div>
-                        <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.cliente}</h4>
-                        <p style={{ margin: 0, color: '#e2e8f0', fontSize: '15px' }}>🚗 {os.veiculo} ({os.matricula})</p>
-                        <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
-                      </div>
-                    ))}
-
-                    {agendamentos.filter(a => a.data === diaSelecionado).length === 0 && ordensServico.filter(o => o.data === diaSelecionado).length === 0 && (
-                      <p style={{ textAlign: 'center', color: '#94a3b8', padding: '40px 0' }}>Nenhum evento neste dia.</p>
+                    {transacoes.filter(t => t.data === diaSelecionado).length === 0 && (
+                      <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>Nenhuma transação financeira registada nesta data.</p>
                     )}
+
+                    {/* AGENDAMENTOS */}
+                    <h4 style={{ fontSize: '15px', color: '#3b82f6', margin: '10px 0 0 0' }}>📅 Avaliações / Agendamentos</h4>
+                    {agendamentos.filter(a => a.data === diaSelecionado).map(ag => (
+                      <div key={ag.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', borderLeft: '4px solid #3b82f6', border: '1px solid rgba(59, 130, 246, 0.4)', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 'bold' }}>{ag.hora}</span>
+                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>{ag.veiculo} ({ag.matricula})</span>
+                        </div>
+                        <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>{ag.cliente} — {ag.servicoAgendado}</span>
+                      </div>
+                    ))}
+
+                    {/* ORDENS DE SERVIÇO */}
+                    <h4 style={{ fontSize: '15px', color: '#d4af37', margin: '10px 0 0 0' }}>🚗 Ordens de Serviço (OS)</h4>
+                    {ordensServico.filter(o => o.data === diaSelecionado).map(os => (
+                      <div key={os.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', borderLeft: '4px solid #d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '12px', color: '#d4af37', fontWeight: 'bold' }}>OS #{os.id}</span>
+                          <span style={{ fontSize: '14px', color: '#34d399', fontWeight: 'bold' }}>{os.valorFinal.toFixed(2)} €</span>
+                        </div>
+                        <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>{os.cliente} ({os.veiculo} - {os.matricula})</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>Estado: {os.status}</span>
+                          <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
+                        </div>
+                      </div>
+                    ))}
+
                   </div>
                 </div>
+
               </div>
             </div>
           )}
