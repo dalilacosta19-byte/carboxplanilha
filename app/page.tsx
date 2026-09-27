@@ -20,6 +20,12 @@ export default function Home() {
   const [funcSelecionadoId, setFuncSelecionadoId] = useState<number | null>(null);
   const [valorAdiantamentoInput, setValorAdiantamentoInput] = useState('');
 
+  // Estados para Adicionar Gasto Rápido no Pátio
+  const [osAdicionandoGastoId, setOsAdicionandoGastoId] = useState<number | null>(null);
+  const [gastoTipoInput, setGastoTipoInput] = useState('Pintor');
+  const [gastoDescInput, setGastoDescInput] = useState('');
+  const [gastoValorInput, setGastoValorInput] = useState('');
+
   // Dados da Empresa
   const [dadosEmpresa, setDadosEmpresa] = useState({
     nome: 'CARBOX77 DETAILING, UNIPESSOAL LDA',
@@ -118,7 +124,7 @@ export default function Home() {
       contacto2: '911 222 333',
       veiculo: 'Renault Captur', 
       matricula: 'AZ-91-GI', 
-      servicos: [{ descricao: 'Limpeza Detalhada', valor: 430.50, desconto: 0, valorFinal: 430.50 }],
+      servicos: [{ descricao: 'Limpeza Detalhada & Polimento', valor: 430.50, desconto: 0, valorFinal: 430.50 }],
       gastos: [] as Array<{ id: number; tipo: string; descricao: string; valor: number }>,
       profissionais: ['João Silva'],
       valorTotalBruto: 430.50,
@@ -172,6 +178,32 @@ export default function Home() {
 
   const alterarFormaPagamentoOS = (id: number, novaForma: string) => {
     setOrdensServico(ordensServico.map(os => os.id === id ? { ...os, formaPagamentoFinal: novaForma } : os));
+  };
+
+  const adicionarGastoRapidoNoPatio = (osId: number) => {
+    if (!gastoDescInput || !gastoValorInput) return;
+    const val = Number(gastoValorInput) || 0;
+
+    setOrdensServico(ordensServico.map(os => {
+      if (os.id === osId) {
+        const novoGasto = { id: Date.now(), tipo: gastoTipoInput, descricao: gastoDescInput, valor: val };
+        return { ...os, gastos: [...(os.gastos || []), novoGasto] };
+      }
+      return os;
+    }));
+
+    setGastoDescInput('');
+    setGastoValorInput('');
+    setOsAdicionandoGastoId(null);
+  };
+
+  const removerGastoDoPatio = (osId: number, gastoId: number) => {
+    setOrdensServico(ordensServico.map(os => {
+      if (os.id === osId) {
+        return { ...os, gastos: (os.gastos || []).filter(g => g.id !== gastoId) };
+      }
+      return os;
+    }));
   };
 
   // Feriados Nacionais de Portugal
@@ -580,14 +612,14 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
                 <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Veículos no Pátio</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte as informações completas e altere o estado ou forma de pagamento de cada viatura:</p>
+                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte o trabalho em execução, dados do cliente, adicione gastos rápidos e altere estados:</p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
                 {ordensServico.map(os => (
                   <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     
-                    {/* Cabeçalho do Card: Viatura e Seletor de Estado */}
+                    {/* Cabeçalho do Card: Viatura, Matrícula e Seletor de Estado */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
                       <div>
                         <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.veiculo}</h3>
@@ -609,12 +641,50 @@ export default function Home() {
                       </select>
                     </div>
 
-                    {/* Informações detalhadas do Cliente, Técnicos e Data */}
+                    {/* Informações detalhadas do Cliente, Trabalho e Técnicos */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '15px' }}>
                       <p style={{ margin: 0, color: '#e2e8f0' }}><b>👤 Cliente:</b> {os.cliente} (+351 {os.contacto})</p>
-                      <p style={{ margin: 0, color: '#e2e8f0' }}><b>🛠️ Técnico(s) Executando:</b> {os.profissionais && os.profissionais.length > 0 ? os.profissionais.join(', ') : 'N/D'}</p>
-                      <p style={{ margin: 0, color: '#e2e8f0' }}><b>📅 Data / Entrega:</b> {os.data}</p>
+                      <p style={{ margin: 0, color: '#38bdf8' }}><b>🛠️ Trabalho em Execução:</b> {os.servicos.map(s => s.descricao).join(', ')}</p>
+                      <p style={{ margin: 0, color: '#cbd5e1' }}><b>👥 Técnico(s):</b> {os.profissionais && os.profissionais.length > 0 ? os.profissionais.join(', ') : 'N/D'}</p>
+                      <p style={{ margin: 0, color: '#cbd5e1' }}><b>📅 Data / Entrega:</b> {os.data}</p>
                     </div>
+
+                    {/* Bloco de Gastos Adicionais da OS */}
+                    {os.gastos && os.gastos.length > 0 && (
+                      <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '10px', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <span style={{ fontSize: '13px', color: '#f87171', fontWeight: 'bold' }}>💸 Gastos Registados:</span>
+                        {os.gastos.map(g => (
+                          <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#e2e8f0' }}>
+                            <span>[{g.tipo}] {g.descricao} (-{g.valor.toFixed(2)}€)</span>
+                            <button onClick={() => removerGastoDoPatio(os.id, g.id)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Botão e Input para Adicionar Gasto Rápido */}
+                    {osAdicionandoGastoId === os.id ? (
+                      <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <select value={gastoTipoInput} onChange={(e) => setGastoTipoInput(e.target.value)} style={{ padding: '6px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px' }}>
+                            <option value="Pintor">Pintor</option>
+                            <option value="PPF">Material PPF</option>
+                            <option value="Peças">Peças</option>
+                            <option value="Outro">Outro</option>
+                          </select>
+                          <input type="text" placeholder="Descrição do gasto" value={gastoDescInput} onChange={(e) => setGastoDescInput(e.target.value)} style={{ flex: 1, padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px' }} />
+                          <input type="text" placeholder="Valor (€)" value={gastoValorInput} onChange={(e) => setGastoValorInput(e.target.value)} style={{ width: '80px', padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px' }} />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                          <button onClick={() => setOsAdicionandoGastoId(null)} style={{ backgroundColor: '#1f293d', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Cancelar</button>
+                          <button onClick={() => adicionarGastoRapidoNoPatio(os.id)} style={{ backgroundColor: '#f87171', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Salvar Gasto</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setOsAdicionandoGastoId(os.id)} style={{ backgroundColor: 'transparent', color: '#f87171', border: '1px dashed rgba(248, 113, 113, 0.4)', padding: '6px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center' }}>
+                        + Adicionar Gasto / Custo
+                      </button>
+                    )}
 
                     {/* Bloco Financeiro: Valores, Sinal e Forma de Pagamento */}
                     <div style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
