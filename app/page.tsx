@@ -438,7 +438,7 @@ export default function Home() {
         matricula: osMatricula.toUpperCase(),
         servicos: servicosMapeados,
         valorFinal,
-        data: osDataEntrega
+        data: new Date().toISOString().split('T')[0]
       };
       setOrcamentos([novoOrc, ...orcamentos]);
       alert('Orçamento gerado com sucesso!');
@@ -824,7 +824,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel 1 (PT)</label>
                         <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', padding: '0 10px' }}>
@@ -836,19 +836,23 @@ export default function Home() {
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel 2 (Opcional)</label>
                         <input type="text" value={osTel2} onChange={(e) => setOsTel2(e.target.value)} placeholder="911 222 333" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                       </div>
+                    </div>
+
+                    {/* VIATURA E DATA DE ENTREGA (POSICIONADA NA COLUNA DA DIREITA NA OS) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: subAbaOperacional === 'os' ? '1fr 1fr' : '1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Viatura</label>
                         <input type="text" value={osVeiculo} onChange={(e) => setOsVeiculo(e.target.value)} placeholder="Renault Captur" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                       </div>
-                    </div>
-
-                    {/* CAMPO DE DATA DE ENTREGA COM ÍCONE DE CALENDÁRIO À DIREITA */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data de Entrega Prevista *</label>
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <input type="date" required value={osDataEntrega} onChange={(e) => setOsDataEntrega(e.target.value)} style={{ width: '100%', padding: '14px', paddingRight: '45px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
-                        <span style={{ position: 'absolute', right: '14px', pointerEvents: 'none', fontSize: '18px' }}>📅</span>
-                      </div>
+                      {subAbaOperacional === 'os' && (
+                        <div>
+                          <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data de Entrega Prevista *</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input type="date" required value={osDataEntrega} onChange={(e) => setOsDataEntrega(e.target.value)} style={{ width: '100%', padding: '14px', paddingRight: '45px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
+                            <span style={{ position: 'absolute', right: '14px', pointerEvents: 'none', fontSize: '18px' }}>📅</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* SEÇÃO DE MÚLTIPLOS SERVIÇOS COM IVA 23% */}
