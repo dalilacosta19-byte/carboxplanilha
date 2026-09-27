@@ -6,11 +6,14 @@ export default function Home() {
   const [user, setUser] = useState('admin');
   const [subAbaOperacional, setSubAbaOperacional] = useState<'agendamento' | 'orcamento' | 'os'>('os');
 
-  // Estado do Calendário
+  // Estado do Calendário Principal
   const dataAtualObj = new Date();
   const [mesCalendario, setMesCalendario] = useState(dataAtualObj.getMonth());
   const [anoCalendario, setAnoCalendario] = useState(dataAtualObj.getFullYear());
   const [diaSelecionado, setDiaSelecionado] = useState<string>(dataAtualObj.toISOString().split('T')[0]);
+
+  // Estado do Relatório Diário no Livro-Caixa
+  const [dataRelatorioSel, setDataRelatorioSel] = useState<string>(dataAtualObj.toISOString().split('T')[0]);
 
   // Modal de Adiantamento para Funcionários
   const [modalAdiantamentoOpen, setModalAdiantamentoOpen] = useState(false);
@@ -156,7 +159,6 @@ export default function Home() {
       if (os.id === id) {
         const atualizada = { ...os, status: novoStatus };
         if (novoStatus === 'Pago / Concluído') {
-          // Adiciona transação automática ao concluir pagamento total
           setTransacoes(prev => [
             { id: Date.now(), descricao: `Pagamento Final OS #${os.id} (${os.matricula}) - ${os.formaPagamentoFinal}`, matricula: os.matricula, categoria: 'Serviço', tipo: 'receita', valor: os.restanteAPagar, data: new Date().toISOString().split('T')[0] },
             ...prev
@@ -496,8 +498,8 @@ export default function Home() {
     { id: 'pateo', label: '🚗 Veículos no Pátio' },
     { id: 'metricas', label: '📊 Painel & Gráficos' },
     { id: 'operacional', label: '📋 OS / Orçamento / Agendamento' },
-    { id: 'agenda', label: '🗓️ Calendário & Relatório Diário' },
-    { id: 'financeiro', label: '💰 Livro-Caixa' },
+    { id: 'agenda', label: '🗓️ Calendário & Agenda' },
+    { id: 'financeiro', label: '💰 Livro-Caixa & Relatório Diário' },
     { id: 'funcionarios', label: '👥 Funcionários & Salários' },
     { id: 'stock', label: '📦 Controlo de Stock' },
     { id: 'config', label: '⚙️ Empresa' },
@@ -892,13 +894,13 @@ export default function Home() {
             </div>
           )}
 
-          {/* ABA 4: CALENDÁRIO & RELATÓRIO INTELIGENTE DO DIA */}
+          {/* ABA 4: CALENDÁRIO & AGENDA (Restaurado como antes, limpo e focado) */}
           {tab === 'agenda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário & Relatório Inteligente do Dia</h2>
-                  <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Selecione um dia para ver o balanço financeiro, viaturas e serviços realizados.</p>
+                  <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Calendário & Agenda</h2>
+                  <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte agendamentos e feriados nacionais de Portugal.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '16px', backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '12px 20px', borderRadius: '12px', border: '1px solid #1f293d', fontSize: '14px' }}>
                   <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>● Avaliações</span>
@@ -907,9 +909,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 750px', gap: '28px', alignItems: 'start' }}>
-                
-                {/* CALENDÁRIO */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 700px', gap: '28px', alignItems: 'start' }}>
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid #1f293d', borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{nomesMeses[mesCalendario]} de {anoCalendario}</h3>
@@ -953,111 +953,142 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* PAINEL RELATÓRIO DO DIA SELECIONADO */}
+                {/* PAINEL LATERAL ALARGADO (Apenas Agenda do Dia) */}
                 <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.95)', border: '1px solid #222b45', borderRadius: '20px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
-                    <h3 style={{ fontSize: '21px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>
-                      📊 Relatório de {diaSelecionado}
-                    </h3>
-                    <button onClick={() => window.print()} style={{ backgroundColor: '#38bdf8', color: '#090a0f', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>🖨️ Imprimir Fecho</button>
-                  </div>
-
-                  {/* CAIXINHAS DE RESUMO FINANCEIRO DO DIA */}
-                  {(() => {
-                    const transDia = transacoes.filter(t => t.data === diaSelecionado && t.tipo === 'receita');
-                    const totalRecebidoDia = transDia.reduce((acc, t) => acc + t.valor, 0);
-                    const numOSDia = ordensServico.filter(o => o.data === diaSelecionado).length;
-                    const numAgDia = agendamentos.filter(a => a.data === diaSelecionado).length;
-
-                    return (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                        <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #1f293d', textAlign: 'center' }}>
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>Entradas Dia</span>
-                          <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#34d399', margin: '4px 0 0 0' }}>+{totalRecebidoDia.toFixed(2)}€</p>
-                        </div>
-                        <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #1f293d', textAlign: 'center' }}>
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>OS Emitidas</span>
-                          <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37', margin: '4px 0 0 0' }}>{numOSDia}</p>
-                        </div>
-                        <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #1f293d', textAlign: 'center' }}>
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>Avaliações</span>
-                          <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#3b82f6', margin: '4px 0 0 0' }}>{numAgDia}</p>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '450px', overflowY: 'auto' }}>
-                    
-                    {/* TRANSAÇÕES / DINHEIRO QUE ENTROU */}
-                    <h4 style={{ fontSize: '15px', color: '#34d399', margin: '10px 0 0 0' }}>💰 Dinheiro / Entradas Registadas</h4>
-                    {transacoes.filter(t => t.data === diaSelecionado).map(tr => (
-                      <div key={tr.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', border: '1px solid #1f293d', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#fff', fontSize: '14px' }}>{tr.descricao}</span>
-                        <span style={{ color: '#34d399', fontWeight: 'bold', fontSize: '14px' }}>+{tr.valor.toFixed(2)} €</span>
-                      </div>
-                    ))}
-                    {transacoes.filter(t => t.data === diaSelecionado).length === 0 && (
-                      <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>Nenhuma transação financeira registada nesta data.</p>
-                    )}
-
-                    {/* AGENDAMENTOS */}
-                    <h4 style={{ fontSize: '15px', color: '#3b82f6', margin: '10px 0 0 0' }}>📅 Avaliações / Agendamentos</h4>
+                  <h3 style={{ fontSize: '21px', fontWeight: 'bold', color: '#d4af37', margin: 0, borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
+                    📅 Agenda de {diaSelecionado}
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '600px', overflowY: 'auto' }}>
                     {agendamentos.filter(a => a.data === diaSelecionado).map(ag => (
-                      <div key={ag.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', borderLeft: '4px solid #3b82f6', border: '1px solid rgba(59, 130, 246, 0.4)', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div key={ag.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', borderLeft: '6px solid #3b82f6', border: '1px solid rgba(59, 130, 246, 0.4)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 'bold' }}>{ag.hora}</span>
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>{ag.veiculo} ({ag.matricula})</span>
+                          <span style={{ fontSize: '13px', backgroundColor: 'rgba(59, 130, 246, 0.25)', color: '#60a5fa', padding: '3px 10px', borderRadius: '6px', fontWeight: 'bold' }}>AVALIAÇÃO</span>
+                          <span style={{ fontSize: '15px', color: '#60a5fa', fontWeight: 'bold' }}>{ag.hora}</span>
                         </div>
-                        <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>{ag.cliente} — {ag.servicoAgendado}</span>
+                        <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
+                        <p style={{ margin: 0, color: '#e2e8f0', fontSize: '15px' }}>🚗 {ag.veiculo} ({ag.matricula})</p>
+                        <p style={{ margin: 0, color: '#d4af37', fontSize: '15px' }}>🛠️ Serviço: {ag.servicoAgendado}</p>
+                        <button onClick={() => enviarWhatsApp(ag.cliente, ag.veiculo, ag.matricula, ag.telefone1)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
                       </div>
                     ))}
 
-                    {/* ORDENS DE SERVIÇO */}
-                    <h4 style={{ fontSize: '15px', color: '#d4af37', margin: '10px 0 0 0' }}>🚗 Ordens de Serviço (OS)</h4>
                     {ordensServico.filter(o => o.data === diaSelecionado).map(os => (
-                      <div key={os.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', borderLeft: '4px solid #d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div key={os.id} style={{ backgroundColor: 'rgba(11, 15, 25, 0.95)', borderLeft: '6px solid #d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '12px', color: '#d4af37', fontWeight: 'bold' }}>OS #{os.id}</span>
-                          <span style={{ fontSize: '14px', color: '#34d399', fontWeight: 'bold' }}>{os.valorFinal.toFixed(2)} €</span>
+                          <span style={{ fontSize: '13px', backgroundColor: 'rgba(212, 175, 55, 0.25)', color: '#fde047', padding: '3px 10px', borderRadius: '6px', fontWeight: 'bold' }}>ORDEM DE SERVIÇO</span>
+                          <span style={{ fontSize: '16px', color: '#34d399', fontWeight: 'bold' }}>{os.valorFinal.toFixed(2)} €</span>
                         </div>
-                        <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>{os.cliente} ({os.veiculo} - {os.matricula})</span>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>Estado: {os.status}</span>
-                          <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
-                        </div>
+                        <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{os.cliente}</h4>
+                        <p style={{ margin: 0, color: '#e2e8f0', fontSize: '15px' }}>🚗 {os.veiculo} ({os.matricula})</p>
+                        <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
                       </div>
                     ))}
 
+                    {agendamentos.filter(a => a.data === diaSelecionado).length === 0 && ordensServico.filter(o => o.data === diaSelecionado).length === 0 && (
+                      <p style={{ textAlign: 'center', color: '#94a3b8', padding: '40px 0' }}>Nenhum evento neste dia.</p>
+                    )}
                   </div>
                 </div>
-
               </div>
             </div>
           )}
 
-          {/* ABA 5: LIVRO-CAIXA */}
+          {/* ABA 5: LIVRO-CAIXA & RELATÓRIO DIÁRIO INTELIGENTE */}
           {tab === 'financeiro' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
-                <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Livro-Caixa & Finanças</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Registo de entradas e saídas.</p>
+                <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Livro-Caixa & Relatório Diário Inteligente</h2>
+                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte o resumo financeiro detalhado de qualquer dia ou registe transações manuais.</p>
               </div>
 
-              <form onSubmit={adicionarTransacaoManual} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d', maxWidth: '800px' }}>
-                <input type="text" placeholder="Descrição" value={novaTransDesc} onChange={(e) => setNovaTransDesc(e.target.value)} style={{ flex: 1, minWidth: '240px', padding: '12px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
-                <input type="text" placeholder="Valor (€)" value={novaTransVal} onChange={(e) => setNovaTransVal(e.target.value)} style={{ width: '130px', padding: '12px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
-                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Adicionar</button>
-              </form>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '800px' }}>
-                {transacoes.map(tr => (
-                  <div key={tr.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '18px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#fff' }}>{tr.descricao} ({tr.data})</span>
-                    <span style={{ color: tr.tipo === 'receita' ? '#34d399' : '#f87171', fontWeight: 'bold' }}>+{tr.valor.toFixed(2)} €</span>
+              {/* SECÇÃO DO RELATÓRIO DIÁRIO COM SELETOR DE DATA */}
+              <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #222b45', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>🔍 Relatório Diário por Data</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Escolher Dia:</label>
+                    <input 
+                      type="date" 
+                      value={dataRelatorioSel} 
+                      onChange={(e) => setDataRelatorioSel(e.target.value)} 
+                      style={{ padding: '10px 14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '15px', cursor: 'pointer' }} 
+                    />
                   </div>
-                ))}
+                </div>
+
+                {/* RESUMO DO DIA SELECIONADO */}
+                {(() => {
+                  const transDia = transacoes.filter(t => t.data === dataRelatorioSel && t.tipo === 'receita');
+                  const totalEntradasDia = transDia.reduce((acc, t) => acc + t.valor, 0);
+                  const osDia = ordensServico.filter(o => o.data === dataRelatorioSel);
+                  const agDia = agendamentos.filter(a => a.data === dataRelatorioSel);
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                        <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', border: '1px solid #1f293d', textAlign: 'center' }}>
+                          <span style={{ fontSize: '13px', color: '#94a3b8' }}>Total Entradas no Dia</span>
+                          <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#34d399', margin: '6px 0 0 0' }}>+{totalEntradasDia.toFixed(2)}€</p>
+                        </div>
+                        <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', border: '1px solid #1f293d', textAlign: 'center' }}>
+                          <span style={{ fontSize: '13px', color: '#94a3b8' }}>OS Emitidas</span>
+                          <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#d4af37', margin: '6px 0 0 0' }}>{osDia.length}</p>
+                        </div>
+                        <div style={{ backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', border: '1px solid #1f293d', textAlign: 'center' }}>
+                          <span style={{ fontSize: '13px', color: '#94a3b8' }}>Avaliações Agendadas</span>
+                          <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#3b82f6', margin: '6px 0 0 0' }}>{agDia.length}</p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        {/* Lista de transações do dia */}
+                        <div style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <h4 style={{ fontSize: '16px', color: '#34d399', margin: 0 }}>💰 Entradas Financeiras ({dataRelatorioSel})</h4>
+                          {transDia.map(tr => (
+                            <div key={tr.id} style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: '#131722', padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }}>
+                              <span style={{ color: '#fff' }}>{tr.descricao}</span>
+                              <span style={{ color: '#34d399', fontWeight: 'bold' }}>+{tr.valor.toFixed(2)}€</span>
+                            </div>
+                          ))}
+                          {transDia.length === 0 && <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Nenhuma receita registada neste dia.</p>}
+                        </div>
+
+                        {/* Lista de viaturas/OS do dia */}
+                        <div style={{ backgroundColor: '#090a0f', padding: '18px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <h4 style={{ fontSize: '16px', color: '#d4af37', margin: 0 }}>🚗 Viaturas & Serviços ({dataRelatorioSel})</h4>
+                          {osDia.map(os => (
+                            <div key={os.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#131722', padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }}>
+                              <span style={{ color: '#fff' }}><b>{os.veiculo}</b> ({os.matricula}) — {os.status}</span>
+                              <span style={{ color: '#d4af37', fontWeight: 'bold' }}>{os.valorFinal.toFixed(2)}€</span>
+                            </div>
+                          ))}
+                          {osDia.length === 0 && <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Nenhuma OS emitida neste dia.</p>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
+
+              {/* SECÇÃO DE REGISTO MANUAL & HISTÓRICO GERAL */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Registo Manual & Livro-Caixa Geral</h3>
+                <form onSubmit={adicionarTransacaoManual} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d', maxWidth: '800px' }}>
+                  <input type="text" placeholder="Descrição" value={novaTransDesc} onChange={(e) => setNovaTransDesc(e.target.value)} style={{ flex: 1, minWidth: '240px', padding: '12px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
+                  <input type="text" placeholder="Valor (€)" value={novaTransVal} onChange={(e) => setNovaTransVal(e.target.value)} style={{ width: '130px', padding: '12px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
+                  <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Adicionar</button>
+                </form>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '800px' }}>
+                  {transacoes.map(tr => (
+                    <div key={tr.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '18px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#fff' }}>{tr.descricao} ({tr.data})</span>
+                      <span style={{ color: tr.tipo === 'receita' ? '#34d399' : '#f87171', fontWeight: 'bold' }}>+{tr.valor.toFixed(2)} €</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           )}
 
