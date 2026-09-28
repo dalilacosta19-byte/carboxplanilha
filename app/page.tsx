@@ -8,7 +8,11 @@ export default function Home() {
   
   const [user, setUser] = useState('admin');
   const [subAbaOperacional, setSubAbaOperacional] = useState<'agendamento' | 'orcamento' | 'os'>('os');
-
+const [novoServicoDescricao, setNovoServicoDescricao] = useState('');
+const [novoServicoValor, setNovoServicoValor] = useState('');
+const [novoServicoDesconto, setNovoServicoDesconto] = useState('');
+const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
+  
   // Estado do Calendário Principal
   const dataAtualObj = new Date();
   const [mesCalendario, setMesCalendario] = useState(dataAtualObj.getMonth());
