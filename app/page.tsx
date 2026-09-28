@@ -689,48 +689,45 @@ export default function Home() {
       </div>
     ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {ordensServico
-          .filter(os => 
-            (os.matricula || '').toLowerCase().includes(pesquisaHistorico.toLowerCase()) || 
-            (os.cliente || '').toLowerCase().includes(pesquisaHistorico.toLowerCase())
-          )
-          .length === 0 ? (
-            <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', backgroundColor: '#131722', borderRadius: '12px', border: '1px solid #222b45' }}>
-              Nenhum registo encontrado para esta pesquisa.
+        {(() => {
+          const termo = pesquisaHistorico.toLowerCase().trim();
+          const termoLimpo = termo.replace(/[^a-z0-9]/g, '');
+          const resultados = ordensServico.filter(os => {
+            const matLimpa = (os.matricula || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const clienteLower = (os.cliente || '').toLowerCase();
+            return (termoLimpo && matLimpa.includes(termoLimpo)) || (termo && clienteLower.includes(termo));
+          });
+
+          if (resultados.length === 0) {
+            return (
+              <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', backgroundColor: '#131722', borderRadius: '12px', border: '1px solid #222b45' }}>
+                Nenhum registo encontrado para esta pesquisa.
+              </div>
+            );
+          }
+
+          return resultados.map(os => (
+            <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '12px', padding: '20px', color: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #222b45', paddingBottom: '10px' }}>
+                <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#38bdf8' }}>🚗 {os.matricula} — {os.veiculo}</span>
+                <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', backgroundColor: os.status === 'Pago / Concluído' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(234, 179, 8, 0.2)', color: os.status === 'Pago / Concluído' ? '#4ade80' : '#facc15' }}>
+                  {os.status}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', fontSize: '14px', color: '#94a3b8' }}>
+                <div>👤 <b>Cliente:</b> {os.cliente}</div>
+                <div>📞 <b>Telemóvel:</b> {os.contacto}</div>
+                <div>🛠️ <b>Serviço:</b> {os.servicos ? os.servicos.map(s => s.descricao).join(', ') : 'Serviço Geral'}</div>
+                <div>👨‍🔧 <b>Técnico:</b> Equipa CARBOX77</div>
+                <div>📅 <b>Data:</b> {os.data}</div>
+                <div>💰 <b>Total:</b> {os.servicos ? os.servicos.reduce((acc, s) => acc + (s.valorFinal || 0), 0) : 0}€</div>
+              </div>
             </div>
-          ) : (
-            ordensServico
-              .filter(os => 
-                (os.matricula || '').toLowerCase().includes(pesquisaHistorico.toLowerCase()) || 
-                (os.cliente || '').toLowerCase().includes(pesquisaHistorico.toLowerCase())
-              )
-              .map(os => (
-                <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '12px', padding: '20px', color: '#fff' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #222b45', paddingBottom: '10px' }}>
-                    <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#38bdf8' }}>🚗 {os.matricula} — {os.veiculo}</span>
-                    <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', backgroundColor: os.status === 'Pago / Concluído' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(234, 179, 8, 0.2)', color: os.status === 'Pago / Concluído' ? '#4ade80' : '#facc15' }}>
-                      {os.status}
-                    </span>
-                  </div>
-                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', fontSize: '14px', color: '#94a3b8' }}>
-  <div>👤 <b>Cliente:</b> {os.cliente}</div>
-  <div>📞 <b>Telemóvel:</b> {os.contacto}</div>
-  <div>🛠️ <b>Serviço:</b> {os.servicos ? os.servicos.map(s => s.descricao).join(', ') : 'Serviço Geral'}</div>
-  <div>👨‍🔧 <b>Técnico:</b> Equipa CARBOX77</div>
-  <div>📅 <b>Data:</b> {os.data}</div>
-  <div>💰 <b>Total:</b> {os.servicos ? os.servicos.reduce((acc, s) => acc + (s.valorFinal || 0), 0) : 0}€</div>
-</div>
-                  
-                  
-                  
-                  
-                </div>
-              ))
-          )}
+          ));
+        })()}
       </div>
     )}
-  </div>
-)}
+    
           
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
