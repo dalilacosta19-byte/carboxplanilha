@@ -712,14 +712,15 @@ export default function Home() {
                       {os.status}
                     </span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', fontSize: '14px', color: '#94a3b8' }}>
+                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', fontSize: '14px', color: '#94a3b8' }}>
   <div>👤 <b>Cliente:</b> {os.cliente}</div>
   <div>📞 <b>Telemóvel:</b> {os.contacto}</div>
   <div>🛠️ <b>Serviço:</b> {os.servicos ? os.servicos.map(s => s.descricao).join(', ') : 'Serviço Geral'}</div>
   <div>👨‍🔧 <b>Técnico:</b> Equipa CARBOX77</div>
   <div>📅 <b>Data:</b> {os.data}</div>
-  <div>💰 <b>Total:</b> {os.total || '0'}€</div>
+  <div>💰 <b>Total:</b> {os.servicos ? os.servicos.reduce((acc, s) => acc + (s.valorFinal || 0), 0) : 0}€</div>
 </div>
+                  
                   
                   
                   
