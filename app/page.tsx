@@ -4,6 +4,7 @@ import { useState } from 'react';
 export default function Home() {
   const [tab, setTab] = useState('pateo');
   const [pesquisaPatio, setPesquisaPatio] = useState('');
+  const [pesquisaHistorico, setPesquisaHistorico] = useState('');
   
   const [user, setUser] = useState('admin');
   const [subAbaOperacional, setSubAbaOperacional] = useState<'agendamento' | 'orcamento' | 'os'>('os');
