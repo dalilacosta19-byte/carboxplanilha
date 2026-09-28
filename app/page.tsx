@@ -1062,31 +1062,9 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
                           <input type="checkbox" checked={novoServComIva} onChange={(e) => setNovoServComIva(e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
                           IVA 23%
                         </label>
-                        <button 
-  type="button"
-  onClick={() => {
-    if (!novoServicoDescricao || !novoServicoValor) return;
-    const val = parseFloat(novoServicoValor) || 0;
-    const desc = parseFloat(novoServicoDesconto) || 0;
-    const final = Math.max(0, val - desc);
-    
-    setServicosTemp([...servicosTemp, {
-      descricao: novoServicoDescricao,
-      valor: val,
-      desconto: desc,
-      valorFinal: final,
-      tecnico: novoServicoTecnico || 'Equipa CARBOX77'
-    }]);
-    setNovoServicoDescricao('');
-    setNovoServicoValor('');
-    setNovoServicoDesconto('');
-    setNovoServicoTecnico('');
-  }}
-  style={{ padding: '10px 16px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
->
-  Adicionar
-</button>
-  
+                        <button type="button" onClick={adicionarServicoOS} style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>+ Adicionar</button>
+                      </div>
+                    </div>
 
                     {subAbaOperacional === 'os' && (
                       <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
