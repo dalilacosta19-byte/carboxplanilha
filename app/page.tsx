@@ -716,10 +716,11 @@ export default function Home() {
   <div>👤 <b>Cliente:</b> {os.cliente}</div>
   <div>📞 <b>Telemóvel:</b> {os.contacto}</div>
   <div>🛠️ <b>Serviço:</b> {os.servicos ? os.servicos.map(s => s.descricao).join(', ') : 'Serviço Geral'}</div>
-  <div>👨‍🔧 <b>Técnico:</b> {os.tecnico || 'Não atribuído'}</div>
+  <div>👨‍🔧 <b>Técnico:</b> Equipa CARBOX77</div>
   <div>📅 <b>Data:</b> {os.data}</div>
   <div>💰 <b>Total:</b> {os.total || '0'}€</div>
 </div>
+                  
                   
                   
                 </div>
