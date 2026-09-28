@@ -1012,7 +1012,7 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
                           </div>
                         ))}
                       </div>
-                     {/* Sugestões Inteligentes de Serviços Anteriores */}
+                      {/* Sugestões Inteligentes de Serviços Anteriores */}
 <datalist id="sugestoes-servicos">
   {Array.from(new Set(ordensServico.flatMap(o => (o.servicos || []).map(s => s.descricao)))).map((desc, i) => (
     <option key={i} value={desc} />
@@ -1023,11 +1023,11 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
   <option value="Proteção Cerâmica" />
 </datalist>
 
-<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr auto auto', gap: '10px', alignItems: 'center', marginTop: '10px' }}>
+<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr auto', gap: '10px', alignItems: 'center' }}>
   <input 
     type="text" 
     list="sugestoes-servicos"
-    placeholder="Nome do Serviço..."
+    placeholder="Nome do Serviço (clique para ver histórico)..."
     value={novoServicoDescricao}
     onChange={(e) => setNovoServicoDescricao(e.target.value)}
     style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
@@ -1041,7 +1041,7 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
   />
   <input 
     type="number" 
-    placeholder="Desconto (%)"
+    placeholder="Desconto (€)"
     value={novoServicoDesconto || ''}
     onChange={(e) => setNovoServicoDesconto(e.target.value)}
     style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
@@ -1057,45 +1057,14 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
     <option value="Ricardo Costa">Ricardo Costa</option>
     <option value="Kevin">Kevin</option>
   </select>
-
-  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#cbd5e1', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-    <input 
-      type="checkbox" 
-      checked={novoServicoIva} 
-      onChange={(e) => setNovoServicoIva(e.target.checked)} 
-      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-    />
-    IVA 23%
-  </label>
-
-  <button 
-    type="button"
-    onClick={() => {
-      if (!novoServicoDescricao || !novoServicoValor) return;
-      const val = parseFloat(novoServicoValor) || 0;
-      const descPercent = parseFloat(novoServicoDesconto) || 0;
-      const valorComDesconto = val * (1 - descPercent / 100);
-      const final = Math.max(0, valorComDesconto);
-      
-      setServicosTemp([...servicosTemp, {
-        descricao: novoServicoDescricao,
-        valor: val,
-        descontoPercent: descPercent,
-        valorFinal: final,
-        tecnico: novoServicoTecnico || 'Equipa CARBOX77',
-        iva: novoServicoIva
-      }]);
-      setNovoServicoDescricao('');
-      setNovoServicoValor('');
-      setNovoServicoDesconto('');
-      setNovoServicoTecnico('');
-    }}
-    style={{ padding: '10px 16px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-  >
-    Adicionar
-  </button>
-</div>
-                      
+  
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#cbd5e1', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={novoServComIva} onChange={(e) => setNovoServComIva(e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                          IVA 23%
+                        </label>
+                        <button type="button" onClick={adicionarServicoOS} style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>+ Adicionar</button>
+                      </div>
+                    </div>
 
                     {subAbaOperacional === 'os' && (
                       <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
