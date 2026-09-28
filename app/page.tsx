@@ -682,7 +682,14 @@ export default function Home() {
 </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
-                {ordensServico.map(os => (
+              {ordensServico
+  .filter(os => 
+    (os.matricula || '').toLowerCase().includes(pesquisaPatio.toLowerCase()) || 
+    (os.cliente || '').toLowerCase().includes(pesquisaPatio.toLowerCase())
+  )
+  .map(os => (
+    
+    
                   <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
