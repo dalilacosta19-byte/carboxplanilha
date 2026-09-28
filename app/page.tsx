@@ -1008,11 +1008,52 @@ export default function Home() {
                           </div>
                         ))}
                       </div>
+                      {/* Sugestões Inteligentes de Serviços Anteriores */}
+<datalist id="sugestoes-servicos">
+  {Array.from(new Set(ordensServico.flatMap(o => (o.servicos || []).map(s => s.descricao)))).map((desc, i) => (
+    <option key={i} value={desc} />
+  ))}
+  <option value="Limpeza Detalhada" />
+  <option value="Polimento" />
+  <option value="Lavagem Completa" />
+  <option value="Proteção Cerâmica" />
+</datalist>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '10px', alignItems: 'center', marginTop: '6px' }}>
-                        <input type="text" placeholder="Nome do Serviço" value={novoServDesc} onChange={(e) => setNovoServDesc(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
-                        <input type="text" placeholder="Valor (€)" value={novoServValor} onChange={(e) => setNovoServValor(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
-                        <input type="text" placeholder="Desconto (€)" value={novoServDesconto} onChange={(e) => setNovoServDesconto(e.target.value)} style={{ padding: '10px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '8px', color: '#fff' }} />
+<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr auto', gap: '10px', alignItems: 'center' }}>
+  <input 
+    type="text" 
+    list="sugestoes-servicos"
+    placeholder="Nome do Serviço (clique para ver histórico)..."
+    value={novoServicoDescricao}
+    onChange={(e) => setNovoServicoDescricao(e.target.value)}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+  />
+  <input 
+    type="number" 
+    placeholder="Valor (€)"
+    value={novoServicoValor}
+    onChange={(e) => setNovoServicoValor(e.target.value)}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+  />
+  <input 
+    type="number" 
+    placeholder="Desconto (€)"
+    value={novoServicoDesconto || ''}
+    onChange={(e) => setNovoServicoDesconto(e.target.value)}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+  />
+  <select
+    value={novoServicoTecnico || 'Equipa CARBOX77'}
+    onChange={(e) => setNovoServicoTecnico(e.target.value)}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+  >
+    <option value="Equipa CARBOX77">Equipa CARBOX77</option>
+    <option value="João Silva">João Silva</option>
+    <option value="Miguel Santos">Miguel Santos</option>
+    <option value="Ricardo Costa">Ricardo Costa</option>
+    <option value="Kevin">Kevin</option>
+  </select>
+  
                         <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#cbd5e1', cursor: 'pointer' }}>
                           <input type="checkbox" checked={novoServComIva} onChange={(e) => setNovoServComIva(e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
                           IVA 23%
