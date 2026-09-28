@@ -659,7 +659,7 @@ export default function Home() {
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
           {/* ABA 1: VEÍCULOS NO PÁTIO */}
-          {tab === 'historico' && (
+         {tab === 'historico' && (
   <div>
     <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Histórico & Dossiê de Matrículas</h2>
     <p style={{ fontSize: '17px', color: '#94a3b8', margin: '0 0 16px 0' }}>Consulte o histórico completo de serviços, valores e intervenções anteriores por matrícula:</p>
@@ -727,6 +727,9 @@ export default function Home() {
         })()}
       </div>
     )}
+  </div>
+)}
+          
     
           
           {tab === 'pateo' && (
