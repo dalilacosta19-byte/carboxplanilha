@@ -3,6 +3,8 @@ import { useState } from 'react';
 
 export default function Home() {
   const [tab, setTab] = useState('pateo');
+  const [pesquisaPatio, setPesquisaPatio] = useState('');
+  
   const [user, setUser] = useState('admin');
   const [subAbaOperacional, setSubAbaOperacional] = useState<'agendamento' | 'orcamento' | 'os'>('os');
 
@@ -656,10 +658,28 @@ export default function Home() {
           {/* ABA 1: VEÍCULOS NO PÁTIO */}
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-              <div>
-                <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Veículos no Pátio</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte o trabalho em execução, dados do cliente, adicione gastos rápidos e altere estados:</p>
-              </div>
+<div>
+  <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Veículos no Pátio</h2>
+  <p style={{ fontSize: '17px', color: '#94a3b8', margin: '0 0 16px 0' }}>Consulte o trabalho em execução, dados do cliente, adicione gastos rápidos e altere estados:</p>
+  
+  <input 
+    type="text"
+    placeholder="🔍 Pesquisar por Matrícula (ex: AZ-91-GI) ou Nome do Cliente..."
+    value={pesquisaPatio}
+    onChange={(e) => setPesquisaPatio(e.target.value)}
+    style={{
+      width: '100%',
+      maxWidth: '450px',
+      padding: '12px 16px',
+      backgroundColor: '#131722',
+      border: '1px solid #222b45',
+      borderRadius: '10px',
+      color: '#fff',
+      fontSize: '15px',
+      outline: 'none'
+    }}
+  />
+</div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
                 {ordensServico.map(os => (
