@@ -713,13 +713,14 @@ export default function Home() {
                     </span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', fontSize: '14px', color: '#94a3b8' }}>
-                    <div>👤 <b>Cliente:</b> {os.cliente}</div>
-                    <div>📞 <b>Telemóvel:</b> {os.telemovel}</div>
-                    <div>🛠️ <b>Serviço:</b> {os.servico}</div>
-                    <div>👨‍🔧 <b>Técnico:</b> {os.tecnico || 'Não atribuído'}</div>
-                    <div>📅 <b>Data:</b> {os.dataEntrega}</div>
-                    <div>💰 <b>Total:</b> {os.total}€</div>
-                  </div>
+  <div>👤 <b>Cliente:</b> {os.cliente}</div>
+  <div>📞 <b>Telemóvel:</b> {os.contacto}</div>
+  <div>🛠️ <b>Serviço:</b> {os.servico || 'Serviço Geral'}</div>
+  <div>👨‍🔧 <b>Técnico:</b> {os.tecnico || 'Não atribuído'}</div>
+  <div>📅 <b>Data:</b> {os.data}</div>
+  <div>💰 <b>Total:</b> {os.total || '0'}€</div>
+</div>
+                  
                 </div>
               ))
           )}
