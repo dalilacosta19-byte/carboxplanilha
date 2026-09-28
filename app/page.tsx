@@ -576,6 +576,8 @@ export default function Home() {
 
   const menuItems = [
     { id: 'pateo', label: '🚗 Veículos no Pátio' },
+    { id: 'historico', label: '📜 Histórico & Dossiê' },
+    
     { id: 'metricas', label: '📊 Painel & Gráficos' },
     { id: 'operacional', label: '📋 OS / Orçamento / Agendamento' },
     { id: 'despesas', label: '📉 Despesas & Custos' },
