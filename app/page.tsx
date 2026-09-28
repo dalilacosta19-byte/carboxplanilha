@@ -659,6 +659,75 @@ export default function Home() {
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
           {/* ABA 1: VEÍCULOS NO PÁTIO */}
+          {tab === 'historico' && (
+  <div>
+    <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Histórico & Dossiê de Matrículas</h2>
+    <p style={{ fontSize: '17px', color: '#94a3b8', margin: '0 0 16px 0' }}>Consulte o histórico completo de serviços, valores e intervenções anteriores por matrícula:</p>
+    
+    <input 
+      type="text"
+      placeholder="🔍 Digite a matrícula (ex: AZ-91-GI) ou nome do cliente para ver o dossiê..."
+      value={pesquisaHistorico}
+      onChange={(e) => setPesquisaHistorico(e.target.value)}
+      style={{
+        width: '100%',
+        maxWidth: '450px',
+        padding: '12px 16px',
+        backgroundColor: '#131722',
+        border: '1px solid #222b45',
+        borderRadius: '10px',
+        color: '#fff',
+        fontSize: '15px',
+        outline: 'none',
+        marginBottom: '20px'
+      }}
+    />
+
+    {pesquisaHistorico.trim() === '' ? (
+      <div style={{ padding: '40px', textAlign: 'center', color: '#64748b', backgroundColor: '#131722', borderRadius: '12px', border: '1px solid #222b45' }}>
+        Digite uma matrícula na caixa acima para consultar o histórico completo de visitas do veículo.
+      </div>
+    ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        {ordensServico
+          .filter(os => 
+            (os.matricula || '').toLowerCase().includes(pesquisaHistorico.toLowerCase()) || 
+            (os.cliente || '').toLowerCase().includes(pesquisaHistorico.toLowerCase())
+          )
+          .length === 0 ? (
+            <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', backgroundColor: '#131722', borderRadius: '12px', border: '1px solid #222b45' }}>
+              Nenhum registo encontrado para esta pesquisa.
+            </div>
+          ) : (
+            ordensServico
+              .filter(os => 
+                (os.matricula || '').toLowerCase().includes(pesquisaHistorico.toLowerCase()) || 
+                (os.cliente || '').toLowerCase().includes(pesquisaHistorico.toLowerCase())
+              )
+              .map(os => (
+                <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '12px', padding: '20px', color: '#fff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #222b45', paddingBottom: '10px' }}>
+                    <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#38bdf8' }}>🚗 {os.matricula} — {os.veiculo}</span>
+                    <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', backgroundColor: os.status === 'Pago / Concluído' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(234, 179, 8, 0.2)', color: os.status === 'Pago / Concluído' ? '#4ade80' : '#facc15' }}>
+                      {os.status}
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', fontSize: '14px', color: '#94a3b8' }}>
+                    <div>👤 <b>Cliente:</b> {os.cliente}</div>
+                    <div>📞 <b>Telemóvel:</b> {os.telemovel}</div>
+                    <div>🛠️ <b>Serviço:</b> {os.servico}</div>
+                    <div>👨‍🔧 <b>Técnico:</b> {os.tecnico || 'Não atribuído'}</div>
+                    <div>📅 <b>Data:</b> {os.dataEntrega}</div>
+                    <div>💰 <b>Total:</b> {os.total}€</div>
+                  </div>
+                </div>
+              ))
+          )}
+      </div>
+    )}
+  </div>
+)}
+          
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 <div>
