@@ -1094,29 +1094,7 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
                     )}
 
                     {subAbaOperacional === 'os' && (
-                      <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <h4 style={{ fontSize: '17px', color: '#38bdf8', margin: 0 }}>👥 Profissionais Responsáveis (Múltiplos)</h4>
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                          {funcionarios.map(f => {
-                            const selecionado = osProfissionaisSelecionados.includes(f.nome);
-                            return (
-                              <button
-                                key={f.id}
-                                type="button"
-                                onClick={() => toggleProfissionalOS(f.nome)}
-                                style={{
-                                  padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px',
-                                  backgroundColor: selecionado ? '#38bdf8' : '#090a0f',
-                                  color: selecionado ? '#090a0f' : '#cbd5e1',
-                                  border: selecionado ? '1px solid #38bdf8' : '1px solid #222b45'
-                                }}
-                              >
-                                {selecionado ? '✓ ' : '+ '} {f.nome}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+
                     )}
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
