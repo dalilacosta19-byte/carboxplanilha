@@ -624,7 +624,7 @@ setAgSinal('0');
     else if (novoMes < 0) { novoMes = 11; novoAno--; }
     setMesCalendario(novoMes);
     setAnoCalendario(novoAno);
-  };
+  
  const converterParaOS = (agendamento: any) => {
   setOsCliente(agendamento.cliente || '');
   setOsVeiculo(agendamento.veiculo || '');
