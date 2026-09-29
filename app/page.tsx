@@ -630,7 +630,7 @@ setAgSinal('0');
   setOsVeiculo(agendamento.veiculo || '');
   setTab('operacional');
   setSubAbaOperacional('os');
-};
+
 
   return (
     <div style={{ 
