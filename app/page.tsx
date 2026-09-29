@@ -1569,7 +1569,42 @@ setAgSinal('0');
               </div>
             </div>
           )}
+</div>
+                      {subAbaOperacional === 'os' && (
+                        <div>
+                          <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Notas / Observações</label>
+                          <input 
+                            type="text" 
+                            value={osObservacoes || ''} 
+                            onChange={(e) => setOsObservacoes(e.target.value)} 
+                            placeholder="Notas adicionais para a OS..." 
+                            style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} 
+                          />
+                        </div>
+                      )}
+                    </div>
 
+                    {/* Botão de Submeter */}
+                    <button 
+                      type="submit" 
+                      style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer', marginTop: '10px' }}
+                    >
+                      {subAbaOperacional === 'os' ? 'Emitir e Registar Ordem de Serviço' : 'Criar e Guardar Orçamento'}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+            </div>
+          )}
+
+        </main>
+
+      </div>
+
+    </div>
+  );
+}
           {/* ABA 8: STOCK */}
           {tab === 'stock' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
