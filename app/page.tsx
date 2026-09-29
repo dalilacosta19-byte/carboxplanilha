@@ -625,6 +625,14 @@ setAgSinal('0');
     setMesCalendario(novoMes);
     setAnoCalendario(novoAno);
   };
+  const converterParaOS = (agendamento: any) => {
+  setClienteOS(agendamento.cliente || '');
+  setViaturaOS(agendamento.veiculo || '');
+  setContactoOS(agendamento.contacto || '');
+  setSinalAplicado(agendamento.valorSinal || 0);
+  settab('patio');
+};
+  
 
   return (
     <div style={{ 
