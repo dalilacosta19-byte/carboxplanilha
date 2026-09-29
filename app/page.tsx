@@ -628,8 +628,6 @@ setAgSinal('0');
   const converterParaOS = (agendamento: any) => {
   setOsCliente(agendamento.cliente || '');
   setOsVeiculo(agendamento.veiculo || '');
-  setOsContacto(agendamento.contacto || '');
-  setOsSinal(agendamento.valorSinal || 0);
   settab('patio');
 };
   
