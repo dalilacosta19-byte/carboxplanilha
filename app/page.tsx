@@ -1400,6 +1400,22 @@ setAgSinal('0');
                         <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{ag.cliente}</h4>
                         <p style={{ margin: 0, color: '#e2e8f0', fontSize: '15px' }}>🚗 {ag.veiculo} ({ag.matricula})</p>
                         <p style={{ margin: 0, color: '#d4af37', fontSize: '15px' }}>🛠️ Serviço: {ag.servicoAgendado}</p>
+                       <button 
+  onClick={() => converterParaOS(ag)}
+  style={{
+    backgroundColor: '#0284c7',
+    color: '#fff',
+    border: 'none',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    fontSize: '12px',
+    marginLeft: '8px'
+  }}
+>
+  🔄 Converter para OS
+</button>
                         <button onClick={() => enviarWhatsApp(ag.cliente, ag.veiculo, ag.matricula, ag.telefone1)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💬 WhatsApp</button>
                       </div>
                     ))}
