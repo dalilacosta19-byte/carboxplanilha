@@ -1158,64 +1158,76 @@ setAgSinal('0');
                       </div>
                     )}
 
-                    {subAbaOperacional === 'os' && (
-                      
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Desconto Global (%)</label>
-                        <input type="text" value={osDescontoPct} onChange={(e) => setOsDescontoPct(e.target.value)} placeholder="0" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                      </div>
-                      {subAbaOperacional === 'os' && (
-                        <>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Sinal Pago (€)</label>
-                            <input type="text" value={osSinal} onChange={(e) => setOsSinal(e.target.value)} placeholder="0.00" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Forma Pagamento Sinal</label>
-                            <select value={osFormaPagamentoSinal} onChange={(e) => setOsFormaPagamentoSinal(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}>
-                              <option value="MBWay">MBWay</option>
-                              <option value="Dinheiro">Dinheiro</option>
-                              <option value="Empresa">Empresa / Transf.</option>
+                   {subAbaOperacional === 'os' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '10px' }}>
+                        
+                        {/* Formulário de Adicionar Serviço com Desconto e Técnico Individual */}
+                        <div style={{ backgroundColor: '#131722', padding: '16px', borderRadius: '12px', border: '1px solid #222b45' }}>
+                          <h4 style={{ color: '#fff', marginBottom: '10px', fontSize: '15px' }}>Adicionar Serviço à OS</h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr auto', gap: '8px', alignItems: 'center' }}>
+                            <input 
+                              type="text" 
+                              placeholder="Nome do Serviço" 
+                              value={novoServicoDescricao} 
+                              onChange={(e) => setNovoServicoDescricao(e.target.value)}
+                              style={{ padding: '10px', background: '#090a0f', color: '#fff', border: '1px solid #222b45', borderRadius: '8px' }}
+                            />
+                            <input 
+                              type="number" 
+                              placeholder="Valor (€)" 
+                              value={novoServicoValor} 
+                              onChange={(e) => setNovoServicoValor(e.target.value)}
+                              style={{ padding: '10px', background: '#090a0f', color: '#fff', border: '1px solid #222b45', borderRadius: '8px' }}
+                            />
+                            <input 
+                              type="number" 
+                              placeholder="Desconto (%)" 
+                              value={novoServicoDescontoPct} 
+                              onChange={(e) => setNovoServicoDescontoPct(e.target.value)}
+                              style={{ padding: '10px', background: '#090a0f', color: '#fff', border: '1px solid #222b45', borderRadius: '8px' }}
+                            />
+                            <select 
+                              value={novoServicoProfissional} 
+                              onChange={(e) => setNovoServicoProfissional(e.target.value)}
+                              style={{ padding: '10px', background: '#090a0f', color: '#fff', border: '1px solid #222b45', borderRadius: '8px' }}
+                            >
+                              <option value="">Profissional</option>
+                              <option value="João Silva">João Silva</option>
+                              <option value="Miguel Santos">Miguel Santos</option>
+                              <option value="Ricardo Costa">Ricardo Costa</option>
+                              <option value="Kevin">Kevin</option>
                             </select>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                if (!novoServicoDescricao) return;
+                                const val = parseFloat(novoServicoValor) || 0;
+                                const descPct = parseFloat(novoServicoDescontoPct) || 0;
+                                const valorFinalItem = val * (1 - descPct / 100);
 
-                    <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer', marginTop: '10px' }}>
-                      {subAbaOperacional === 'os' ? 'Emitir Ordem de Serviço Completa' : 'Gerar Orçamento'}
-                    </button>
-                  </form>
+                                setOsServicos([...osServicos, {
+                                  descricao: novoServicoDescricao,
+                                  valor: val,
+                                  descontoPercentual: descPct,
+                                  valorFinal: valorFinalItem,
+                                  profissional: novoServicoProfissional
+                                }]);
 
-                  {subAbaOperacional === 'orcamento' && (
-                    <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', maxWidth: '850px' }}>
-                      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', marginBottom: '20px' }}>📑 Orçamentos Emitidos</h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {orcamentos.map(orc => (
-                          <div key={orc.id} style={{ backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '14px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                            <div>
-                              <h4 style={{ fontSize: '18px', color: '#fff', margin: '0 0 6px 0' }}>{orc.cliente} — <span style={{ color: '#d4af37' }}>{orc.veiculo} ({orc.matricula})</span></h4>
-                              <p style={{ margin: 0, color: '#94a3b8', fontSize: '14px' }}>Data: {orc.data} | Total: <b style={{ color: '#34d399' }}>{orc.valorFinal.toFixed(2)} €</b></p>
-                            </div>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                              <button onClick={() => imprimirOrcamento(orc)} style={{ backgroundColor: '#38bdf8', color: '#090a0f', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
-                                🖨️ Imprimir
-                              </button>
-                              <button onClick={() => enviarWhatsAppOrcamento(orc)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
-                                💬 WhatsApp
-                              </button>
-                            </div>
+                                setNovoServicoDescricao('');
+                                setNovoServicoValor('');
+                                setNovoServicoDescontoPct('');
+                                setNovoServicoProfissional('');
+                              }}
+                              style={{ background: '#f59e0b', color: '#000', fontWeight: 'bold', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer' }}
+                            >
+                              + Adicionar
+                            </button>
                           </div>
-                        ))}
+                        </div>
+
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                    )}
+                    
 
           {/* ABA 4: DESPESAS & CUSTOS (COM SUPORTE A FOTO / PDF) */}
           {tab === 'despesas' && (
