@@ -628,9 +628,8 @@ setAgSinal('0');
   const converterParaOS = (agendamento: any) => {
   setOsCliente(agendamento.cliente || '');
   setOsVeiculo(agendamento.veiculo || '');
-  settab('patio');
-};
-  
+  setTab('patio');
+};  
 
   return (
     <div style={{ 
