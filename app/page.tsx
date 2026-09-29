@@ -451,7 +451,8 @@ export default function Home() {
                       <input type="date" value={agData} onChange={e => setAgData(e.target.value)} style={{ padding: '10px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px' }} />
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <select value={agHoraSel} onChange={e => setAgHoraSel(e.target.value)} style={{ padding: '10px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', flex: 1 }}>
-                          {['08','09','10','11','12','14','15','16','17','18'].h(h => <option key={h} value={h}>{h}h</option>)}
+                         {['08','09','10','11','12','14','15','16','17','18'].map(h => <option key={h} value={h}>{h}h</option>)}
+                          
                         </select>
                         <select value={agMinSel} onChange={e => setAgMinSel(e.target.value)} style={{ padding: '10px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', flex: 1 }}>
                           <option value="00">00</option><option value="30">30</option>
