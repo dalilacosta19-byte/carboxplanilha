@@ -625,11 +625,12 @@ setAgSinal('0');
     setMesCalendario(novoMes);
     setAnoCalendario(novoAno);
   };
-  const converterParaOS = (agendamento: any) => {
+ const converterParaOS = (agendamento: any) => {
   setOsCliente(agendamento.cliente || '');
   setOsVeiculo(agendamento.veiculo || '');
-  setTab('patio');
-};  
+  setTab('operacional');
+  setSubAbaOperacional('os');
+};
 
   return (
     <div style={{ 
