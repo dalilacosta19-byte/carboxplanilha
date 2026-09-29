@@ -617,21 +617,22 @@ setAgSinal('0');
   const primeiroDiaMes = new Date(anoCalendario, mesCalendario, 1).getDay();
   const totalDiasMes = new Date(anoCalendario, mesCalendario + 1, 0).getDate();
 
-  const mudarMes = (direcao: number) => {
+const mudarMes = (direcao: number) => {
     let novoMes = mesCalendario + direcao;
     let novoAno = anoCalendario;
     if (novoMes > 11) { novoMes = 0; novoAno++; }
     else if (novoMes < 0) { novoMes = 11; novoAno--; }
     setMesCalendario(novoMes);
     setAnoCalendario(novoAno);
+  };
+
+  const converterParaOS = (agendamento: any) => {
+    setOsCliente(agendamento.cliente || '');
+    setOsVeiculo(agendamento.veiculo || '');
+    setTab('operacional');
+    setSubAbaOperacional('os');
+  };
   
- const converterParaOS = (agendamento: any) => {
-  setOsCliente(agendamento.cliente || '');
-  setOsVeiculo(agendamento.veiculo || '');
-  setTab('operacional');
-  setSubAbaOperacional('os');
-
-
   return (
     <div style={{ 
       minHeight: '100vh', 
