@@ -626,10 +626,10 @@ setAgSinal('0');
     setAnoCalendario(novoAno);
   };
   const converterParaOS = (agendamento: any) => {
-  setClienteOS(agendamento.cliente || '');
-  setViaturaOS(agendamento.veiculo || '');
-  setContactoOS(agendamento.contacto || '');
-  setSinalAplicado(agendamento.valorSinal || 0);
+  setOsCliente(agendamento.cliente || '');
+  setOsVeiculo(agendamento.veiculo || '');
+  setOsContacto(agendamento.contacto || '');
+  setOsSinal(agendamento.valorSinal || 0);
   settab('patio');
 };
   
