@@ -953,6 +953,32 @@ setAgSinal('0');
                     <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Serviço Pretendido</label>
                     <input type="text" value={agServico} onChange={(e) => setAgServico(e.target.value)} placeholder="Ex: Limpeza Detalhada, Polimento, PPF..." style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                   </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Valor do Sinal (€)</label>
+    <input 
+      type="number" 
+      placeholder="0.00" 
+      value={agSinal} 
+      onChange={e => setAgSinal(e.target.value)} 
+      style={{ padding: '12px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', width: '100%' }} 
+    />
+  </div>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Conta / Método do Sinal</label>
+    <select 
+      value={agContaSinal} 
+      onChange={e => setAgContaSinal(e.target.value)} 
+      style={{ padding: '12px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', width: '100%' }}
+    >
+      <option value="MBWay">MBWay</option>
+      <option value="Transferência Bancária">Transferência Bancária</option>
+      <option value="Dinheiro / Caixa">Dinheiro / Caixa</option>
+      <option value="Multibanco / TPA">Multibanco / TPA</option>
+    </select>
+  </div>
+</div>
+                  
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data *</label>
