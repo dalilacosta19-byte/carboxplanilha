@@ -937,6 +937,18 @@ setAgSinal('0');
                 <form onSubmit={criarAgendamento} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '700px' }}>
                   <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#2563eb', margin: 0 }}>📅 Novo Agendamento de Avaliação</h3>
                   <div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+  <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Tipo de Marcação</label>
+  <select 
+    value={agTipo} 
+    onChange={e => setAgTipo(e.target.value)} 
+    style={{ padding: '12px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', width: '100%' }}
+  >
+    <option value="Avaliação">Avaliação</option>
+    <option value="Serviço">Serviço</option>
+  </select>
+</div>
+                    
                     <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Cliente *</label>
                     <input type="text" required list="lista-clientes-geral" value={agClient} onChange={(e) => selecionarClienteInteligente(e.target.value, 'ag')} placeholder="Ex: Carla Monteiro" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
                   </div>
