@@ -683,26 +683,33 @@ setAgSinal('0');
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-          {/* ABA 1: VEÍCULOS NO PÁTIO */}
-         return resultados.map(os => (
-            <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '12px', padding: '20px', color: '#fff', marginBottom: '15px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #222b45', paddingBottom: '10px' }}>
-                <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#38bdf8' }}>🚗 {os.matricula} — {os.cliente}</span>
-                <span style={{ fontSize: '14px', color: '#94a3b8' }}>📅 {os.data}</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', fontSize: '15px' }}>
-                <div><strong>Veículo:</strong> {os.veiculo}</div>
-                <div><strong>Contacto:</strong> {os.contacto}</div>
-                <div><strong>Estado:</strong> {os.status}</div>
-              </div>
-              <div style={{ marginTop: '12px', borderTop: '1px solid #222b45', paddingTop: '10px' }}>
-                <strong style={{ fontSize: '14px', color: '#d4af37' }}>Serviços Realizados:</strong>
-                <ul style={{ margin: '6px 0 0 20px', padding: 0 }}>
-                  {os.servicos?.map((s: any, idx: number) => (
-                    <li key={idx} style={{ fontSize: '14px', color: '#cbd5e1' }}>
-                      {s.descricao} — <strong>{s.valorFinal?.toFixed(2)} €</strong>
-                    </li>
-                  ))}
+        {/* ABA 1: VEÍCULOS NO PÁTIO */}
+{(() => {
+  return resultados.map(os => (
+    <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '12px', padding: '20px', color: '#fff', marginBottom: '15px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #222b45', paddingBottom: '10px' }}>
+        <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#38bdf8' }}>🚗 {os.matricula} — {os.cliente}</span>
+        <span style={{ fontSize: '14px', color: '#94a3b8' }}>📅 {os.data}</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', fontSize: '15px' }}>
+        <div><strong>Veículo:</strong> {os.veiculo}</div>
+        <div><strong>Contacto:</strong> {os.contacto}</div>
+        <div><strong>Estado:</strong> {os.status}</div>
+      </div>
+      <div style={{ marginTop: '12px', borderTop: '1px solid #222b45', paddingTop: '10px' }}>
+        <strong style={{ fontSize: '14px', color: '#d4af37' }}>Serviços Realizados:</strong>
+        <ul style={{ margin: '6px 0 0 20px', padding: 0 }}>
+          {os.servicos?.map((s: any, idx: number) => (
+            <li key={idx} style={{ fontSize: '14px', color: '#cbd5e1' }}>
+              {s.descricao} — <strong>{s.valorFinal?.toFixed(2)} €</strong>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  ));
+})()}
+          
                 </ul>
               </div>
               <div style={{ marginTop: '10px', textAlign: 'right', fontSize: '16px', fontWeight: 'bold', color: '#22c55e' }}>
