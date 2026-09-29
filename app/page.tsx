@@ -632,12 +632,13 @@ const mudarMes = (direcao: number) => {
     setTab('operacional');
     setSubAbaOperacional('os');
   };
-  
+
   return (
     <div style={{ 
       minHeight: '100vh', 
       backgroundColor: '#07080c', 
       backgroundImage: `linear-gradient(rgba(7, 8, 12, 0.93), rgba(7, 8, 12, 0.95)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80')`,
+      
       backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
       color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', fontSize: '16px'
     }}>
