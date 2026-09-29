@@ -455,6 +455,23 @@ const [agContaSinal, setAgContaSinal] = useState('MBWay');
     };
 
     setAgendamentos([novo, ...agendamentos]);
+    const valSinal = Number(agSinal) || 0;
+if (valSinal > 0) {
+  setTransacoes([
+    {
+      id: Date.now() + 1,
+      descricao: `Sinal Agendamento - ${agClient} (${agMatricula || 'N/D'}) via ${agContaSinal}`,
+      matricula: agMatricula ? agMatricula.toUpperCase() : 'GERAL',
+      categoria: 'Sinal / Adiantamento',
+      tipo: 'receita',
+      valor: valSinal,
+      data: agData
+    },
+    ...transacoes
+  ]);
+}
+setAgSinal('0');
+    
     alert('Agendamento criado com sucesso!');
     setAgClient(''); setAgTel1(''); setAgTel2(''); setAgVeiculo(''); setAgMatricula(''); setAgServico(''); setAgNotas('');
   };
