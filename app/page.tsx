@@ -1003,7 +1003,7 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
                       <h4 style={{ fontSize: '17px', color: '#d4af37', margin: 0 }}>🛠️ Serviços Incluídos</h4>
                       
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {osItensServicos.map((item, idx) => (
+                     {osItensServicos.map((item, idx) => (
   <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#1a1d24', padding: '14px', borderRadius: '10px', border: '1px solid #222b45', marginBottom: '10px' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <span style={{ color: '#fff' }}>
@@ -1023,6 +1023,27 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
         style={{ flex: 1, padding: '8px', backgroundColor: '#07080c', color: '#fff', border: '1px solid #38bdf8', borderRadius: '6px' }}
       >
         <option value="">Selecionar Técnico...</option>
+        {funcionarios.map(f => (
+          <option key={f.id} value={f.nome}>{f.nome}</option>
+        ))}
+      </select>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <input
+          type="number"
+          placeholder="Desc %"
+          value={item.desconto || ''}
+          onChange={(e) => {
+            const novos = osItensServicos.map(s => s.id === item.id ? { ...s, desconto: e.target.value } : s);
+            setOsItensServicos(novos);
+          }}
+          style={{ width: '90px', padding: '8px', backgroundColor: '#07080c', color: '#fff', border: '1px solid #38bdf8', borderRadius: '6px' }}
+        />
+        <span style={{ color: '#38bdf8', fontWeight: 'bold' }}>%</span>
+      </div>
+    </div>
+  </div>
+))}
+                        
         {funcionarios.map(f => (
           <option key={f.id} value={f.nome}>{f.nome}</option>
         ))}
