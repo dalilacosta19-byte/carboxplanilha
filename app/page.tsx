@@ -613,31 +613,28 @@ setAgSinal('0');
     { id: 'config', label: '⚙️ Empresa' },
   ];
 
- const nomesmeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const primeiroDiaMes = new Date(anocalendario, mescalendario, 1).getDay();
-const totalDiasMes = new Date(anocalendario, mescalendario + 1, 0).getDate();
+  const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const primeiroDiaMes = new Date(anoCalendario, mesCalendario, 1).getDay();
+  const totalDiasMes = new Date(anoCalendario, mesCalendario + 1, 0).getDate();
 
-const mudarnes = (direcao: number) => {
-  let novoMes = mescalendario + direcao;
-  let novoAno = anocalendario;
-  if (novoMes > 11) { novoMes = 0; novoAno++; }
-  else if (novoMes < 0) { novoMes = 11; novoAno--; }
-  setMesCalendario(novoMes);
-  setAnoCalendario(novoAno);
-};
+  const mudarMes = (direcao: number) => {
+    let novoMes = mesCalendario + direcao;
+    let novoAno = anoCalendario;
+    if (novoMes > 11) { novoMes = 0; novoAno++; }
+    else if (novoMes < 0) { novoMes = 11; novoAno--; }
+    setMesCalendario(novoMes);
+    setAnoCalendario(novoAno);
+  };
 
-return (
-  <div style={{ 
-    minHeight: '100vh', 
-    backgroundColor: '#07080c', 
-    backgroundImage: "linear-gradient(rgba(7, 8, 12, 0.93), rgba(7, 8, 12, 0.95)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80')",
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
-    color: '#fff',
-    fontFamily: 'system-ui, -apple-system, sans-serif'
-  }}>
-    
+  return (
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#07080c', 
+      backgroundImage: `linear-gradient(rgba(7, 8, 12, 0.93), rgba(7, 8, 12, 0.95)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80')`,
+      backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
+      color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', fontSize: '16px'
+    }}>
+      
       {/* HEADER */}
       <header style={{ backgroundColor: 'rgba(11, 13, 20, 0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1f293d', padding: '22px 36px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -686,46 +683,53 @@ return (
         {/* CONTEÚDO PRINCIPAL */}
         <main style={{ flex: 1, padding: '40px 48px', width: '100%', boxSizing: 'border-box', overflowY: 'auto' }}>
           
-        {/* ABA 1: VEÍCULOS NO PÁTIO */}
-{(() => {
-  return resultados.map(os => (
-    <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '12px', padding: '20px', color: '#fff', marginBottom: '15px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #222b45', paddingBottom: '10px' }}>
-        <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#38bdf8' }}>🚗 {os.matricula} — {os.cliente}</span>
-        <span style={{ fontSize: '14px', color: '#94a3b8' }}>📅 {os.data}</span>
+          {/* ABA 1: VEÍCULOS NO PÁTIO */}
+         {tab === 'historico' && (
+  <div>
+    <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Histórico & Dossiê de Matrículas</h2>
+    <p style={{ fontSize: '17px', color: '#94a3b8', margin: '0 0 16px 0' }}>Consulte o histórico completo de serviços, valores e intervenções anteriores por matrícula:</p>
+    
+    <input 
+      type="text"
+      placeholder="🔍 Digite a matrícula (ex: AZ-91-GI) ou nome do cliente para ver o dossiê..."
+      value={pesquisaHistorico}
+      onChange={(e) => setPesquisaHistorico(e.target.value)}
+      style={{
+        width: '100%',
+        maxWidth: '450px',
+        padding: '12px 16px',
+        backgroundColor: '#131722',
+        border: '1px solid #222b45',
+        borderRadius: '10px',
+        color: '#fff',
+        fontSize: '15px',
+        outline: 'none',
+        marginBottom: '20px'
+      }}
+    />
+
+    {pesquisaHistorico.trim() === '' ? (
+      <div style={{ padding: '40px', textAlign: 'center', color: '#64748b', backgroundColor: '#131722', borderRadius: '12px', border: '1px solid #222b45' }}>
+        Digite uma matrícula na caixa acima para consultar o histórico completo de visitas do veículo.
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', fontSize: '15px' }}>
-        <div><strong>Veículo:</strong> {os.veiculo}</div>
-        <div><strong>Contacto:</strong> {os.contacto}</div>
-        <div><strong>Estado:</strong> {os.status}</div>
-      </div>
-      <div style={{ marginTop: '12px', borderTop: '1px solid #222b45', paddingTop: '10px' }}>
-        <strong style={{ fontSize: '14px', color: '#d4af37' }}>Serviços Realizados:</strong>
-        <ul style={{ margin: '6px 0 0 20px', padding: 0 }}>
-          {os.servicos?.map((s: any, idx: number) => (
-            <li key={idx} style={{ fontSize: '14px', color: '#cbd5e1' }}>
-              {s.descricao} — <strong>{s.valorFinal?.toFixed(2)} €</strong>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  ));
-})()}
-          
-                </ul>
+    ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        {(() => {
+          const termo = pesquisaHistorico.toLowerCase().trim();
+          const termoLimpo = termo.replace(/[^a-z0-9]/g, '');
+          const resultados = ordensServico.filter(os => {
+            const matLimpa = (os.matricula || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const clienteLower = (os.cliente || '').toLowerCase();
+            return (termoLimpo && matLimpa.includes(termoLimpo)) || (termo && clienteLower.includes(termo));
+          });
+
+          if (resultados.length === 0) {
+            return (
+              <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', backgroundColor: '#131722', borderRadius: '12px', border: '1px solid #222b45' }}>
+                Nenhum registo encontrado para esta pesquisa.
               </div>
-              <div style={{ marginTop: '10px', textAlign: 'right', fontSize: '16px', fontWeight: 'bold', color: '#22c55e' }}>
-                Total: {os.valorFinal?.toFixed(2)} €
-              </div>
-            </div>
-          ));
-        })()}
-      </div>
-    )}
-  </div>
-)}
-      
+            );
+          }
 
           return resultados.map(os => (
             <div key={os.id} style={{ backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '12px', padding: '20px', color: '#fff' }}>
@@ -975,16 +979,18 @@ return (
   </div>
   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
     <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Conta / Método do Sinal</label>
-  <select 
-  value={agContaSinal} 
-  onChange={e => setAgContaSinal(e.target.value)} 
-  style={{ padding: '12px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', width: '100%' }}
->
-  <option value="MBWay">MBWay</option>
-  <option value="Transferência Bancária">Transferência Bancária</option>
-  <option value="Dinheiro / Caixa">Dinheiro / Caixa</option>
-</select>
-    
+    <select 
+      value={agContaSinal} 
+      onChange={e => setAgContaSinal(e.target.value)} 
+      style={{ padding: '12px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', width: '100%' }}
+    >
+      <option value="MBWay">MBWay</option>
+      <option value="Transferência Bancária">Transferência Bancária</option>
+      <option value="Dinheiro / Caixa">Dinheiro / Caixa</option>
+      <option value="Multibanco / TPA">Multibanco / TPA</option>
+    </select>
+  </div>
+</div>
                   
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
