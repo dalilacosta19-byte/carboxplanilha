@@ -1667,30 +1667,34 @@ setAgSinal('0');
         </main>
       </div>
 
-      {modalAdiantamentoOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#131722', border: '1px solid #1f293d', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>➕ Inserir Adiantamento</h3>
-            <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Insira o valor do adiantamento a ser debitado ao funcionário:</p>
+     {modalAdiantamentoOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ backgroundColor: '#131722', border: '1px solid #1f293d', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: '0 0 10px 0' }}>Inserir Adiantamento</h3>
+            <p style={{ color: '#94a3b8', fontSize: '14px', margin: '0 0 20px 0' }}>Insira o valor do adiantamento a ser registado para este funcionário.</p>
             
-            <form onSubmit={confirmarAdiantamento} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={confirmarAdiantamento} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <input 
                 type="text" 
-                required 
-                placeholder="Ex: 50.00" 
+                required
+                placeholder="Ex: 50.00"
                 value={valorAdiantamentoInput}
                 onChange={(e) => setValorAdiantamentoInput(e.target.value)}
-                style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} 
+                style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }}
               />
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                <button type="button" onClick={() => setModalAdiantamentoOpen(false)} style={{ backgroundColor: '#1f293d', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Cancelar</button>
-                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '12px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Confirmar</button>
+                <button type="button" onClick={() => setModalAdiantamentoOpen(false)} style={{ backgroundColor: '#222b45', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
+                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Confirmar</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-    </div>
+    </main>
+
+  </div>
+
+</div>
   );
 }
