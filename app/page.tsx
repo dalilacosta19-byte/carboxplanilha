@@ -106,6 +106,9 @@ const [novoServicoTecnico, setNovoServicoTecnico] = useState('');
   const [agVeiculo, setAgVeiculo] = useState('');
   const [agMatricula, setAgMatricula] = useState('');
   const [agServico, setAgServico] = useState('');
+  const [agSinal, setAgSinal] = useState('0');
+const [agContaSinal, setAgContaSinal] = useState('MBWay');
+  
   const [agData, setAgData] = useState(new Date().toISOString().split('T')[0]);
   const [agHoraSel, setAgHoraSel] = useState('10');
   const [agMinSel, setAgMinSel] = useState('00');
