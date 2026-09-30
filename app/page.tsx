@@ -1088,15 +1088,17 @@ setAgSinal('0');
   <option value="Proteção Cerâmica" />
 </datalist>
 
-<div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 1.5fr auto', gap: '10px', alignItems: 'center' }}>
+<div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
   <input 
     type="text" 
     list="sugestoes-servicos"
     placeholder="Nome do Serviço (clique para ver histórico)..."
     value={novoServicoDescricao}
     onChange={(e) => setNovoServicoDescricao(e.target.value)}
-    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none', width: '100%' }}
   />
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr auto auto', gap: '10px', alignItems: 'center' }}>
+    
   <input 
     type="number" 
     placeholder="Valor (€)"
