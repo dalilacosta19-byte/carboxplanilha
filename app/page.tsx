@@ -606,7 +606,7 @@ setAgSinal('0');
     { id: 'metricas', label: '📊 Painel & Gráficos' },
     { id: 'operacional', label: '📋 OS / Orçamento / Agendamento' },
     { id: 'despesas', label: '📉 Despesas & Custos' },
-    { id: 'agenda', label: '🗓️ Calendário & Agenda' },
+    { id: 'agenda', label: '🗓️ Agenda' },
     { id: 'financeiro', label: '💰 Livro-Caixa & Relatório Diário' },
     { id: 'funcionarios', label: '👥 Funcionários & Salários' },
     { id: 'stock', label: '📦 Controlo de Stock' },
@@ -941,7 +941,7 @@ setAgSinal('0');
 
               {subAbaOperacional === 'agendamento' && (
                 <form onSubmit={criarAgendamento} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '700px' }}>
-                  <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#2563eb', margin: 0 }}>📅 Novo Agendamento de Avaliação</h3>
+                  <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#2563eb', margin: 0 }}>📅 Novo Agendamento </h3>
                   <div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
   <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Tipo de Marcação</label>
