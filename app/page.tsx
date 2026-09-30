@@ -1,4 +1,5 @@
 'use client';
+import CalculadoraComissao from './CalculadoraComissao';
 import { useState } from 'react';
 
 export default function Home() {
@@ -1449,7 +1450,7 @@ setAgSinal('0');
                 <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Livro-Caixa & Relatório Diário Inteligente</h2>
                 <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Consulte o resumo financeiro detalhado de qualquer dia ou registe transações manuais.</p>
               </div>
-
+<CalculadoraComissao />
               <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #222b45', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>🔍 Relatório Diário por Data</h3>
