@@ -1098,40 +1098,49 @@ setAgSinal('0');
     style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none', width: '100%' }}
   />
   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr auto auto', gap: '10px', alignItems: 'center' }}>
-    
-  <input 
-    type="number" 
-    placeholder="Valor (€)"
-    value={novoServicoValor}
-    onChange={(e) => setNovoServicoValor(e.target.value)}
-    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
-  />
-  <input 
-    type="number" 
-    placeholder="Desconto (€)"
-    value={novoServicoDesconto || ''}
-    onChange={(e) => setNovoServicoDesconto(e.target.value)}
-    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
-  />
-  <select
-    value={novoServicoTecnico || 'Equipa CARBOX77'}
-    onChange={(e) => setNovoServicoTecnico(e.target.value)}
-    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
-  >
-    <option value="Equipa CARBOX77">Equipa CARBOX77</option>
-    <option value="João Silva">João Silva</option>
-    <option value="Miguel Santos">Miguel Santos</option>
-    <option value="Ricardo Costa">Ricardo Costa</option>
-    <option value="Kevin">Kevin</option>
-  </select>
-  
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#cbd5e1', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={novoServComIva} onChange={(e) => setNovoServComIva(e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                          IVA 23%
-                        </label>
-                        <button type="button" onClick={adicionarServicoOS} style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>+ Adicionar</button>
-                      </div>
-                    </div>
+    <input 
+      type="number" 
+      placeholder="Valor (€)"
+      value={novoServicoValor}
+      onChange={(e) => setNovoServicoValor(e.target.value)}
+      style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+    />
+    <input 
+      type="number" 
+      placeholder="Desconto (%)"
+      value={novoServicoDesconto || ''}
+      onChange={(e) => setNovoServicoDesconto(e.target.value)}
+      style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+    />
+    <select
+      value={novoServicoTecnico || 'Equipa CARBOX77'}
+      onChange={(e) => setNovoServicoTecnico(e.target.value)}
+      style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+    >
+      <option value="Equipa CARBOX77">Equipa CARBOX77</option>
+      <option value="João Silva">João Silva</option>
+      <option value="Miguel Santos">Miguel Santos</option>
+      <option value="Ricardo Costa">Ricardo Costa</option>
+      <option value="Kevin">Kevin</option>
+    </select>
+    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#cbd5e1', cursor: 'pointer' }}>
+      <input 
+        type="checkbox" 
+        checked={novoServicoIva} 
+        onChange={(e) => setNovoServicoIva(e.target.checked)} 
+        style={{ width: '16px', height: '16px' }} 
+      />
+      IVA 23%
+    </label>
+    <button 
+      type="button" 
+      onClick={adicionarServicos}
+      style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+    >
+      + Adicionar
+    </button>
+  </div>
+</div>
 
                     {subAbaOperacional === 'os' && (
                       <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
