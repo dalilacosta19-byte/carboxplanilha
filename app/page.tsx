@@ -1088,81 +1088,49 @@ setAgSinal('0');
   <option value="Proteção Cerâmica" />
 </datalist>
 
-<div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', backgroundColor: '#090a0f', padding: '16px', borderRadius: '12px', border: '1px solid #222b45', marginBottom: '16px' }}>
-  {/* Nome do Serviço (Célula mais estendida) */}
-  <div style={{ flex: '2', minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-    <label style={{ fontSize: '13px', color: '#94a3b8' }}>Nome do Serviço</label>
-    <input 
-      type="text" 
-      list="lista-servicos-geral"
-      value={novoServicoDescricao} 
-      onChange={e => setNovoServicoDescricao(e.target.value)} 
-      placeholder="Nome do Serviço (clique para ver histórico)..." 
-      style={{ width: '100%', padding: '12px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', outline: 'none' }} 
-    />
-  </div>
+<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr auto', gap: '10px', alignItems: 'center' }}>
+  <input 
+    type="text" 
+    list="sugestoes-servicos"
+    placeholder="Nome do Serviço (clique para ver histórico)..."
+    value={novoServicoDescricao}
+    onChange={(e) => setNovoServicoDescricao(e.target.value)}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+  />
+  <input 
+    type="number" 
+    placeholder="Valor (€)"
+    value={novoServicoValor}
+    onChange={(e) => setNovoServicoValor(e.target.value)}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+  />
+  <input 
+    type="number" 
+    placeholder="Desconto (€)"
+    value={novoServicoDesconto || ''}
+    onChange={(e) => setNovoServicoDesconto(e.target.value)}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+  />
+  <select
+    value={novoServicoTecnico || 'Equipa CARBOX77'}
+    onChange={(e) => setNovoServicoTecnico(e.target.value)}
+    style={{ padding: '10px', backgroundColor: '#131722', border: '1px solid #2a3655', borderRadius: '8px', color: '#fff', fontSize: '14px', outline: 'none' }}
+  >
+    <option value="Equipa CARBOX77">Equipa CARBOX77</option>
+    <option value="João Silva">João Silva</option>
+    <option value="Miguel Santos">Miguel Santos</option>
+    <option value="Ricardo Costa">Ricardo Costa</option>
+    <option value="Kevin">Kevin</option>
+  </select>
+  
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#cbd5e1', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={novoServComIva} onChange={(e) => setNovoServComIva(e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                          IVA 23%
+                        </label>
+                        <button type="button" onClick={adicionarServicoOS} style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>+ Adicionar</button>
+                      </div>
+                    </div>
 
-  {/* Valor (€) */}
-  <div style={{ width: '110px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-    <label style={{ fontSize: '13px', color: '#94a3b8' }}>Valor (€)</label>
-    <input 
-      type="number" 
-      value={novoServicoValor} 
-      onChange={e => setNovoServicoValor(e.target.value)} 
-      placeholder="0.00" 
-      style={{ width: '100%', padding: '12px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', outline: 'none' }} 
-    />
-  </div>
-
-  {/* Desconto em Percentagem (%) */}
-  <div style={{ width: '110px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-    <label style={{ fontSize: '13px', color: '#94a3b8' }}>Desconto (%)</label>
-    <input 
-      type="number" 
-      value={novoServicoDesconto} 
-      onChange={e => setNovoServicoDesconto(e.target.value)} 
-      placeholder="0%" 
-      style={{ width: '100%', padding: '12px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '8px', color: '#fff', fontSize: '15px', outline: 'none' }} 
-    />
-  </div>
-
-  {/* Botão de IVA Organizado */}
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'flex-end' }}>
-    <label style={{ fontSize: '13px', color: '#94a3b8' }}>IVA</label>
-    <button 
-      type="button" 
-      onClick={() => setNovoServicoIva(!novoServicoIva)}
-      style={{ 
-        padding: '12px 16px', 
-        backgroundColor: novoServicoIva ? '#1e3a8a' : '#131722', 
-        color: novoServicoIva ? '#93c5fd' : '#94a3b8', 
-        border: '1px solid #222b45', 
-        borderRadius: '8px', 
-        cursor: 'pointer', 
-        fontSize: '14px',
-        fontWeight: 'bold',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        height: '47px'
-      }}
-    >
-      <span>{novoServicoIva ? '✓' : ''}</span> IVA 23%
-    </button>
-  </div>
-
-  {/* Botão Adicionar */}
-  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignSelf: 'flex-end' }}>
-    <button 
-      type="button" 
-      onClick={adicionarServicos}
-      style={{ padding: '12px 20px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', height: '47px' }}
-    >
-      + Adicionar
-    </button>
-  </div>
-</div>
-                      
                     {subAbaOperacional === 'os' && (
                       <div style={{ backgroundColor: '#131722', padding: '18px', borderRadius: '14px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         <h4 style={{ fontSize: '17px', color: '#f87171', margin: 0 }}>💸 Gastos / Custos Associados (Pintor, Peças, PPF)</h4>
