@@ -632,7 +632,7 @@ setAgSinal('0');
   setSubAbaOperacional('os');
 };
 
-  return (
+ return (
     <div style={{ 
       minHeight: '100vh', 
       backgroundColor: '#07080c', 
@@ -640,7 +640,7 @@ setAgSinal('0');
       backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
       color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', fontSize: '16px'
     }}>
-      
+            
       
       {/* HEADER */}
       <header style={{ backgroundColor: 'rgba(11, 13, 20, 0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1f293d', padding: '22px 36px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
