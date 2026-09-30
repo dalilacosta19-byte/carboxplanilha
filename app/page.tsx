@@ -625,22 +625,21 @@ setAgSinal('0');
     setMesCalendario(novoMes);
     setAnoCalendario(novoAno);
   };
- const converterParaOS = (agendamento: any) => {
-  setOsCliente(agendamento.cliente || '');
-  setOsVeiculo(agendamento.veiculo || '');
-  setTab('operacional');
-  setSubAbaOperacional('os');
-};
+const converterParaOS = (agendamento: any) => {
+    setOsCliente(agendamento.cliente || '');
+    setOsVeiculo(agendamento.veiculo || '');
+    setTab('operacional');
+    setSubAbaOperacional('os');
+  };
 
- return (
+  return (
     <div style={{ 
       minHeight: '100vh', 
       backgroundColor: '#07080c', 
       backgroundImage: `linear-gradient(rgba(7, 8, 12, 0.93), rgba(7, 8, 12, 0.95)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80')`,
       backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
       color: '#f8fafc', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', fontSize: '16px'
-    }}>
-            
+    }}>    
       
       {/* HEADER */}
       <header style={{ backgroundColor: 'rgba(11, 13, 20, 0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1f293d', padding: '22px 36px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
