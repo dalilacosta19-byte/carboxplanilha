@@ -930,46 +930,17 @@ setAgSinal('0');
               </div>
 
               <div>
-  <label style={{ display: 'block', fontSize: '14px', marginBottom: '6px', color: '#94a3b8' }}>Telemóvel Principal</label>
-  <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#1f293d', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden' }}>
-    <span style={{ padding: '0 14px', color: '#94a3b8', backgroundColor: '#131722', borderRight: '1px solid #334155', height: '100%', display: 'flex', alignItems: 'center', fontSize: '15px' }}>+351</span>
-    <input type="text" value={agTel1} onChange={e => setAgTel1(e.target.value)} placeholder="912345678" required style={{ width: '100%', backgroundColor: 'transparent', border: 'none', padding: '12px', color: '#fff', outline: 'none', fontSize: '15px' }} />
+  <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel Principal *</label>
+  <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', overflow: 'hidden' }}>
+    <span style={{ padding: '0 14px', color: '#94a3b8', backgroundColor: '#131722', borderRight: '1px solid #222b45', height: '100%', display: 'flex', alignItems: 'center', fontSize: '15px', fontWeight: 'bold' }}>+351</span>
+    <input type="text" required value={agTel1} onChange={e => setAgTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', backgroundColor: 'transparent', border: 'none', padding: '14px', color: '#fff', outline: 'none', fontSize: '16px' }} />
   </div>
 </div>
 <div>
-  <label style={{ display: 'block', fontSize: '14px', marginBottom: '6px', color: '#94a3b8' }}>Telemóvel 2 (Opcional)</label>
-  <input type="text" value={agTel2} onChange={e => setAgTel2(e.target.value)} placeholder="Outro contacto" style={{ width: '100%', backgroundColor: '#1f293d', border: '1px solid #334155', borderRadius: '8px', padding: '12px', color: '#fff', fontSize: '15px' }} />
+  <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel 2 (Opcional)</label>
+  <input type="text" value={agTel2} onChange={e => setAgTel2(e.target.value)} placeholder="Outro contacto" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', outline: 'none' }} />
 </div>
               
-                    
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Cliente *</label>
-                    <input type="text" required list="lista-clientes-geral" value={agClient} onChange={(e) => selecionarClienteInteligente(e.target.value, 'ag')} placeholder="Ex: Carla Monteiro" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Telemóvel Principal (+351) *</label>
-                      <input type="text" required value={agTel1} onChange={(e) => setAgTel1(e.target.value)} placeholder="922 333 444" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Viatura</label>
-                      <input type="text" value={agVeiculo} onChange={(e) => setAgVeiculo(e.target.value)} placeholder="Renault Captur" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Serviço Pretendido</label>
-                    <input type="text" value={agServico} onChange={(e) => setAgServico(e.target.value)} placeholder="Ex: Limpeza Detalhada, Polimento, PPF..." style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-    <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Valor do Sinal (€)</label>
-    <input 
-      type="number" 
-      placeholder="0.00" 
-      value={agSinal} 
-      onChange={e => setAgSinal(e.target.value)} 
-      style={{ padding: '12px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', width: '100%' }} 
-    />
-  </div>
   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
     <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Conta / Método do Sinal</label>
     <select 
