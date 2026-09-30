@@ -929,31 +929,18 @@ setAgSinal('0');
                 <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Emita OS, Orçamentos ou Agendamentos com total flexibilidade:</p>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button onClick={() => setSubAbaOperacional('os')} style={{ backgroundColor: subAbaOperacional === 'os' ? '#d4af37' : '#131722', color: subAbaOperacional === 'os' ? '#090a0f' : '#fff', border: '1px solid #222b45', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}>📋 Ordem de Serviço (OS)</button>
-                <button onClick={() => setSubAbaOperacional('orcamento')} style={{ backgroundColor: subAbaOperacional === 'orcamento' ? '#d4af37' : '#131722', color: subAbaOperacional === 'orcamento' ? '#090a0f' : '#fff', border: '1px solid #222b45', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}>📑 Orçamento</button>
-                <button onClick={() => setSubAbaOperacional('agendamento')} style={{ backgroundColor: subAbaOperacional === 'agendamento' ? '#2563eb' : '#131722', color: '#fff', border: '1px solid #222b45', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}>📅 Agendamento</button>
-              </div>
-
-              <datalist id="lista-clientes-geral">
-                {listaClientesUnicos.map((nome, idx) => <option key={idx} value={nome} />)}
-              </datalist>
-
-              {subAbaOperacional === 'agendamento' && (
-                <form onSubmit={criarAgendamento} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '700px' }}>
-                  <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#2563eb', margin: 0 }}>📅 Novo Agendamento </h3>
-                  <div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
-  <label style={{ fontSize: '15px', color: '#cbd5e1' }}>Tipo de Marcação</label>
-  <select 
-    value={agTipo} 
-    onChange={e => setAgTipo(e.target.value)} 
-    style={{ padding: '12px', backgroundColor: '#07080c', border: '1px solid #222b45', color: '#fff', borderRadius: '8px', width: '100%' }}
-  >
-    <option value="Avaliação">Avaliação</option>
-    <option value="Serviço">Serviço</option>
-  </select>
+              <div>
+  <label style={{ display: 'block', fontSize: '14px', marginBottom: '6px', color: '#94a3b8' }}>Telemóvel Principal</label>
+  <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#1f293d', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden' }}>
+    <span style={{ padding: '0 14px', color: '#94a3b8', backgroundColor: '#131722', borderRight: '1px solid #334155', height: '100%', display: 'flex', alignItems: 'center', fontSize: '15px' }}>+351</span>
+    <input type="text" value={agTel1} onChange={e => setAgTel1(e.target.value)} placeholder="912345678" required style={{ width: '100%', backgroundColor: 'transparent', border: 'none', padding: '12px', color: '#fff', outline: 'none', fontSize: '15px' }} />
+  </div>
 </div>
+<div>
+  <label style={{ display: 'block', fontSize: '14px', marginBottom: '6px', color: '#94a3b8' }}>Telemóvel 2 (Opcional)</label>
+  <input type="text" value={agTel2} onChange={e => setAgTel2(e.target.value)} placeholder="Outro contacto" style={{ width: '100%', backgroundColor: '#1f293d', border: '1px solid #334155', borderRadius: '8px', padding: '12px', color: '#fff', fontSize: '15px' }} />
+</div>
+              
                     
                     <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Nome do Cliente *</label>
                     <input type="text" required list="lista-clientes-geral" value={agClient} onChange={(e) => selecionarClienteInteligente(e.target.value, 'ag')} placeholder="Ex: Carla Monteiro" style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
