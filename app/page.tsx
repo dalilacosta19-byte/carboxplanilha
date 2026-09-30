@@ -1088,7 +1088,7 @@ setAgSinal('0');
   <option value="Proteção Cerâmica" />
 </datalist>
 
-<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr auto', gap: '10px', alignItems: 'center' }}>
+<div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 1.5fr auto', gap: '10px', alignItems: 'center' }}>
   <input 
     type="text" 
     list="sugestoes-servicos"
