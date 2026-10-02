@@ -106,3 +106,45 @@ export function mensagemErro(erro: unknown): string {
   if (e?.code === '23502') return 'Falta preencher um campo obrigatório.';
   return `Não foi possível concluir. ${e?.message ?? ''}`.trim();
 }
+
+// ---------- Telefones e WhatsApp ----------
+// Telefone 1: sempre de Portugal. Guarda-se só os 9 dígitos (ex.: "912345678"); o +351 é fixo no ecrã.
+// Telefone 2: livre. Se for de outro país começa por + e o indicativo (ex.: "+41 79 123 45 67").
+
+export const soDigitos = (t: string) => t.replace(/\D/g, '');
+
+// Aceita "912 345 678", "+351 912345678" ou "00351912345678" e devolve "912345678" (ou null se inválido).
+export function limparTelefonePT(texto: string): string | null {
+  let d = soDigitos(texto);
+  if (d.startsWith('00351')) d = d.slice(5);
+  else if (d.startsWith('351') && d.length === 12) d = d.slice(3);
+  return /^[29]\d{8}$/.test(d) ? d : null;
+}
+
+// Telefone 2: devolve o número pronto a guardar, ou null se inválido.
+export function limparTelefoneLivre(texto: string): string | null {
+  const t = texto.trim();
+  if (t.startsWith('+') || t.startsWith('00')) {
+    const d = soDigitos(t).replace(/^00/, '');
+    return d.length >= 7 && d.length <= 15 ? `+${d}` : null;
+  }
+  return limparTelefonePT(t); // sem indicativo: assume Portugal
+}
+
+// "912345678" -> "+351 912 345 678"
+export function mostrarTelefone(guardado: string | null): string {
+  if (!guardado) return '';
+  if (guardado.startsWith('+')) return guardado;
+  const d = soDigitos(guardado);
+  return d.length === 9 ? `+351 ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` : guardado;
+}
+
+// Número no formato que o WhatsApp precisa (só dígitos, com indicativo do país).
+export function numeroWhatsApp(guardado: string): string {
+  if (guardado.startsWith('+')) return soDigitos(guardado);
+  return `351${soDigitos(guardado)}`;
+}
+
+export function abrirWhatsApp(guardado: string, texto: string) {
+  window.open(`https://wa.me/${numeroWhatsApp(guardado)}?text=${encodeURIComponent(texto)}`, '_blank');
+}

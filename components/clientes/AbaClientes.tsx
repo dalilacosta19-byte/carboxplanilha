@@ -2,7 +2,11 @@
 
 import React, { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import {
+  abrirWhatsApp,
   adicionarVeiculo,
+  limparTelefoneLivre,
+  limparTelefonePT,
+  mostrarTelefone,
   atualizarCliente,
   atualizarVeiculo,
   criarCliente,
@@ -62,18 +66,57 @@ function validarVeiculo(f: FormVeiculo): { erro?: string; dados?: DadosVeiculo }
 function validarCliente(f: FormCliente): { erro?: string; dados?: DadosCliente } {
   if (!f.nome.trim()) return { erro: 'O nome é obrigatório.' };
   if (!f.telefone.trim()) return { erro: 'O telefone é obrigatório.' };
+  const telefone = limparTelefonePT(f.telefone);
+  if (!telefone) return { erro: 'O telefone 1 tem de ser um número português com 9 dígitos (ex.: 912 345 678).' };
+  let telefone2: string | null = null;
+  if (f.telefone2.trim()) {
+    telefone2 = limparTelefoneLivre(f.telefone2);
+    if (!telefone2) return { erro: 'O telefone 2 não parece válido. Se for de outro país, comece por + e o indicativo (ex.: +41 79 123 45 67).' };
+  }
   if (f.email.trim() && !/^\S+@\S+\.\S+$/.test(f.email.trim())) return { erro: 'O e-mail não parece válido.' };
   return {
     dados: {
       nome: f.nome.trim(),
       apelido: ouNulo(f.apelido),
-      telefone: f.telefone.trim(),
-      telefone2: ouNulo(f.telefone2),
+      telefone,
+      telefone2,
       email: ouNulo(f.email),
       notas: ouNulo(f.notas),
     },
   };
 }
+
+// ---------- Mensagens de WhatsApp ----------
+const MODELOS = [
+  { id: 'marcacao', nome: 'Confirmar marcação' },
+  { id: 'avaliacao', nome: 'Confirmar avaliação' },
+  { id: 'orcamento', nome: 'Orçamento enviado' },
+  { id: 'pronto', nome: 'Veículo pronto' },
+  { id: 'pagamento', nome: 'Lembrete de pagamento' },
+  { id: 'livre', nome: 'Mensagem livre' },
+] as const;
+type IdModelo = (typeof MODELOS)[number]['id'];
+
+function textoModelo(id: IdModelo, c: Cliente, v: Veiculo | undefined): string {
+  const viatura = v ? `${v.modelo ? v.modelo + ' ' : ''}(${v.matricula})` : 'a sua viatura';
+  const ola = `Olá ${c.nome}`;
+  switch (id) {
+    case 'marcacao':
+      return `${ola}, confirmamos a sua marcação na CARBOX77 Detailing para o dia __/__ às __:__ para ${viatura}. Qualquer alteração, avise-nos por aqui. Obrigado!`;
+    case 'avaliacao':
+      return `${ola}, confirmamos a avaliação de ${viatura} na CARBOX77 Detailing no dia __/__ às __:__. Até breve!`;
+    case 'orcamento':
+      return `${ola}, já preparámos o orçamento para ${viatura}. Valor: ____ €. Ficamos a aguardar a sua confirmação. Obrigado!`;
+    case 'pronto':
+      return `${ola}, informamos que ${viatura} já está pronta para levantamento na CARBOX77 Detailing. Obrigado pela preferência!`;
+    case 'pagamento':
+      return `${ola}, lembramos que está em falta o pagamento de ____ € referente ao serviço em ${viatura}. Qualquer dúvida estamos ao dispor. Obrigado!`;
+    default:
+      return `${ola}, `;
+  }
+}
+
+interface Mensagem { clienteId: string; telefone: string; veiculoId: string; modelo: IdModelo; texto: string }
 
 export default function AbaClientes({ onAlterado }: { onAlterado?: () => void }) {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -88,6 +131,21 @@ export default function AbaClientes({ onAlterado }: { onAlterado?: () => void })
   const [erroForm, setErroForm] = useState('');
   const [aGuardar, setAGuardar] = useState(false);
   const [aviso, setAviso] = useState('');
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
+
+  const abrirMensagem = (c: Cliente) => {
+    const v = c.veiculos[0];
+    setMensagem({ clienteId: c.id, telefone: c.telefone, veiculoId: v?.id ?? '', modelo: 'marcacao', texto: textoModelo('marcacao', c, v) });
+  };
+  const mudarMensagem = (c: Cliente, alteracao: Partial<Mensagem>) => {
+    if (!mensagem) return;
+    const nova = { ...mensagem, ...alteracao };
+    // Ao trocar o modelo ou o veículo, o texto é refeito; o resto do texto editado mantém-se.
+    if (alteracao.modelo || alteracao.veiculoId !== undefined) {
+      nova.texto = textoModelo(nova.modelo, c, c.veiculos.find((v) => v.id === nova.veiculoId));
+    }
+    setMensagem(nova);
+  };
 
   const carregar = useCallback(async () => {
     setACarregar(true);
@@ -223,10 +281,16 @@ export default function AbaClientes({ onAlterado }: { onAlterado?: () => void })
             <div style={{ ...GRELHA, marginBottom: '16px' }}>
               <div><label style={ETIQUETA}>Nome *</label><input style={CAMPO} required {...campoC('nome')} placeholder="Carla" /></div>
               <div><label style={ETIQUETA}>Apelido</label><input style={CAMPO} {...campoC('apelido')} placeholder="Monteiro" /></div>
-              <div><label style={ETIQUETA}>Telefone *</label><input style={CAMPO} required type="tel" {...campoC('telefone')} placeholder="912 345 678" /></div>
-              <div><label style={ETIQUETA}>Telefone 2</label><input style={CAMPO} type="tel" {...campoC('telefone2')} /></div>
+              <div>
+                <label style={ETIQUETA}>Telefone 1 (Portugal) *</label>
+                <div style={{ display: 'flex' }}>
+                  <span style={{ padding: '12px', backgroundColor: '#131722', border: '1px solid #222b45', borderRight: 'none', borderRadius: '10px 0 0 10px', color: '#d4af37', fontWeight: 'bold', fontSize: '16px' }}>+351</span>
+                  <input style={{ ...CAMPO, borderRadius: '0 10px 10px 0' }} required type="tel" inputMode="numeric" {...campoC('telefone')} placeholder="912 345 678" />
+                </div>
+              </div>
+              <div><label style={ETIQUETA}>Telefone 2 (qualquer país)</label><input style={CAMPO} type="tel" {...campoC('telefone2')} placeholder="+41 79 123 45 67" /></div>
               <div><label style={ETIQUETA}>E-mail</label><input style={CAMPO} type="email" {...campoC('email')} /></div>
-              <div><label style={ETIQUETA}>Notas do cliente</label><input style={CAMPO} {...campoC('notas')} /></div>
+              <div><label style={ETIQUETA}>Notas do cliente</label><input style={CAMPO} {...campoC('notas')} placeholder="Ex.: prefere WhatsApp, só à tarde" /></div>
             </div>
           )}
 
@@ -240,7 +304,7 @@ export default function AbaClientes({ onAlterado }: { onAlterado?: () => void })
               <div><label style={ETIQUETA}>Modelo</label><input style={CAMPO} {...campoV('modelo')} placeholder="Renault Captur" /></div>
               <div><label style={ETIQUETA}>Ano</label><input style={CAMPO} inputMode="numeric" {...campoV('ano')} placeholder="2021" /></div>
               <div><label style={ETIQUETA}>Cor</label><input style={CAMPO} {...campoV('cor')} placeholder="Branco" /></div>
-              <div><label style={ETIQUETA}>Notas do veículo</label><input style={CAMPO} {...campoV('notas')} /></div>
+              <div><label style={ETIQUETA}>Notas do veículo</label><input style={CAMPO} {...campoV('notas')} placeholder="Ex.: risco na porta, jante danificada" /></div>
             </div>
           )}
 
@@ -291,7 +355,7 @@ export default function AbaClientes({ onAlterado }: { onAlterado?: () => void })
                     {!c.ativo && <span style={{ fontSize: '12px', color: '#f87171', marginLeft: '8px' }}>(desativado)</span>}
                   </h3>
                 </div>
-                <p style={{ margin: '0 0 4px 0', color: '#e2e8f0', fontSize: '15px' }}>📞 {c.telefone}{c.telefone2 ? ` · ${c.telefone2}` : ''}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#e2e8f0', fontSize: '15px' }}>📞 {mostrarTelefone(c.telefone)}{c.telefone2 ? ` · ${mostrarTelefone(c.telefone2)}` : ''}</p>
                 {c.email && <p style={{ margin: '0 0 4px 0', color: '#cbd5e1', fontSize: '14px' }}>✉️ {c.email}</p>}
                 {c.notas && <p style={{ margin: '0 0 4px 0', color: '#94a3b8', fontSize: '14px' }}>📝 {c.notas}</p>}
 
@@ -308,7 +372,34 @@ export default function AbaClientes({ onAlterado }: { onAlterado?: () => void })
                   ))}
                 </div>
 
+                {mensagem?.clienteId === c.id && (
+                  <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#090a0f', border: '1px solid #25d366', borderRadius: '10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <label style={{ ...ETIQUETA, marginBottom: 0 }}>Tipo de mensagem</label>
+                    <select style={CAMPO} value={mensagem.modelo} onChange={(e) => mudarMensagem(c, { modelo: e.target.value as IdModelo })}>
+                      {MODELOS.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                    </select>
+                    {c.veiculos.length > 1 && (
+                      <select style={CAMPO} value={mensagem.veiculoId} onChange={(e) => mudarMensagem(c, { veiculoId: e.target.value })}>
+                        {c.veiculos.map((v) => <option key={v.id} value={v.id}>{v.matricula}{v.modelo ? ` — ${v.modelo}` : ''}</option>)}
+                      </select>
+                    )}
+                    {c.telefone2 && (
+                      <select style={CAMPO} value={mensagem.telefone} onChange={(e) => mudarMensagem(c, { telefone: e.target.value })}>
+                        <option value={c.telefone}>Telefone 1: {mostrarTelefone(c.telefone)}</option>
+                        <option value={c.telefone2}>Telefone 2: {mostrarTelefone(c.telefone2)}</option>
+                      </select>
+                    )}
+                    <label style={{ ...ETIQUETA, marginBottom: 0 }}>Texto (pode alterar; troque os ___ pelos dados certos)</label>
+                    <textarea rows={5} style={{ ...CAMPO, resize: 'vertical', fontFamily: 'inherit' }} value={mensagem.texto} onChange={(e) => setMensagem({ ...mensagem, texto: e.target.value })} />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button style={{ ...BOTAO_OURO, backgroundColor: '#25d366', color: '#fff' }} onClick={() => abrirWhatsApp(mensagem.telefone, mensagem.texto)}>Abrir no WhatsApp</button>
+                      <button style={BOTAO_LINHA} onClick={() => setMensagem(null)}>Fechar</button>
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+                  <button style={{ ...BOTAO_LINHA, color: '#25d366', borderColor: '#25d366' }} onClick={() => abrirMensagem(c)}>💬 WhatsApp</button>
                   <button style={BOTAO_LINHA} onClick={() => abrir({ tipo: 'editarCliente', cliente: c })}>✏️ Editar cliente</button>
                   <button style={BOTAO_LINHA} onClick={() => abrir({ tipo: 'novoVeiculo', cliente: c })}>+ Veículo</button>
                   <button style={{ ...BOTAO_LINHA, color: c.ativo ? '#f87171' : '#4ade80' }} onClick={() => void alternarAtivo(c)}>
