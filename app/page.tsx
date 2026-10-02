@@ -6,6 +6,7 @@ import BotaoBackup from '@/components/auth/BotaoBackup';
 import AbaClientes from '@/components/clientes/AbaClientes';
 import NovaOSReal from '@/components/os/NovaOSReal';
 import PatioReal from '@/components/os/PatioReal';
+import AbaFuncionarios from '@/components/funcionarios/AbaFuncionarios';
 import { listarClientes, type Cliente } from '@/lib/clientes';
 
 function Painel({ emailUtilizador, onSair }: { emailUtilizador: string; onSair: () => void }) {
@@ -1456,49 +1457,7 @@ setAgSinal('0');
           )}
 
           {/* ABA 7: FUNCIONÁRIOS */}
-          {tab === 'funcionarios' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-              <div>
-                <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Gestão de Funcionários & Salários</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Configure comissões, salários fixos e registe adiantamentos.</p>
-              </div>
-
-              <form onSubmit={adicionarFuncionario} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '24px', borderRadius: '16px', border: '1px solid #1f293d' }}>
-                <input type="text" placeholder="Nome do Funcionário" required value={novoFuncNome} onChange={(e) => setNovoFuncNome(e.target.value)} style={{ flex: 1, minWidth: '220px', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
-                <select value={tipoRemuneracao} onChange={(e) => setTipoRemuneracao(e.target.value as any)} style={{ padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', cursor: 'pointer' }}>
-                  <option value="comissao">Porcentagem (%)</option>
-                  <option value="fixo">Salário Fixo (€)</option>
-                  <option value="diaria">Diária (€)</option>
-                </select>
-                <input type="text" placeholder="Valor/Taxa" value={valorRemuneracao} onChange={(e) => setValorRemuneracao(e.target.value)} style={{ width: '120px', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff' }} />
-                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '14px 28px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>Adicionar Funcionário</button>
-              </form>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {funcionarios.map(f => (
-                  <div key={f.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', padding: '20px', borderRadius: '14px', border: '1px solid #1f293d', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-                    <div>
-                      <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>{f.nome}</span>
-                      <div style={{ marginTop: '8px', display: 'flex', gap: '18px', fontSize: '15px', flexWrap: 'wrap' }}>
-                        <span style={{ color: '#d4af37' }}>
-                          Remuneração: <b>{f.tipoRemuneracao === 'comissao' ? `${f.valorPctOuFixo}% (Comissão Líquida)` : f.tipoRemuneracao === 'fixo' ? `${f.valorPctOuFixo}€ (Fixo)` : `${f.valorPctOuFixo}€ (Diária)`}</b>
-                        </span>
-                        <span style={{ color: '#f87171' }}>Adiantamento: <b>{Number(f.adiantamento || 0).toFixed(2)} €</b></span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <button onClick={() => { setFuncSelecionadoId(f.id); setModalAdiantamentoOpen(true); }} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                        + Adiantamento
-                      </button>
-                      <button onClick={() => removerFuncionario(f.id)} style={{ backgroundColor: 'rgba(239, 68, 68, 0.25)', color: '#f87171', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                        Remover
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {tab === 'funcionarios' && <AbaFuncionarios />}
 
           {/* ABA 8: STOCK */}
           {tab === 'stock' && (
