@@ -2,15 +2,18 @@
 
 import React, { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { mensagemErro } from '@/lib/clientes';
+import PainelFecho from './PainelFecho';
 import { euros, hojeLisboa, listarCarteiras, paraCents, type Carteira } from '@/lib/os';
 import {
   anularAdiantamento,
   atualizarFuncionario,
   criarFuncionario,
   listarAdiantamentosPendentes,
+  listarFechosDoMes,
   listarFuncionarios,
   registarAdiantamento,
   type Adiantamento,
+  type Fecho,
   mesAtualLisboa,
   producaoDoMes,
   type Func,
@@ -50,6 +53,7 @@ export default function AbaFuncionarios() {
   const [aGravar, setAGravar] = useState(false);
   const [adiantamentos, setAdiantamentos] = useState<Adiantamento[]>([]);
   const [carteiras, setCarteiras] = useState<Carteira[]>([]);
+  const [fechos, setFechos] = useState<Fecho[]>([]);
   const [adiantar, setAdiantar] = useState<string | null>(null); // id do funcionário com o formulário aberto
   const [adValor, setAdValor] = useState('');
   const [adCarteira, setAdCarteira] = useState('');
@@ -59,7 +63,8 @@ export default function AbaFuncionarios() {
   const carregar = useCallback(async () => {
     setErro('');
     try {
-      const [f, p, a, c] = await Promise.all([listarFuncionarios(), producaoDoMes(mes), listarAdiantamentosPendentes(), listarCarteiras()]);
+      const [f, p, a, c, fe] = await Promise.all([listarFuncionarios(), producaoDoMes(mes), listarAdiantamentosPendentes(), listarCarteiras(), listarFechosDoMes(mes)]);
+      setFechos(fe);
       setLista(f);
       setProducao(p);
       setAdiantamentos(a);
@@ -206,6 +211,7 @@ export default function AbaFuncionarios() {
         const fixo = f.valor_fixo_cents ?? 0;
         const total = fixo + diarias + p.comissoes_cents;
         const ads = adiantamentos.filter((a) => a.funcionario_id === f.id);
+        const fecho = fechos.find((x) => x.funcionario_id === f.id);
         const totalAds = ads.reduce((t, a) => t + a.valor_cents, 0);
         return (
           <div key={f.id} style={{ ...CARTAO, opacity: f.ativo ? 1 : 0.55 }}>
@@ -227,6 +233,7 @@ export default function AbaFuncionarios() {
             </div>
 
             {/* Produção do mês */}
+            {!fecho && (
             <div style={{ marginTop: '14px', padding: '12px', backgroundColor: '#090a0f', borderRadius: '10px', display: 'flex', gap: '18px', flexWrap: 'wrap', fontSize: '15px' }}>
               <span style={{ color: '#cbd5e1' }}>Serviços: <b>{p.servicos}</b></span>
               <span style={{ color: '#d4af37' }}>Comissões: <b>{euros(p.comissoes_cents)}</b></span>
@@ -234,10 +241,11 @@ export default function AbaFuncionarios() {
               {fixo > 0 && <span style={{ color: '#cbd5e1' }}>Fixo: <b>{euros(fixo)}</b></span>}
               <span style={{ color: '#4ade80', fontSize: '16px' }}>Total do mês: <b>{euros(total)}</b></span>
               {ads.length > 0 && <span style={{ color: '#f87171' }}>− Adiantamentos: <b>{euros(totalAds)}</b></span>}
-              <span style={{ color: '#38bdf8', fontSize: '16px' }}>Falta pagar: <b>{euros(total - totalAds)}</b></span>
+              {!fecho && <span style={{ color: '#38bdf8', fontSize: '16px' }}>Falta pagar: <b>{euros(total - totalAds)}</b></span>}
               {p.detalhe.length > 0 && <button style={{ ...BOTAO_LINHA, padding: '4px 10px', fontSize: '13px' }} onClick={() => setDetalhe(detalhe === f.id ? null : f.id)}>{detalhe === f.id ? 'Esconder' : 'Ver'} OS</button>}
             </div>
-            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '6px 0 0 0' }}>As comissões só contam depois de a OS estar paga. Os adiantamentos contam até serem descontados num fecho de mês.</p>
+            )}
+            {!fecho && <p style={{ fontSize: '12px', color: '#94a3b8', margin: '6px 0 0 0' }}>As comissões só contam depois de a OS estar paga. Os adiantamentos contam até serem descontados num fecho de mês.</p>}
             {ads.length > 0 && (
               <div style={{ marginTop: '8px', fontSize: '14px', color: '#cbd5e1' }}>
                 {ads.map((a) => (
@@ -278,6 +286,14 @@ export default function AbaFuncionarios() {
               </div>
             )}
 
+            <PainelFecho
+              key={`${f.id}-${mes}-${fecho?.id ?? 'aberto'}-${fecho?.estado ?? ''}`}
+              f={f}
+              mes={mes}
+              fecho={fecho}
+              carteiras={carteiras}
+              onFeito={async (texto) => { setAviso(texto); setErro(''); await carregar(); }}
+            />
             {editar === f.id && formulario(f)}
           </div>
         );
