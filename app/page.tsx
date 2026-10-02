@@ -7,6 +7,7 @@ import AbaClientes from '@/components/clientes/AbaClientes';
 import NovaOSReal from '@/components/os/NovaOSReal';
 import PatioReal from '@/components/os/PatioReal';
 import AbaFuncionarios from '@/components/funcionarios/AbaFuncionarios';
+import AbaDespesas from '@/components/despesas/AbaDespesas';
 import { listarClientes, type Cliente } from '@/lib/clientes';
 
 function Painel({ emailUtilizador, onSair }: { emailUtilizador: string; onSair: () => void }) {
@@ -1161,92 +1162,7 @@ setAgSinal('0');
           )}
 
           {/* ABA 4: DESPESAS & CUSTOS (COM SUPORTE A FOTO / PDF) */}
-          {tab === 'despesas' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '900px' }}>
-              <div>
-                <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>📉 Despesas Fixas & Variáveis</h2>
-                <p style={{ fontSize: '17px', color: '#94a3b8', margin: 0 }}>Registe custos como aluguer, contabilidade, produtos e adicione fotos ou PDFs das faturas.</p>
-              </div>
-
-              <form onSubmit={adicionarDespesa} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>➕ Nova Despesa ou Fatura</h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Tipo de Despesa *</label>
-                    <select value={novaDespTipo} onChange={(e) => setNovaDespTipo(e.target.value as any)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', cursor: 'pointer' }}>
-                      <option value="Fixa">Fixa (Ex: Aluguer, Contabilidade)</option>
-                      <option value="Variável">Variável (Ex: Produtos, Ferramentas)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Categoria *</label>
-                    <select value={novaDespCat} onChange={(e) => setNovaDespCat(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', cursor: 'pointer' }}>
-                      <option value="Aluguel / Renda">Aluguel / Renda</option>
-                      <option value="Contabilidade">Contabilidade</option>
-                      <option value="Produtos & Insumos">Produtos & Insumos</option>
-                      <option value="Ferramentas & Equipamentos">Ferramentas & Equipamentos</option>
-                      <option value="Água / Luz / Internet">Água / Luz / Internet</option>
-                      <option value="Outras Despesas">Outras Despesas</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Descrição *</label>
-                    <input type="text" required placeholder="Ex: Renda Setembro ou Compra Polidores" value={novaDespDesc} onChange={(e) => setNovaDespDesc(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Valor (€) *</label>
-                    <input type="text" required placeholder="0.00" value={novaDespVal} onChange={(e) => setNovaDespVal(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1', marginBottom: '6px' }}>Data *</label>
-                    <input type="date" required value={novaDespData} onChange={(e) => setNovaDespData(e.target.value)} style={{ width: '100%', padding: '14px', backgroundColor: '#090a0f', border: '1px solid #222b45', borderRadius: '10px', color: '#fff', fontSize: '16px', boxSizing: 'border-box', cursor: 'pointer', colorScheme: 'dark' }} />
-                  </div>
-                </div>
-
-                {/* BOTÃO PARA TIRAR FOTO OU INSERIR PDF */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ display: 'block', fontSize: '15px', color: '#cbd5e1' }}>Anexar Fatura (Tirar Foto ou Inserir PDF)</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <label style={{ backgroundColor: '#2563eb', color: '#fff', padding: '12px 20px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px' }}>
-                      📷 Tirar Foto / Carregar PDF
-                      <input type="file" accept="image/*,application/pdf" capture="environment" onChange={lidarComFicheiroAnexo} style={{ display: 'none' }} />
-                    </label>
-                    {novaDespAnexo ? (
-                      <span style={{ color: '#34d399', fontSize: '14px', fontWeight: 'bold' }}>✓ Ficheiro anexado: {novaDespAnexo}</span>
-                    ) : (
-                      <span style={{ color: '#94a3b8', fontSize: '14px' }}>Nenhum ficheiro selecionado</span>
-                    )}
-                  </div>
-                </div>
-
-                <button type="submit" style={{ backgroundColor: '#d4af37', color: '#090a0f', border: 'none', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer', marginTop: '6px' }}>
-                  Guardar Despesa
-                </button>
-              </form>
-
-              {/* LISTA DE DESPESAS REGISTADAS */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>Despesas Registadas</h3>
-                {despesas.map(d => (
-                  <div key={d.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '14px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-                    <div>
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '12px', backgroundColor: d.tipo === 'Fixa' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(249, 115, 22, 0.2)', color: d.tipo === 'Fixa' ? '#60a5fa' : '#f97316', padding: '2px 8px', borderRadius: '6px', fontWeight: 'bold' }}>{d.tipo}</span>
-                        <span style={{ fontSize: '13px', color: '#d4af37' }}>{d.categoria}</span>
-                      </div>
-                      <h4 style={{ fontSize: '18px', color: '#fff', margin: 0 }}>{d.descricao}</h4>
-                      <p style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '13px' }}>Data: {d.data} {d.anexoNome ? `| 📎 Anexo: ${d.anexoNome}` : ''}</p>
-                    </div>
-                    <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#f87171' }}>-{d.valor.toFixed(2)} €</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {tab === 'despesas' && <AbaDespesas />}
 
           {/* ABA 5: CALENDÁRIO & AGENDA */}
           {tab === 'agenda' && (
