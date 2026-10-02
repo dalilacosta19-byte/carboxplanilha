@@ -194,7 +194,9 @@ export async function listarPatio(): Promise<OSPatio[]> {
 }
 
 // ---------- Criar OS ----------
-export interface NovaLinha { descricao: string; servico_id: string | null; valor_cents: number; desconto_pct: number; tecnicos: string[] }
+// comissao_pct: % sobre o lucro do serviço (valor com desconto − material − terceirizados).
+// Com vários técnicos, a comissão divide-se em partes iguais (parte_pct).
+export interface NovaLinha { descricao: string; servico_id: string | null; valor_cents: number; desconto_pct: number; tecnicos: string[]; comissao_pct: number | null; terceiros: { descricao: string; custo_cents: number }[] }
 export interface NovaOS {
   cliente_id: string;
   veiculo_id: string;
@@ -238,8 +240,15 @@ export async function criarOS(d: NovaOS): Promise<string> {
         const parte = Math.round((100 / l.tecnicos.length) * 100) / 100; // 2 técnicos = 50% cada
         const { error: e2 } = await supabase
           .from('os_item_tecnicos')
-          .insert(l.tecnicos.map((fid) => ({ os_item_id: item.id, funcionario_id: fid, parte_pct: parte, funcao: 'executou' })));
+          .insert(l.tecnicos.map((fid) => ({ os_item_id: item.id, funcionario_id: fid, parte_pct: parte, funcao: 'executou', comissao_pct: l.comissao_pct ?? 0 })));
         if (e2) throw e2;
+      }
+      // Despesas deste serviço pagas a terceiros (ex.: pintor). Entram no cálculo do lucro e da comissão.
+      if (l.terceiros.length) {
+        const { error: e4 } = await supabase
+          .from('os_terceirizados')
+          .insert(l.terceiros.map((t) => ({ os_item_id: item.id, descricao: t.descricao, custo_cents: t.custo_cents })));
+        if (e4) throw e4;
       }
     }
     if (d.sinal_cents > 0 && d.sinal_carteira_id) {
@@ -259,6 +268,7 @@ export async function criarOS(d: NovaOS): Promise<string> {
     const { data: its } = await supabase.from('os_itens').select('id').eq('os_id', os.id);
     const itIds = ((its ?? []) as any[]).map((x: any) => x.id);
     if (itIds.length) await supabase.from('os_item_tecnicos').delete().in('os_item_id', itIds);
+    if (itIds.length) await supabase.from('os_terceirizados').delete().in('os_item_id', itIds);
     await supabase.from('os_itens').delete().eq('os_id', os.id);
     await supabase.from('ordens_servico').delete().eq('id', os.id);
     throw erro;
