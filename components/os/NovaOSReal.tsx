@@ -86,12 +86,6 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
 
   const mudarLinha = (chave: number, alt: Partial<Linha>) =>
     setLinhas((ls) => ls.map((l) => (l.chave === chave ? { ...l, ...alt } : l)));
-  // Ao escolher um serviço já usado, preenche o último valor cobrado (se o valor ainda estiver vazio).
-  const escreverServico = (l: Linha, texto: string) => {
-    const s = servicos.find((x) => x.nome.toLowerCase() === texto.trim().toLowerCase());
-    const valor = !l.valor.trim() && s?.ultimo_valor_cents != null ? (s.ultimo_valor_cents / 100).toFixed(2).replace('.', ',') : l.valor;
-    mudarLinha(l.chave, { descricao: texto, valor });
-  };
   const alternarTecnico = (chave: number, fid: string) =>
     setLinhas((ls) => ls.map((l) => (l.chave !== chave ? l : { ...l, tecnicos: l.tecnicos.includes(fid) ? l.tecnicos.filter((x) => x !== fid) : [...l.tecnicos, fid] })));
 
@@ -205,12 +199,12 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
       <div style={CARTAO}>
         <h3 style={{ color: '#d4af37', margin: '0 0 12px 0' }}>2. Serviços</h3>
         <datalist id="lista-servicos-bd">
-          {servicos.map((s) => <option key={s.nome} value={s.nome} label={s.ultimo_valor_cents != null ? `último: ${euros(s.ultimo_valor_cents)}` : undefined} />)}
+          {servicos.map((s) => <option key={s.nome} value={s.nome} />)}
         </datalist>
         {linhas.map((l, i) => (
           <div key={l.chave} style={{ borderBottom: '1px solid #222b45', paddingBottom: '14px', marginBottom: '14px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 3fr) minmax(110px, 1fr) minmax(90px, 1fr) auto', gap: '10px', alignItems: 'end' }}>
-              <div><label style={ETIQUETA}>Serviço {i + 1} *</label><input style={CAMPO} list="lista-servicos-bd" value={l.descricao} onChange={(e) => escreverServico(l, e.target.value)} placeholder="Comece a escrever… (ex.: Polimento)" /></div>
+              <div><label style={ETIQUETA}>Serviço {i + 1} *</label><input style={CAMPO} list="lista-servicos-bd" value={l.descricao} onChange={(e) => mudarLinha(l.chave, { descricao: e.target.value })} placeholder="Comece a escrever… (ex.: Polimento)" /></div>
               <div><label style={ETIQUETA}>Valor (€) *</label><input style={CAMPO} inputMode="decimal" value={l.valor} onChange={(e) => mudarLinha(l.chave, { valor: e.target.value })} placeholder="350,00" /></div>
               <div><label style={ETIQUETA}>Desconto %</label><input style={CAMPO} inputMode="decimal" value={l.desconto} onChange={(e) => mudarLinha(l.chave, { desconto: e.target.value })} /></div>
               <button type="button" disabled={linhas.length === 1} onClick={() => setLinhas((ls) => ls.filter((x) => x.chave !== l.chave))} style={{ ...BOTAO_LINHA, color: '#f87171', opacity: linhas.length === 1 ? 0.4 : 1 }}>Remover</button>
