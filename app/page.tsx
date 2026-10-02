@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import AcessoProtegido from '@/components/auth/AcessoProtegido';
 import BotaoBackup from '@/components/auth/BotaoBackup';
 import AbaClientes from '@/components/clientes/AbaClientes';
+import NovaOSReal from '@/components/os/NovaOSReal';
+import PatioReal from '@/components/os/PatioReal';
 import { listarClientes, type Cliente } from '@/lib/clientes';
 
 function Painel({ emailUtilizador, onSair }: { emailUtilizador: string; onSair: () => void }) {
@@ -799,131 +801,7 @@ setAgSinal('0');
           
           {tab === 'clientes' && <AbaClientes onAlterado={recarregarClientesBD} />}
 
-          {tab === 'pateo' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-<div>
-  <h2 style={{ fontSize: '30px', fontWeight: 'bold', color: '#fff', margin: '0 0 6px 0' }}>Veículos no Pátio</h2>
-  <p style={{ fontSize: '17px', color: '#94a3b8', margin: '0 0 16px 0' }}>Consulte o trabalho em execução, dados do cliente, adicione gastos rápidos e altere estados:</p>
-  
-  <input 
-    type="text"
-    placeholder="🔍 Pesquisar por Matrícula (ex: AZ-91-GI) ou Nome do Cliente..."
-    value={pesquisaPatio}
-    onChange={(e) => setPesquisaPatio(e.target.value)}
-    style={{
-      width: '100%',
-      maxWidth: '450px',
-      padding: '12px 16px',
-      backgroundColor: '#131722',
-      border: '1px solid #222b45',
-      borderRadius: '10px',
-      color: '#fff',
-      fontSize: '15px',
-      outline: 'none'
-    }}
-  />
-</div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
-              {ordensServico
-  .filter(os => 
-    (os.matricula || '').toLowerCase().includes(pesquisaPatio.toLowerCase()) || 
-    (os.cliente || '').toLowerCase().includes(pesquisaPatio.toLowerCase())
-  )
-  .map(os => (
-    
-    
-                  <div key={os.id} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1f293d', paddingBottom: '12px' }}>
-                      <div>
-                        <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>🚗 {os.veiculo}</h3>
-                        <span style={{ fontSize: '15px', color: '#d4af37', fontWeight: 'bold', backgroundColor: 'rgba(212, 175, 55, 0.15)', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', marginTop: '4px' }}>Matrícula: {os.matricula}</span>
-                      </div>
-                      <select 
-                        value={os.status} 
-                        onChange={(e) => alterarEstadoOS(os.id, e.target.value)} 
-                        style={{ 
-                          padding: '8px 14px', 
-                          backgroundColor: os.status === 'Em Execução' ? 'rgba(212, 175, 55, 0.2)' : os.status === 'Aguardando Pagamento' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(52, 211, 153, 0.2)', 
-                          color: os.status === 'Em Execução' ? '#d4af37' : os.status === 'Aguardando Pagamento' ? '#f97316' : '#34d399',
-                          border: '1px solid #222b45', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' 
-                        }}
-                      >
-                        <option value="Em Execução">Em Execução</option>
-                        <option value="Aguardando Pagamento">Aguardando Pagamento</option>
-                        <option value="Pago / Concluído">Pago / Concluído</option>
-                      </select>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '15px' }}>
-                      <p style={{ margin: 0, color: '#e2e8f0' }}><b>👤 Cliente:</b> {os.cliente} (+351 {os.contacto})</p>
-                      <p style={{ margin: 0, color: '#38bdf8' }}><b>🛠️ Trabalho em Execução:</b> {os.servicos.map(s => s.descricao).join(', ')}</p>
-                      <p style={{ margin: 0, color: '#cbd5e1' }}><b>👥 Técnico(s):</b> {os.profissionais && os.profissionais.length > 0 ? os.profissionais.join(', ') : 'N/D'}</p>
-                      <p style={{ margin: 0, color: '#cbd5e1' }}><b>📅 Data de Entrega:</b> {os.data}</p>
-                    </div>
-
-                    {os.gastos && os.gastos.length > 0 && (
-                      <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '10px', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <span style={{ fontSize: '13px', color: '#f87171', fontWeight: 'bold' }}>💸 Gastos Registados:</span>
-                        {os.gastos.map(g => (
-                          <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#e2e8f0' }}>
-                            <span>[{g.tipo}] {g.descricao} (-{g.valor.toFixed(2)}€)</span>
-                            <button onClick={() => removerGastoDoPatio(os.id, g.id)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {osAdicionandoGastoId === os.id ? (
-                      <div style={{ backgroundColor: '#090a0f', padding: '12px', borderRadius: '10px', border: '1px solid #222b45', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <select value={gastoTipoInput} onChange={(e) => setGastoTipoInput(e.target.value)} style={{ padding: '6px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px' }}>
-                            <option value="Pintor">Pintor</option>
-                            <option value="PPF">Material PPF</option>
-                            <option value="Peças">Peças</option>
-                            <option value="Outro">Outro</option>
-                          </select>
-                          <input type="text" placeholder="Descrição do gasto" value={gastoDescInput} onChange={(e) => setGastoDescInput(e.target.value)} style={{ flex: 1, padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px' }} />
-                          <input type="text" placeholder="Valor (€)" value={gastoValorInput} onChange={(e) => setGastoValorInput(e.target.value)} style={{ width: '80px', padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px' }} />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                          <button onClick={() => setOsAdicionandoGastoId(null)} style={{ backgroundColor: '#1f293d', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Cancelar</button>
-                          <button onClick={() => adicionarGastoRapidoNoPatio(os.id)} style={{ backgroundColor: '#f87171', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Salvar Gasto</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button onClick={() => setOsAdicionandoGastoId(os.id)} style={{ backgroundColor: 'transparent', color: '#f87171', border: '1px dashed rgba(248, 113, 113, 0.4)', padding: '6px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center' }}>
-                        + Adicionar Gasto / Custo
-                      </button>
-                    )}
-
-                    <div style={{ backgroundColor: '#090a0f', padding: '14px', borderRadius: '12px', border: '1px solid #1f293d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                        <span style={{ color: '#94a3b8' }}>Total: <b>{os.valorFinal.toFixed(2)}€</b></span>
-                        <span style={{ color: '#f87171' }}>Sinal: <b>{os.sinalPago.toFixed(2)}€</b> ({os.formaPagamentoSinal || 'N/D'})</span>
-                        <span style={{ color: '#34d399' }}>Falta: <b>{os.restanteAPagar.toFixed(2)}€</b></span>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', borderTop: '1px solid #1f293d', paddingTop: '8px' }}>
-                        <span style={{ fontSize: '13px', color: '#94a3b8' }}>Forma Pagamento Final:</span>
-                        <select value={os.formaPagamentoFinal || 'MBWay'} onChange={(e) => alterarFormaPagamentoOS(os.id, e.target.value)} style={{ padding: '6px 10px', backgroundColor: '#131722', border: '1px solid #222b45', borderRadius: '6px', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>
-                          <option value="MBWay">MBWay</option>
-                          <option value="Dinheiro">Dinheiro</option>
-                          <option value="Empresa">Empresa / Transf.</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button onClick={() => enviarWhatsApp(os.cliente, os.veiculo, os.matricula, os.contacto)} style={{ backgroundColor: '#25d366', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>💬 Enviar WhatsApp</button>
-                    </div>
-
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {tab === 'pateo' && <PatioReal onNovaOS={() => { setTab('operacional'); setSubAbaOperacional('os'); }} />}
 
           {/* ABA 2: MÉTRICAS */}
           {tab === 'metricas' && (
@@ -1055,7 +933,10 @@ setAgSinal('0');
                 </form>
               )}
 
-              {(subAbaOperacional === 'os' || subAbaOperacional === 'orcamento') && (
+              {subAbaOperacional === 'os' && <NovaOSReal onCriada={() => setTab('pateo')} />}
+
+              {/* O formulário antigo fica só para Orçamento (a OS agora usa o NovaOSReal acima) */}
+              {['orcamento'].includes(subAbaOperacional) && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                   <form onSubmit={criarOS} style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '850px' }}>
                     <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#d4af37', margin: 0 }}>
@@ -1248,7 +1129,8 @@ setAgSinal('0');
                     </button>
                   </form>
 
-                  {subAbaOperacional === 'orcamento' && (
+                  {/* O formulário antigo fica só para Orçamento (a OS agora usa o NovaOSReal acima) */}
+              {['orcamento'].includes(subAbaOperacional) && (
                     <div style={{ backgroundColor: 'rgba(19, 23, 34, 0.9)', border: '1px solid #1f293d', borderRadius: '18px', padding: '32px', maxWidth: '850px' }}>
                       <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4af37', marginBottom: '20px' }}>📑 Orçamentos Emitidos</h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
