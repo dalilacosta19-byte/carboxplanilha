@@ -1,8 +1,10 @@
 'use client';
 import CalculadoraComissao from './CalculadoraComissao';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AcessoProtegido from '@/components/auth/AcessoProtegido';
 import BotaoBackup from '@/components/auth/BotaoBackup';
+import AbaClientes from '@/components/clientes/AbaClientes';
+import { listarClientes, type Cliente } from '@/lib/clientes';
 
 function Painel({ emailUtilizador, onSair }: { emailUtilizador: string; onSair: () => void }) {
   const [tab, setTab] = useState('pateo');
@@ -281,9 +283,31 @@ const [agContaSinal, setAgContaSinal] = useState('MBWay');
     return false;
   };
 
+  // Clientes reais do Supabase (para as sugestões na OS e no agendamento).
+  const [clientesBD, setClientesBD] = useState<Cliente[]>([]);
+  const recarregarClientesBD = () => {
+    listarClientes().then(setClientesBD).catch(() => setClientesBD([]));
+  };
+  useEffect(() => { recarregarClientesBD(); }, []);
+  const nomeCompleto = (c: Cliente) => `${c.nome}${c.apelido ? ' ' + c.apelido : ''}`;
+
   const selecionarClienteInteligente = (nome: string, tipo: 'ag' | 'os') => {
     if (tipo === 'ag') setAgClient(nome);
     if (tipo === 'os') setOsCliente(nome);
+
+    // 1.º procura nos clientes reais do Supabase
+    const real = clientesBD.find(c => c.ativo && nomeCompleto(c).toLowerCase() === nome.toLowerCase());
+    if (real) {
+      const v = real.veiculos[0];
+      if (tipo === 'ag') {
+        setAgTel1(real.telefone); setAgTel2(real.telefone2 || '');
+        setAgVeiculo(v?.modelo || ''); setAgMatricula(v?.matricula || '');
+      } else {
+        setOsTel1(real.telefone); setOsTel2(real.telefone2 || '');
+        setOsVeiculo(v?.modelo || ''); setOsMatricula(v?.matricula || '');
+      }
+      return;
+    }
 
     const encontrado: any = ordensServico.find(o => o.cliente.toLowerCase() === nome.toLowerCase()) ||
                             orcamentos.find(o => o.cliente.toLowerCase() === nome.toLowerCase()) ||
@@ -305,6 +329,7 @@ const [agContaSinal, setAgContaSinal] = useState('MBWay');
   };
 
   const listaClientesUnicos = Array.from(new Set([
+    ...clientesBD.filter(c => c.ativo).map(nomeCompleto),
     ...ordensServico.map(o => o.cliente),
     ...orcamentos.map(o => o.cliente),
     ...agendamentos.map(a => a.cliente)
@@ -605,6 +630,7 @@ setAgSinal('0');
   const menuItems = [
     { id: 'pateo', label: '🚗 Veículos no Pátio' },
     { id: 'historico', label: '📜 Histórico & Dossiê' },
+    { id: 'clientes', label: '👤 Clientes & Veículos' },
     
     { id: 'metricas', label: '📊 Painel & Gráficos' },
     { id: 'operacional', label: '📋 OS / Orçamento / Agendamento' },
@@ -771,6 +797,8 @@ setAgSinal('0');
           
     
           
+          {tab === 'clientes' && <AbaClientes onAlterado={recarregarClientesBD} />}
+
           {tab === 'pateo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 <div>
