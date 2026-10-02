@@ -9,6 +9,12 @@ const chave = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 // Se faltar alguma, o app mostra um aviso em vez de falhar.
 export const supabaseConfigurado = Boolean(url && chave);
 
+// Nomes (nunca os valores) das variáveis que não chegaram a este deploy.
+export const variaveisEmFalta: string[] = [
+  ...(url ? [] : ['NEXT_PUBLIC_SUPABASE_URL']),
+  ...(chave ? [] : ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']),
+];
+
 export const supabase = createClient(
   url ?? 'https://exemplo.supabase.co',
   chave ?? 'chave-em-falta'

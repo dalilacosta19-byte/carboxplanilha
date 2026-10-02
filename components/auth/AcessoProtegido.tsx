@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase, supabaseConfigurado } from '@/lib/supabase';
+import { supabase, supabaseConfigurado, variaveisEmFalta } from '@/lib/supabase';
 import Login from './login';
 
 const ECRA: CSSProperties = {
@@ -51,9 +51,15 @@ export default function AcessoProtegido({ children }: { children: (info: InfoUti
       <div style={ECRA}>
         <div style={{ maxWidth: '420px' }}>
           <p style={{ color: '#f8fafc', fontWeight: 'bold', marginBottom: '8px' }}>Falta configurar a ligação ao Supabase</p>
-          <p style={{ fontSize: '14px', margin: 0 }}>
-            No Vercel (Settings &gt; Environment Variables) têm de existir NEXT_PUBLIC_SUPABASE_URL e
-            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. Depois é preciso fazer novo deploy.
+          <p style={{ fontSize: '14px', margin: '0 0 8px 0' }}>
+            Este deploy não recebeu {variaveisEmFalta.length === 1 ? 'a variável' : 'as variáveis'}:
+          </p>
+          {variaveisEmFalta.map((nome) => (
+            <p key={nome} style={{ fontSize: '13px', margin: '0 0 4px 0', color: '#d4af37', wordBreak: 'break-all' }}>{nome}</p>
+          ))}
+          <p style={{ fontSize: '13px', margin: '12px 0 0 0' }}>
+            No Vercel (Settings &gt; Environment Variables) confirme o nome e que inclui o ambiente Preview.
+            Depois faça um novo deploy (as variáveis só entram quando o site é construído).
           </p>
         </div>
       </div>
