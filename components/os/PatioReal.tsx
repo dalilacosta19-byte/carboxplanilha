@@ -68,7 +68,7 @@ function Acrescentar({ os, tecnicos, sugestoes, onFeito, onFechar }: {
   const [valor, setValor] = useState('');
   const [desconto, setDesconto] = useState('0');
   const [tecs, setTecs] = useState<string[]>([]);
-  const [comissao, setComissao] = useState('');
+  const [comissoes, setComissoes] = useState<Record<string, string>>({});
   const [itemId, setItemId] = useState(os.itens[0]?.id ?? '');
   const [erro, setErro] = useState('');
   const [aGravar, setAGravar] = useState(false);
@@ -76,7 +76,7 @@ function Acrescentar({ os, tecnicos, sugestoes, onFeito, onFechar }: {
   const marcar = (fid: string) => {
     const novos = tecs.includes(fid) ? tecs.filter((x) => x !== fid) : [...tecs, fid];
     const padrao = tecnicos.find((t) => t.id === fid)?.comissao_pct;
-    if (!comissao.trim() && novos.length && padrao != null) setComissao(String(padrao).replace('.', ','));
+    if (novos.includes(fid) && comissoes[fid] === undefined) setComissoes({ ...comissoes, [fid]: padrao != null ? String(padrao).replace('.', ',') : '' });
     setTecs(novos);
   };
 
@@ -90,10 +90,13 @@ function Acrescentar({ os, tecnicos, sugestoes, onFeito, onFechar }: {
       if (modo === 'servico') {
         const d = Number(desconto.replace(',', '.') || 0);
         if (!(d >= 0 && d <= 100)) throw new Error('O desconto tem de estar entre 0 e 100%.');
-        const c = Number(comissao.replace(',', '.') || 0);
-        if (tecs.length && (!comissao.trim() || !(c >= 0 && c <= 100))) throw new Error('Escreva a % de comissão (0 a 100).');
+        const lista = tecs.map((fid) => ({ id: fid, txt: (comissoes[fid] ?? '').trim() }));
+        for (const t of lista) {
+          const c = Number(t.txt.replace(',', '.'));
+          if (!t.txt || !(c >= 0 && c <= 100)) throw new Error(`Escreva a % de comissão de ${tecnicos.find((x) => x.id === t.id)?.nome ?? 'cada técnico'} (0 a 100).`);
+        }
         const s = sugestoes.find((x) => x.nome.toLowerCase() === descricao.trim().toLowerCase());
-        await adicionarServicoOS(os.id, { descricao: descricao.trim(), servico_id: s?.servico_id ?? null, valor_cents: v, desconto_pct: d, tecnicos: tecs, comissao_pct: tecs.length ? c : null, terceiros: [] });
+        await adicionarServicoOS(os.id, { descricao: descricao.trim(), servico_id: s?.servico_id ?? null, valor_cents: v, desconto_pct: d, tecnicos: lista.map((t) => ({ id: t.id, comissao_pct: Number(t.txt.replace(',', '.')) })), terceiros: [] });
         await onFeito(`Serviço "${descricao.trim()}" (${euros(v)}) acrescentado à ${os.codigo}.`);
       } else {
         if (!itemId) throw new Error('Escolha a que serviço pertence a despesa.');
@@ -138,11 +141,11 @@ function Acrescentar({ os, tecnicos, sugestoes, onFeito, onFechar }: {
               <input type="checkbox" checked={tecs.includes(t.id)} onChange={() => marcar(t.id)} /> {t.nome}
             </label>
           ))}
-          {tecs.length > 0 && (
-            <label style={{ color: '#cbd5e1', marginLeft: '6px' }}>
-              Comissão % <input style={{ ...CAMPO, width: '80px', padding: '8px', display: 'inline-block' }} inputMode="decimal" value={comissao} onChange={(e) => setComissao(e.target.value)} placeholder="40" />
+          {tecs.map((fid) => (
+            <label key={fid} style={{ color: '#cbd5e1', marginLeft: '6px', whiteSpace: 'nowrap' }}>
+              {tecnicos.find((t) => t.id === fid)?.nome} % <input style={{ ...CAMPO, width: '64px', padding: '6px', display: 'inline-block' }} inputMode="decimal" value={comissoes[fid] ?? ''} onChange={(e) => setComissoes({ ...comissoes, [fid]: e.target.value })} placeholder="40" />
             </label>
-          )}
+          ))}
         </div>
       )}
       {erro && <div style={{ marginTop: '10px', color: '#f87171', fontSize: '14px' }}>{erro}</div>}
@@ -351,9 +354,6 @@ export default function PatioReal({ onNovaOS, abrirFolha, onFolhaAberta }: { onN
                     </span>
                     <span style={{ whiteSpace: 'nowrap' }}>{euros(i.valor_cents)}</span>
                   </div>
-                  {i.comissao_pct != null && i.tecnicos.length > 0 && (
-                    <div style={{ fontSize: '12px', color: '#94a3b8', margin: '-2px 0 4px 12px' }}>Comissão {i.comissao_pct}%{i.tecnicos.length > 1 ? ` (dividida por ${i.tecnicos.length})` : ''}</div>
-                  )}
                   {i.despesas.map((d, k) => (
                     <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#f87171', margin: '0 0 4px 12px' }}>
                       <span>− {d.descricao ?? 'Despesa'}</span><span>{euros(d.custo_cents)}</span>

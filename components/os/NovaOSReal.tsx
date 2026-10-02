@@ -23,9 +23,9 @@ const BOTAO_OURO: CSSProperties = { backgroundColor: '#d4af37', color: '#090a0f'
 const BOTAO_LINHA: CSSProperties = { backgroundColor: 'transparent', color: '#cbd5e1', border: '1px solid #222b45', padding: '8px 14px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' };
 const GRELHA: CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' };
 
-interface Linha { chave: number; descricao: string; valor: string; desconto: string; tecnicos: string[]; comissao: string; despesas: Despesa[] }
+interface Linha { chave: number; descricao: string; valor: string; desconto: string; tecnicos: string[]; comissoes: Record<string, string>; despesas: Despesa[] }
 interface Despesa { chave: number; descricao: string; valor: string }
-const linhaVazia = (chave: number): Linha => ({ chave, descricao: '', valor: '', desconto: '0', tecnicos: [], comissao: '', despesas: [] });
+const linhaVazia = (chave: number): Linha => ({ chave, descricao: '', valor: '', desconto: '0', tecnicos: [], comissoes: {}, despesas: [] });
 
 const nomeCompleto = (c: Cliente) => `${c.nome}${c.apelido ? ' ' + c.apelido : ''}`;
 
@@ -101,8 +101,9 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
       if (l.chave !== chave) return l;
       const tecs = l.tecnicos.includes(fid) ? l.tecnicos.filter((x) => x !== fid) : [...l.tecnicos, fid];
       const padrao = tecnicos.find((t) => t.id === fid)?.comissao_pct;
-      const comissao = !l.comissao.trim() && tecs.length > 0 && padrao != null ? String(padrao).replace('.', ',') : l.comissao;
-      return { ...l, tecnicos: tecs, comissao };
+      const comissoes = { ...l.comissoes };
+      if (tecs.includes(fid) && comissoes[fid] === undefined) comissoes[fid] = padrao != null ? String(padrao).replace('.', ',') : '';
+      return { ...l, tecnicos: tecs, comissoes };
     }));
 
   // Conta de cada serviço (estimativa; o valor oficial é calculado pelo banco na vista os_comissoes).
@@ -110,9 +111,10 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
     const liquido = Math.round((paraCents(l.valor) || 0) * (1 - (Number(l.desconto) || 0) / 100) * (1 - (Number(descontoGeral) || 0) / 100));
     const despesas = l.despesas.reduce((s, d) => s + (paraCents(d.valor) || 0), 0);
     const lucro = liquido - despesas;
-    const pct = Number(l.comissao.replace(',', '.')) || 0;
-    const comissao = l.tecnicos.length ? Math.round(Math.max(lucro, 0) * pct / 100) : 0;
-    return { liquido, despesas, lucro, comissao, porTecnico: l.tecnicos.length ? Math.round(comissao / l.tecnicos.length) : 0, empresa: lucro - comissao };
+    // Cada técnico: lucro × a sua % ÷ número de técnicos.
+    const porTecnico = l.tecnicos.map((fid) => Math.round(Math.max(lucro, 0) * (Number((l.comissoes[fid] ?? '').replace(',', '.')) || 0) / 100 / l.tecnicos.length));
+    const comissao = porTecnico.reduce((a, b) => a + b, 0);
+    return { liquido, despesas, lucro, comissao, porTecnico, empresa: lucro - comissao };
   };
 
   const totais = estimarTotal(
@@ -140,14 +142,18 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
       if (!Number.isFinite(v) || v < 0) return setErro(`O valor do serviço ${i + 1} não é válido.`);
       const d = Number(l.desconto || 0);
       if (!(d >= 0 && d <= 100)) return setErro(`O desconto do serviço ${i + 1} tem de estar entre 0 e 100%.`);
-      const c = Number(l.comissao.replace(',', '.') || 0);
-      if (!(c >= 0 && c <= 100)) return setErro(`A comissão do serviço ${i + 1} tem de estar entre 0 e 100%.`);
+      for (const fid of l.tecnicos) {
+        const txt = (l.comissoes[fid] ?? '').trim();
+        const nome = tecnicos.find((t) => t.id === fid)?.nome ?? 'técnico';
+        const c = Number(txt.replace(',', '.'));
+        if (!txt) return setErro(`Falta a % de comissão de ${nome} no serviço ${i + 1} (escreva 0 se não houver comissão).`);
+        if (!(c >= 0 && c <= 100)) return setErro(`A % de ${nome} no serviço ${i + 1} tem de estar entre 0 e 100.`);
+      }
       for (const dp of l.despesas) {
         if (!dp.descricao.trim() && !dp.valor.trim()) continue;
         const dv = paraCents(dp.valor);
         if (!Number.isFinite(dv) || dv <= 0) return setErro(`Uma despesa do serviço ${i + 1} não tem valor válido.`);
       }
-      if (l.tecnicos.length && !l.comissao.trim()) return setErro(`Falta a % de comissão do serviço ${i + 1} (escreva 0 se não houver comissão).`);
     }
     const dg = Number(descontoGeral || 0);
     if (!(dg >= 0 && dg <= 100)) return setErro('O desconto geral tem de estar entre 0 e 100%.');
@@ -168,7 +174,7 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
         sinal_carteira_id: sinalCents > 0 ? sinalCarteira : null,
         linhas: preenchidas.map((l) => {
           const s = servicos.find((x) => x.nome.toLowerCase() === l.descricao.trim().toLowerCase());
-          return { descricao: l.descricao.trim(), servico_id: s?.servico_id ?? null, valor_cents: paraCents(l.valor), desconto_pct: Number(l.desconto || 0), tecnicos: l.tecnicos, comissao_pct: l.tecnicos.length ? Number(l.comissao.replace(',', '.')) : null,
+          return { descricao: l.descricao.trim(), servico_id: s?.servico_id ?? null, valor_cents: paraCents(l.valor), desconto_pct: Number(l.desconto || 0), tecnicos: l.tecnicos.map((fid) => ({ id: fid, comissao_pct: Number((l.comissoes[fid] ?? '0').replace(',', '.')) })),
             terceiros: l.despesas.filter((dp) => dp.valor.trim()).map((dp) => ({ descricao: dp.descricao.trim() || 'Despesa', custo_cents: paraCents(dp.valor) })) };
         }),
       });
@@ -268,15 +274,16 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
               const c = contaLinha(l);
               return (
                 <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#090a0f', borderRadius: '10px', display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', fontSize: '14px' }}>
-                  {l.tecnicos.length > 0 && (
-                    <label style={{ color: '#cbd5e1' }}>
-                      Comissão %{' '}
-                      <input style={{ ...CAMPO, width: '80px', padding: '8px', display: 'inline-block' }} inputMode="decimal" value={l.comissao} onChange={(e) => mudarLinha(l.chave, { comissao: e.target.value })} placeholder="40" />
+                  {l.tecnicos.map((fid, k) => (
+                    <label key={fid} style={{ color: '#cbd5e1', whiteSpace: 'nowrap' }}>
+                      {tecnicos.find((t) => t.id === fid)?.nome ?? '?'}{' '}
+                      <input style={{ ...CAMPO, width: '64px', padding: '6px', display: 'inline-block' }} inputMode="decimal" value={l.comissoes[fid] ?? ''} onChange={(e) => mudarLinha(l.chave, { comissoes: { ...l.comissoes, [fid]: e.target.value } })} placeholder="40" />
+                      % → <b style={{ color: '#d4af37' }}>{euros(c.porTecnico[k] ?? 0)}</b>
                     </label>
-                  )}
+                  ))}
                   <span style={{ color: '#94a3b8' }}>Líquido: <b style={{ color: '#fff' }}>{euros(c.liquido)}</b></span>
                   {c.despesas > 0 && <span style={{ color: '#94a3b8' }}>− Despesas: <b style={{ color: '#f87171' }}>{euros(c.despesas)}</b></span>}
-                  {l.tecnicos.length > 0 && <span style={{ color: '#94a3b8' }}>Técnico{l.tecnicos.length > 1 ? 's' : ''}: <b style={{ color: '#d4af37' }}>{euros(c.comissao)}</b>{l.tecnicos.length > 1 && <> ({euros(c.porTecnico)} cada)</>}</span>}
+                  {l.tecnicos.length > 1 && <span style={{ color: '#94a3b8' }}>Técnicos: <b style={{ color: '#d4af37' }}>{euros(c.comissao)}</b> (cada um a sua % a meio)</span>}
                   <span style={{ color: '#94a3b8' }}>Empresa: <b style={{ color: c.empresa < 0 ? '#f87171' : '#4ade80' }}>{euros(c.empresa)}</b></span>
                 </div>
               );

@@ -173,7 +173,7 @@ export async function listarPatio(): Promise<OSPatio[]> {
     if (t.funcao !== 'executou') continue;
     if (t.comissao_pct != null) comissaoPorItem.set(t.os_item_id, Number(t.comissao_pct));
     const l = tecnicosPorItem.get(t.os_item_id) ?? [];
-    l.push(nomeFunc.get(t.funcionario_id) ?? '?');
+    l.push(`${nomeFunc.get(t.funcionario_id) ?? '?'}${t.comissao_pct != null ? ` ${Number(t.comissao_pct)}%` : ''}`);
     tecnicosPorItem.set(t.os_item_id, l);
   }
   const finPorOS = new Map<string, any>(((fin.data ?? []) as any[]).map((f) => [f.os_id, f] as [string, any]));
@@ -208,9 +208,10 @@ export async function listarPatio(): Promise<OSPatio[]> {
 }
 
 // ---------- Criar OS ----------
-// comissao_pct: % sobre o lucro do serviço (valor com desconto − material − terceirizados).
-// Com vários técnicos, a comissão divide-se em partes iguais (parte_pct).
-export interface NovaLinha { descricao: string; servico_id: string | null; valor_cents: number; desconto_pct: number; tecnicos: string[]; comissao_pct: number | null; terceiros: { descricao: string; custo_cents: number }[] }
+// Cada técnico tem a sua comissao_pct (% sobre o lucro do serviço = valor com desconto − material − terceirizados).
+// Com vários técnicos, cada um recebe a sua % dividida pelo número de técnicos (parte_pct: 2 técnicos = 50%).
+export interface TecnicoLinha { id: string; comissao_pct: number }
+export interface NovaLinha { descricao: string; servico_id: string | null; valor_cents: number; desconto_pct: number; tecnicos: TecnicoLinha[]; terceiros: { descricao: string; custo_cents: number }[] }
 export interface NovaOS {
   cliente_id: string;
   veiculo_id: string;
@@ -236,7 +237,7 @@ async function inserirLinha(osId: string, ordem: number, l: NovaLinha): Promise<
       const parte = Math.round((100 / l.tecnicos.length) * 100) / 100; // 2 técnicos = 50% cada
       const { error: e2 } = await supabase
         .from('os_item_tecnicos')
-        .insert(l.tecnicos.map((fid) => ({ os_item_id: item.id, funcionario_id: fid, parte_pct: parte, funcao: 'executou', comissao_pct: l.comissao_pct ?? 0 })));
+        .insert(l.tecnicos.map((t) => ({ os_item_id: item.id, funcionario_id: t.id, parte_pct: parte, funcao: 'executou', comissao_pct: t.comissao_pct })));
       if (e2) throw e2;
     }
     // Despesas deste serviço pagas a terceiros (ex.: pintor). Entram no cálculo do lucro e da comissão.
