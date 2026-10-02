@@ -2,10 +2,15 @@
 
 import React, { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { mensagemErro } from '@/lib/clientes';
-import { euros, paraCents } from '@/lib/os';
+import { euros, hojeLisboa, listarCarteiras, paraCents, type Carteira } from '@/lib/os';
 import {
+  anularAdiantamento,
   atualizarFuncionario,
+  criarFuncionario,
+  listarAdiantamentosPendentes,
   listarFuncionarios,
+  registarAdiantamento,
+  type Adiantamento,
   mesAtualLisboa,
   producaoDoMes,
   type Func,
@@ -24,6 +29,7 @@ const centsParaTexto = (c: number | null) => (c == null ? '' : (c / 100).toFixed
 const nomeMes = (mes: string) => new Date(`${mes}-15T12:00:00`).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
 
 interface Form { nome: string; telefone: string; email: string; cargo: string; comissao: string; fixo: string; diaria: string }
+const formVazio: Form = { nome: '', telefone: '', email: '', cargo: '', comissao: '', fixo: '', diaria: '' };
 const paraForm = (f: Func): Form => ({
   nome: f.nome, telefone: f.telefone ?? '', email: f.email ?? '', cargo: f.cargo ?? '',
   comissao: f.comissao_pct == null ? '' : String(f.comissao_pct).replace('.', ','),
@@ -42,13 +48,22 @@ export default function AbaFuncionarios() {
   const [form, setForm] = useState<Form | null>(null);
   const [detalhe, setDetalhe] = useState<string | null>(null);
   const [aGravar, setAGravar] = useState(false);
+  const [adiantamentos, setAdiantamentos] = useState<Adiantamento[]>([]);
+  const [carteiras, setCarteiras] = useState<Carteira[]>([]);
+  const [adiantar, setAdiantar] = useState<string | null>(null); // id do funcionário com o formulário aberto
+  const [adValor, setAdValor] = useState('');
+  const [adCarteira, setAdCarteira] = useState('');
+  const [adData, setAdData] = useState(hojeLisboa());
+  const [adNota, setAdNota] = useState('');
 
   const carregar = useCallback(async () => {
     setErro('');
     try {
-      const [f, p] = await Promise.all([listarFuncionarios(), producaoDoMes(mes)]);
+      const [f, p, a, c] = await Promise.all([listarFuncionarios(), producaoDoMes(mes), listarAdiantamentosPendentes(), listarCarteiras()]);
       setLista(f);
       setProducao(p);
+      setAdiantamentos(a);
+      setCarteiras(c);
     } catch (e) {
       setErro(erroFunc(e));
     } finally {
@@ -60,7 +75,7 @@ export default function AbaFuncionarios() {
 
   const abrirEdicao = (f: Func) => { setEditar(f.id); setForm(paraForm(f)); setAviso(''); setErro(''); };
 
-  const gravar = async (f: Func) => {
+  const gravar = async (f: Func | null) => {
     if (!form) return;
     setErro('');
     if (!form.nome.trim()) return setErro('O nome é obrigatório.');
@@ -71,17 +86,59 @@ export default function AbaFuncionarios() {
     if ((fixo != null && !(fixo >= 0)) || (diaria != null && !(diaria >= 0))) return setErro('O salário fixo e a diária têm de ser valores válidos (ex.: 850,00).');
     setAGravar(true);
     try {
-      await atualizarFuncionario(f.id, {
+      const dados = {
         nome: form.nome.trim(), telefone: form.telefone.trim() || null, email: form.email.trim() || null, cargo: form.cargo.trim() || null,
         comissao_pct: pct, valor_fixo_cents: fixo, valor_diaria_cents: diaria,
-      });
-      setAviso(`Ficha de ${form.nome.trim()} gravada. A nova % vale para os serviços que marcares daqui para a frente.`);
+      };
+      if (f) {
+        await atualizarFuncionario(f.id, dados);
+        setAviso(`Ficha de ${dados.nome} gravada. A nova % vale para os serviços que marcares daqui para a frente.`);
+      } else {
+        await criarFuncionario({ ...dados, ativo: true });
+        setAviso(`${dados.nome} criado. Já aparece para marcar nas OS.`);
+      }
       setEditar(null);
       await carregar();
     } catch (e) {
       setErro(erroFunc(e));
     } finally {
       setAGravar(false);
+    }
+  };
+
+  const abrirAdiantamento = (f: Func) => {
+    setAdiantar(adiantar === f.id ? null : f.id);
+    setAdValor(''); setAdNota(''); setAdData(hojeLisboa());
+    setAdCarteira((c) => c || carteiras[0]?.id || '');
+  };
+
+  const gravarAdiantamento = async (f: Func) => {
+    setErro(''); setAviso('');
+    const v = paraCents(adValor);
+    if (!Number.isFinite(v) || v <= 0) return setErro('Escreva o valor do adiantamento (ex.: 100,00).');
+    if (!adCarteira) return setErro('Escolha de que carteira saiu o dinheiro.');
+    setAGravar(true);
+    try {
+      await registarAdiantamento(f.id, f.nome, adCarteira, v, adData, adNota);
+      setAviso(`Adiantamento de ${euros(v)} a ${f.nome} registado. Sai da carteira e vai ser descontado no fecho do mês.`);
+      setAdiantar(null);
+      await carregar();
+    } catch (e) {
+      setErro(erroFunc(e));
+    } finally {
+      setAGravar(false);
+    }
+  };
+
+  const anular = async (a: Adiantamento) => {
+    const motivo = window.prompt(`Anular o adiantamento de ${euros(a.valor_cents)} de ${a.data}? Escreva o motivo:`);
+    if (!motivo?.trim()) return;
+    try {
+      await anularAdiantamento(a.id, motivo.trim());
+      setAviso('Adiantamento anulado.');
+      await carregar();
+    } catch (e) {
+      setErro(erroFunc(e));
     }
   };
 
@@ -102,6 +159,25 @@ export default function AbaFuncionarios() {
     </div>
   );
 
+  const formulario = (f: Func | null) => form && (
+    <div style={{ marginTop: '14px', padding: '14px', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '10px' }}>
+      {!f && <h3 style={{ color: '#d4af37', margin: '0 0 12px 0' }}>Novo funcionário</h3>}
+      <div style={GRELHA}>
+        {campo('Nome *', 'nome')}
+        {campo('Cargo', 'cargo', { placeholder: 'Ex.: Técnico de polimento' })}
+        {campo('Telefone', 'telefone', { inputMode: 'tel' })}
+        {campo('E-mail', 'email', { type: 'email' })}
+        {campo('Comissão % (sobre o líquido)', 'comissao', { inputMode: 'decimal', placeholder: '40' })}
+        {campo('Salário fixo mensal (€)', 'fixo', { inputMode: 'decimal', placeholder: '0,00' })}
+        {campo('Valor da diária (€)', 'diaria', { inputMode: 'decimal', placeholder: '0,00' })}
+      </div>
+      <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+        <button disabled={aGravar} style={BOTAO_OURO} onClick={() => gravar(f)}>{aGravar ? 'A gravar…' : f ? 'Gravar ficha' : 'Criar funcionário'}</button>
+        <button style={BOTAO_LINHA} onClick={() => setEditar(null)}>Cancelar</button>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
@@ -113,13 +189,15 @@ export default function AbaFuncionarios() {
         <label style={{ color: '#cbd5e1', fontSize: '15px' }}>Produção do mês:</label>
         <input type="month" style={{ ...CAMPO, width: 'auto' }} value={mes} onChange={(e) => e.target.value && setMes(e.target.value)} />
         <span style={{ color: '#d4af37', fontSize: '15px', textTransform: 'capitalize' }}>{nomeMes(mes)}</span>
+        <button style={{ ...BOTAO_OURO, marginLeft: 'auto' }} onClick={() => { setEditar('novo'); setForm(formVazio); setAviso(''); setErro(''); }}>+ Novo funcionário</button>
       </div>
+      {editar === 'novo' && formulario(null)}
 
       {erro && <div style={{ padding: '12px', backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', color: '#f87171', fontSize: '15px' }}>{erro}</div>}
       {aviso && <div style={{ padding: '12px', backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '10px', color: '#4ade80', fontSize: '15px' }}>{aviso}</div>}
       {aCarregar && <p style={{ color: '#94a3b8' }}>A carregar…</p>}
       {!aCarregar && !erro && lista.length === 0 && (
-        <div style={{ ...CARTAO, color: '#94a3b8' }}>Ainda não há funcionários no banco. Em breve vais poder criá-los aqui.</div>
+        <div style={{ ...CARTAO, color: '#94a3b8' }}>Ainda não há funcionários no banco. Clica em «+ Novo funcionário».</div>
       )}
 
       {lista.map((f) => {
@@ -127,6 +205,8 @@ export default function AbaFuncionarios() {
         const diarias = Math.round(p.dias * (f.valor_diaria_cents ?? 0));
         const fixo = f.valor_fixo_cents ?? 0;
         const total = fixo + diarias + p.comissoes_cents;
+        const ads = adiantamentos.filter((a) => a.funcionario_id === f.id);
+        const totalAds = ads.reduce((t, a) => t + a.valor_cents, 0);
         return (
           <div key={f.id} style={{ ...CARTAO, opacity: f.ativo ? 1 : 0.55 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
@@ -140,6 +220,7 @@ export default function AbaFuncionarios() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                {f.ativo && <button style={{ ...BOTAO_LINHA, color: '#38bdf8' }} onClick={() => abrirAdiantamento(f)}>💸 Adiantamento</button>}
                 <button style={BOTAO_LINHA} onClick={() => (editar === f.id ? setEditar(null) : abrirEdicao(f))}>✏️ Editar ficha</button>
                 <button style={{ ...BOTAO_LINHA, color: f.ativo ? '#f87171' : '#4ade80' }} onClick={() => alternarAtivo(f)}>{f.ativo ? 'Desativar' : 'Reativar'}</button>
               </div>
@@ -152,9 +233,41 @@ export default function AbaFuncionarios() {
               {f.valor_diaria_cents != null && <span style={{ color: '#cbd5e1' }}>Dias: <b>{p.dias}</b> = <b>{euros(diarias)}</b></span>}
               {fixo > 0 && <span style={{ color: '#cbd5e1' }}>Fixo: <b>{euros(fixo)}</b></span>}
               <span style={{ color: '#4ade80', fontSize: '16px' }}>Total do mês: <b>{euros(total)}</b></span>
+              {ads.length > 0 && <span style={{ color: '#f87171' }}>− Adiantamentos: <b>{euros(totalAds)}</b></span>}
+              <span style={{ color: '#38bdf8', fontSize: '16px' }}>Falta pagar: <b>{euros(total - totalAds)}</b></span>
               {p.detalhe.length > 0 && <button style={{ ...BOTAO_LINHA, padding: '4px 10px', fontSize: '13px' }} onClick={() => setDetalhe(detalhe === f.id ? null : f.id)}>{detalhe === f.id ? 'Esconder' : 'Ver'} OS</button>}
             </div>
-            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '6px 0 0 0' }}>As comissões só contam depois de a OS estar paga. Adiantamentos e "quanto falta pagar" chegam no próximo passo.</p>
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '6px 0 0 0' }}>As comissões só contam depois de a OS estar paga. Os adiantamentos contam até serem descontados num fecho de mês.</p>
+            {ads.length > 0 && (
+              <div style={{ marginTop: '8px', fontSize: '14px', color: '#cbd5e1' }}>
+                {ads.map((a) => (
+                  <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', borderBottom: '1px solid #222b45', padding: '4px 0' }}>
+                    <span>💸 {a.data.split('-').reverse().join('/')} · {a.carteira}{a.descricao ? ` · ${a.descricao}` : ''}</span>
+                    <span><b>{euros(a.valor_cents)}</b> <button style={{ border: 'none', background: 'none', color: '#f87171', cursor: 'pointer' }} onClick={() => anular(a)} title="Anular">✕</button></span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {adiantar === f.id && (
+              <div style={{ marginTop: '12px', padding: '14px', border: '1px solid rgba(56,189,248,0.4)', borderRadius: '10px' }}>
+                <div style={GRELHA}>
+                  <div><label style={ETIQUETA}>Valor (€)</label><input style={CAMPO} inputMode="decimal" value={adValor} onChange={(e) => setAdValor(e.target.value)} placeholder="100,00" /></div>
+                  <div>
+                    <label style={ETIQUETA}>Saiu de</label>
+                    <select style={CAMPO} value={adCarteira} onChange={(e) => setAdCarteira(e.target.value)}>
+                      {carteiras.length === 0 && <option value="">(sem carteiras)</option>}
+                      {carteiras.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                    </select>
+                  </div>
+                  <div><label style={ETIQUETA}>Data</label><input style={CAMPO} type="date" value={adData} onChange={(e) => setAdData(e.target.value)} /></div>
+                  <div><label style={ETIQUETA}>Nota</label><input style={CAMPO} value={adNota} onChange={(e) => setAdNota(e.target.value)} placeholder="Opcional" /></div>
+                </div>
+                <div style={{ marginTop: '10px', display: 'flex', gap: '8px' }}>
+                  <button disabled={aGravar} style={BOTAO_OURO} onClick={() => gravarAdiantamento(f)}>{aGravar ? 'A gravar…' : 'Gravar adiantamento'}</button>
+                  <button style={BOTAO_LINHA} onClick={() => setAdiantar(null)}>Cancelar</button>
+                </div>
+              </div>
+            )}
             {detalhe === f.id && (
               <div style={{ marginTop: '8px', fontSize: '14px', color: '#cbd5e1' }}>
                 {p.detalhe.map((d, i) => (
@@ -165,24 +278,7 @@ export default function AbaFuncionarios() {
               </div>
             )}
 
-            {/* Edição da ficha */}
-            {editar === f.id && form && (
-              <div style={{ marginTop: '14px', padding: '14px', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '10px' }}>
-                <div style={GRELHA}>
-                  {campo('Nome *', 'nome')}
-                  {campo('Cargo', 'cargo', { placeholder: 'Ex.: Técnico de polimento' })}
-                  {campo('Telefone', 'telefone', { inputMode: 'tel' })}
-                  {campo('E-mail', 'email', { type: 'email' })}
-                  {campo('Comissão % (sobre o líquido)', 'comissao', { inputMode: 'decimal', placeholder: '40' })}
-                  {campo('Salário fixo mensal (€)', 'fixo', { inputMode: 'decimal', placeholder: '0,00' })}
-                  {campo('Valor da diária (€)', 'diaria', { inputMode: 'decimal', placeholder: '0,00' })}
-                </div>
-                <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
-                  <button disabled={aGravar} style={BOTAO_OURO} onClick={() => gravar(f)}>{aGravar ? 'A gravar…' : 'Gravar ficha'}</button>
-                  <button style={BOTAO_LINHA} onClick={() => setEditar(null)}>Cancelar</button>
-                </div>
-              </div>
-            )}
+            {editar === f.id && formulario(f)}
           </div>
         );
       })}

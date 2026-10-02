@@ -70,3 +70,48 @@ export async function producaoDoMes(mes: string): Promise<Map<string, Producao>>
 export function mesAtualLisboa(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon' }).format(new Date()).slice(0, 7);
 }
+
+// ---------- Criar ----------
+// papel no banco: 'admin' | 'gerente' | 'funcionario'. Técnicos são 'funcionario'.
+export async function criarFuncionario(dados: DadosFunc): Promise<void> {
+  const { error } = await supabase.from('funcionarios').insert({ ...dados, papel: 'funcionario' });
+  if (error) throw error;
+}
+
+// ---------- Adiantamentos ----------
+// Um adiantamento é um movimento de saída (categoria 'adiantamento') ligado ao funcionário.
+// Fica "pendente" até entrar num fecho do mês (tabela fecho_adiantamentos), onde é descontado.
+export interface Adiantamento { id: string; funcionario_id: string; data: string; valor_cents: number; descricao: string | null; carteira: string }
+
+export async function listarAdiantamentosPendentes(): Promise<Adiantamento[]> {
+  const [mov, usados, cart] = await Promise.all([
+    supabase.from('movimentos').select('id, funcionario_id, data, valor_cents, descricao, carteira_id').eq('categoria', 'adiantamento').eq('anulado', false).order('data'),
+    supabase.from('fecho_adiantamentos').select('movimento_id'),
+    supabase.from('carteiras').select('id, nome'),
+  ]);
+  for (const r of [mov, usados, cart]) if (r.error) throw r.error;
+  const jaDescontados = new Set(((usados.data ?? []) as any[]).map((u) => u.movimento_id));
+  const nomeCarteira = new Map<string, string>(((cart.data ?? []) as any[]).map((c) => [c.id, c.nome] as [string, string]));
+  return ((mov.data ?? []) as any[])
+    .filter((m) => !jaDescontados.has(m.id))
+    .map((m) => ({ id: m.id, funcionario_id: m.funcionario_id, data: m.data, valor_cents: m.valor_cents, descricao: m.descricao, carteira: nomeCarteira.get(m.carteira_id) ?? '' }));
+}
+
+export async function registarAdiantamento(funcionarioId: string, nome: string, carteiraId: string, valorCents: number, data: string, nota: string): Promise<void> {
+  const { error } = await supabase.from('movimentos').insert({
+    carteira_id: carteiraId,
+    data,
+    sentido: 'saida',
+    valor_cents: valorCents,
+    categoria: 'adiantamento',
+    descricao: nota.trim() ? `Adiantamento ${nome}: ${nota.trim()}` : `Adiantamento ${nome}`,
+    funcionario_id: funcionarioId,
+  });
+  if (error) throw error;
+}
+
+// Não se apaga: anula-se com motivo (fica registado no livro-caixa).
+export async function anularAdiantamento(id: string, motivo: string): Promise<void> {
+  const { error } = await supabase.from('movimentos').update({ anulado: true, anulado_motivo: motivo }).eq('id', id);
+  if (error) throw error;
+}
