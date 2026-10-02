@@ -1,8 +1,9 @@
 'use client';
 import CalculadoraComissao from './CalculadoraComissao';
 import { useState } from 'react';
+import AcessoProtegido from '@/components/auth/AcessoProtegido';
 
-export default function Home() {
+function Painel({ emailUtilizador, onSair }: { emailUtilizador: string; onSair: () => void }) {
   const [tab, setTab] = useState('pateo');
   const [pesquisaPatio, setPesquisaPatio] = useState('');
   const [pesquisaHistorico, setPesquisaHistorico] = useState('');
@@ -661,6 +662,10 @@ setAgSinal('0');
           <div style={{ display: 'flex', backgroundColor: '#131722', padding: '6px', borderRadius: '10px', border: '1px solid #222b45' }}>
             <button onClick={() => setUser('admin')} style={{ backgroundColor: user === 'admin' ? '#d4af37' : 'transparent', color: user === 'admin' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 18px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Admin</button>
             <button onClick={() => setUser('funcionario')} style={{ backgroundColor: user === 'funcionario' ? '#d4af37' : 'transparent', color: user === 'funcionario' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 18px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Equipa</button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '13px', color: '#94a3b8' }}>{emailUtilizador}</span>
+            <button onClick={onSair} style={{ backgroundColor: 'transparent', color: '#cbd5e1', border: '1px solid #222b45', padding: '10px 16px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Sair</button>
           </div>
         </div>
       </header>
@@ -1669,5 +1674,14 @@ setAgSinal('0');
       )}
 
     </div>
+  );
+}
+
+// Porta de entrada: só mostra o painel a quem iniciou sessão no Supabase.
+export default function Home() {
+  return (
+    <AcessoProtegido>
+      {({ email, sair }) => <Painel emailUtilizador={email} onSair={sair} />}
+    </AcessoProtegido>
   );
 }
