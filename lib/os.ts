@@ -82,6 +82,45 @@ export async function listarServicos(): Promise<Servico[]> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const VAZIO: { data: any[]; error: null } = { data: [], error: null };
 
+// Serviços já usados em OS anteriores, para sugerir enquanto se escreve.
+// O sistema "aprende" sozinho: cada serviço gravado numa OS passa a aparecer aqui,
+// com o último valor cobrado. Junta também a lista oficial da tabela servicos.
+export interface SugestaoServico { nome: string; servico_id: string | null; ultimo_valor_cents: number | null; vezes: number }
+
+export async function listarSugestoesServicos(): Promise<SugestaoServico[]> {
+  const [oficiais, recentes] = await Promise.all([
+    listarServicos(),
+    supabase.from('ordens_servico').select('id, entrada_em').order('entrada_em', { ascending: false }).limit(300),
+  ]);
+  if (recentes.error) throw recentes.error;
+  const ordem = new Map<string, number>(((recentes.data ?? []) as any[]).map((o, i) => [o.id, i] as [string, number]));
+  const itens = ordem.size
+    ? await supabase.from('os_itens').select('os_id, descricao, servico_id, valor_cents').in('os_id', [...ordem.keys()])
+    : VAZIO;
+  if (itens.error) throw itens.error;
+
+  const porNome = new Map<string, SugestaoServico & { pos: number }>();
+  for (const s of oficiais) porNome.set(s.nome.trim().toLowerCase(), { nome: s.nome, servico_id: s.id, ultimo_valor_cents: null, vezes: 0, pos: Infinity });
+  for (const i of (itens.data ?? []) as any[]) {
+    const nome = (i.descricao ?? '').trim();
+    if (!nome) continue;
+    const chave = nome.toLowerCase();
+    const pos = ordem.get(i.os_id) ?? Infinity; // 0 = OS mais recente
+    const atual = porNome.get(chave);
+    if (!atual) {
+      porNome.set(chave, { nome, servico_id: i.servico_id, ultimo_valor_cents: i.valor_cents, vezes: 1, pos });
+    } else {
+      atual.vezes += 1;
+      if (pos < atual.pos) { atual.pos = pos; atual.ultimo_valor_cents = i.valor_cents; }
+      if (!atual.servico_id && i.servico_id) atual.servico_id = i.servico_id;
+    }
+  }
+  // Os mais usados primeiro.
+  return [...porNome.values()]
+    .sort((a, b) => b.vezes - a.vezes || a.nome.localeCompare(b.nome, 'pt'))
+    .map(({ pos: _pos, ...s }) => s);
+}
+
 // ---------- Pátio ----------
 // No pátio ficam as OS que não foram canceladas e ainda não estão "entregues e pagas".
 export async function listarPatio(): Promise<OSPatio[]> {
