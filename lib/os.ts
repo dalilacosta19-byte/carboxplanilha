@@ -39,7 +39,7 @@ export interface OSPatio {
   saida_combinada: string | null;
   notas: string | null;
   cliente: { id: string; nome: string; apelido: string | null; telefone: string; telefone2: string | null } | null;
-  veiculo: { id: string; matricula: string; modelo: string | null; cor: string | null } | null;
+  veiculo: { id: string; matricula: string; modelo: string | null; cor: string | null; ano: number | null } | null;
   itens: ItemOS[];
   total_cents: number;
   pago_cents: number;
@@ -143,7 +143,7 @@ export async function listarPatio(): Promise<OSPatio[]> {
     supabase.from('os_financeiro').select('os_id, total_cents, pago_cents, a_receber_cents, paga').in('os_id', ids),
     supabase.from('os_itens').select('id, os_id, ordem, descricao, servico_id, valor_cents, desconto_pct').in('os_id', ids).order('ordem'),
     clienteIds.length ? supabase.from('clientes').select('id, nome, apelido, telefone, telefone2').in('id', clienteIds) : Promise.resolve(VAZIO),
-    veiculoIds.length ? supabase.from('veiculos').select('id, matricula, modelo, cor').in('id', veiculoIds) : Promise.resolve(VAZIO),
+    veiculoIds.length ? supabase.from('veiculos').select('id, matricula, modelo, cor, ano').in('id', veiculoIds) : Promise.resolve(VAZIO),
   ]);
   for (const r of [fin, itens, clientes, veiculos]) if (r.error) throw r.error;
 

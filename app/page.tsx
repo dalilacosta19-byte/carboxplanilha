@@ -10,6 +10,7 @@ import { listarClientes, type Cliente } from '@/lib/clientes';
 
 function Painel({ emailUtilizador, onSair }: { emailUtilizador: string; onSair: () => void }) {
   const [tab, setTab] = useState('pateo');
+  const [folhaCodigo, setFolhaCodigo] = useState<string | null>(null); // OS acabada de criar: abre a folha de impressão
   const [pesquisaPatio, setPesquisaPatio] = useState('');
   const [pesquisaHistorico, setPesquisaHistorico] = useState('');
   
@@ -801,7 +802,7 @@ setAgSinal('0');
           
           {tab === 'clientes' && <AbaClientes onAlterado={recarregarClientesBD} />}
 
-          {tab === 'pateo' && <PatioReal onNovaOS={() => { setTab('operacional'); setSubAbaOperacional('os'); }} />}
+          {tab === 'pateo' && <PatioReal abrirFolha={folhaCodigo} onFolhaAberta={() => setFolhaCodigo(null)} onNovaOS={() => { setTab('operacional'); setSubAbaOperacional('os'); }} />}
 
           {/* ABA 2: MÉTRICAS */}
           {tab === 'metricas' && (
@@ -933,7 +934,7 @@ setAgSinal('0');
                 </form>
               )}
 
-              {subAbaOperacional === 'os' && <NovaOSReal onCriada={() => setTab('pateo')} />}
+              {subAbaOperacional === 'os' && <NovaOSReal onCriada={(codigo) => { setFolhaCodigo(codigo); setTab('pateo'); }} />}
 
               {/* O formulário antigo fica só para Orçamento (a OS agora usa o NovaOSReal acima) */}
               {['orcamento'].includes(subAbaOperacional) && (

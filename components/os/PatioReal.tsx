@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import FolhaOS from './FolhaOS';
 import { abrirWhatsApp, mensagemErro, mostrarTelefone } from '@/lib/clientes';
 import {
   NOMES_ESTADO,
@@ -155,12 +156,13 @@ function Acrescentar({ os, tecnicos, sugestoes, onFeito, onFechar }: {
 
 // Aba "Veículos no Pátio" ligada ao Supabase.
 // Mostra as OS em andamento. Uma OS sai do pátio quando está entregue E paga (ou se for cancelada).
-export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
+export default function PatioReal({ onNovaOS, abrirFolha, onFolhaAberta }: { onNovaOS?: () => void; abrirFolha?: string | null; onFolhaAberta?: () => void }) {
   const [lista, setLista] = useState<OSPatio[]>([]);
   const [carteiras, setCarteiras] = useState<Carteira[]>([]);
   const [tecnicos, setTecnicos] = useState<Funcionario[]>([]);
   const [sugestoes, setSugestoes] = useState<SugestaoServico[]>([]);
   const [acrescentarOS, setAcrescentarOS] = useState<string | null>(null);
+  const [folhaOS, setFolhaOS] = useState<string | null>(null);
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState('');
   const [aviso, setAviso] = useState('');
@@ -190,6 +192,14 @@ export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);
+
+  // Depois de gravar uma OS nova, abre logo a folha de checklist e vistoria dela.
+  useEffect(() => {
+    if (!abrirFolha) return;
+    const os = lista.find((o) => o.codigo === abrirFolha);
+    if (os) { setFolhaOS(os.id); onFolhaAberta?.(); }
+  }, [abrirFolha, lista, onFolhaAberta]);
+  const osDaFolha = lista.find((o) => o.id === folhaOS);
 
   const visiveis = useMemo(() => {
     const t = pesquisa.trim().toLowerCase();
@@ -290,6 +300,8 @@ export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
         {onNovaOS && <button style={BOTAO_OURO} onClick={onNovaOS}>+ Nova OS</button>}
       </div>
 
+      {osDaFolha && <FolhaOS key={osDaFolha.id} os={osDaFolha} onFechar={() => setFolhaOS(null)} />}
+
       {erro && <div style={{ padding: '12px', backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', color: '#f87171', fontSize: '15px' }}>{erro}</div>}
       {aviso && <div style={{ padding: '12px', backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '10px', color: '#4ade80', fontSize: '15px' }}>{aviso}</div>}
 
@@ -364,6 +376,7 @@ export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
               {/* Ações */}
               <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {prox && <button disabled={ocupado} style={BOTAO_OURO} onClick={() => trocarEstado(os, prox.estado)}>{prox.texto}</button>}
+                <button style={BOTAO_LINHA} onClick={() => setFolhaOS(os.id)}>🖨️ Checklist e vistoria</button>
                 <button disabled={ocupado} style={BOTAO_LINHA} onClick={() => setAcrescentarOS(acrescentarOS === os.id ? null : os.id)}>➕ Serviço / despesa</button>
                 {!os.paga && <button disabled={ocupado} style={BOTAO_VERDE} onClick={() => (pagOS === os.id ? setPagOS(null) : abrirPagamento(os))}>💶 Registar pagamento</button>}
                 {os.estado === 'pronta' && os.cliente?.telefone && (
