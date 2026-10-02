@@ -2,6 +2,7 @@
 import CalculadoraComissao from './CalculadoraComissao';
 import { useState } from 'react';
 import AcessoProtegido from '@/components/auth/AcessoProtegido';
+import BotaoBackup from '@/components/auth/BotaoBackup';
 
 function Painel({ emailUtilizador, onSair }: { emailUtilizador: string; onSair: () => void }) {
   const [tab, setTab] = useState('pateo');
@@ -664,6 +665,7 @@ setAgSinal('0');
             <button onClick={() => setUser('funcionario')} style={{ backgroundColor: user === 'funcionario' ? '#d4af37' : 'transparent', color: user === 'funcionario' ? '#090a0f' : '#cbd5e1', border: 'none', padding: '10px 18px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Equipa</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <BotaoBackup />
             <span style={{ fontSize: '13px', color: '#94a3b8' }}>{emailUtilizador}</span>
             <button onClick={onSair} style={{ backgroundColor: 'transparent', color: '#cbd5e1', border: '1px solid #222b45', padding: '10px 16px', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>Sair</button>
           </div>
