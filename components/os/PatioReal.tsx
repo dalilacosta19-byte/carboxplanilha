@@ -6,14 +6,20 @@ import {
   NOMES_ESTADO,
   euros,
   hojeLisboa,
+  adicionarDespesaServico,
+  adicionarServicoOS,
   listarCarteiras,
   listarPatio,
+  listarSugestoesServicos,
+  listarTecnicos,
   mudarEstado,
   paraCents,
   registarPagamento,
   type Carteira,
   type EstadoOS,
+  type Funcionario,
   type OSPatio,
+  type SugestaoServico,
 } from '@/lib/os';
 
 const CARTAO: CSSProperties = { backgroundColor: 'rgba(19, 23, 34, 0.92)', border: '1px solid #222b45', borderRadius: '14px', padding: '20px' };
@@ -51,11 +57,110 @@ function mensagemPronto(os: OSPatio): string {
   return `Olá ${nome}! O seu veículo ${carro} já está pronto para levantar na Carbox77 Detailing.${falta} Obrigado pela preferência!`;
 }
 
+
+// Painel para acrescentar um serviço novo ou uma despesa a uma OS que já está no pátio.
+function Acrescentar({ os, tecnicos, sugestoes, onFeito, onFechar }: {
+  os: OSPatio; tecnicos: Funcionario[]; sugestoes: SugestaoServico[]; onFeito: (texto: string) => Promise<void>; onFechar: () => void;
+}) {
+  const [modo, setModo] = useState<'servico' | 'despesa'>('servico');
+  const [descricao, setDescricao] = useState('');
+  const [valor, setValor] = useState('');
+  const [desconto, setDesconto] = useState('0');
+  const [tecs, setTecs] = useState<string[]>([]);
+  const [comissao, setComissao] = useState('');
+  const [itemId, setItemId] = useState(os.itens[0]?.id ?? '');
+  const [erro, setErro] = useState('');
+  const [aGravar, setAGravar] = useState(false);
+
+  const marcar = (fid: string) => {
+    const novos = tecs.includes(fid) ? tecs.filter((x) => x !== fid) : [...tecs, fid];
+    const padrao = tecnicos.find((t) => t.id === fid)?.comissao_pct;
+    if (!comissao.trim() && novos.length && padrao != null) setComissao(String(padrao).replace('.', ','));
+    setTecs(novos);
+  };
+
+  const gravar = async () => {
+    setErro('');
+    const v = paraCents(valor);
+    if (!descricao.trim()) return setErro(modo === 'servico' ? 'Escreva o nome do serviço.' : 'Escreva o que é a despesa (ex.: Pintor).');
+    if (!Number.isFinite(v) || v <= 0) return setErro('Escreva um valor maior que zero (ex.: 150,00).');
+    setAGravar(true);
+    try {
+      if (modo === 'servico') {
+        const d = Number(desconto.replace(',', '.') || 0);
+        if (!(d >= 0 && d <= 100)) throw new Error('O desconto tem de estar entre 0 e 100%.');
+        const c = Number(comissao.replace(',', '.') || 0);
+        if (tecs.length && (!comissao.trim() || !(c >= 0 && c <= 100))) throw new Error('Escreva a % de comissão (0 a 100).');
+        const s = sugestoes.find((x) => x.nome.toLowerCase() === descricao.trim().toLowerCase());
+        await adicionarServicoOS(os.id, { descricao: descricao.trim(), servico_id: s?.servico_id ?? null, valor_cents: v, desconto_pct: d, tecnicos: tecs, comissao_pct: tecs.length ? c : null, terceiros: [] });
+        await onFeito(`Serviço "${descricao.trim()}" (${euros(v)}) acrescentado à ${os.codigo}.`);
+      } else {
+        if (!itemId) throw new Error('Escolha a que serviço pertence a despesa.');
+        await adicionarDespesaServico(itemId, [{ descricao: descricao.trim(), custo_cents: v }]);
+        await onFeito(`Despesa "${descricao.trim()}" (${euros(v)}) registada na ${os.codigo}.`);
+      }
+    } catch (e) {
+      setErro(e instanceof Error && !(e as { code?: string }).code ? e.message : erroOS(e));
+      setAGravar(false);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: '14px', padding: '14px', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '10px' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+        <button type="button" style={modo === 'servico' ? BOTAO_OURO : BOTAO_LINHA} onClick={() => setModo('servico')}>Novo serviço</button>
+        <button type="button" style={modo === 'despesa' ? BOTAO_OURO : BOTAO_LINHA} onClick={() => setModo('despesa')} disabled={os.itens.length === 0}>Despesa (pintor, peças…)</button>
+      </div>
+      {modo === 'despesa' && (
+        <div style={{ marginBottom: '10px' }}>
+          <label style={ETIQUETA}>Em que serviço?</label>
+          <select style={CAMPO} value={itemId} onChange={(e) => setItemId(e.target.value)}>
+            {os.itens.map((i) => <option key={i.id} value={i.id}>{i.descricao ?? 'Serviço'} ({euros(i.valor_cents)})</option>)}
+          </select>
+        </div>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: modo === 'servico' ? 'minmax(160px, 3fr) minmax(100px, 1fr) minmax(80px, 1fr)' : 'minmax(160px, 3fr) minmax(100px, 1fr)', gap: '10px' }}>
+        <div>
+          <label style={ETIQUETA}>{modo === 'servico' ? 'Serviço' : 'Despesa'}</label>
+          <input style={CAMPO} list={modo === 'servico' ? 'patio-servicos' : undefined} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder={modo === 'servico' ? 'Comece a escrever…' : 'Ex.: Pintor João'} />
+        </div>
+        <div><label style={ETIQUETA}>Valor (€)</label><input style={CAMPO} inputMode="decimal" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" /></div>
+        {modo === 'servico' && <div><label style={ETIQUETA}>Desconto %</label><input style={CAMPO} inputMode="decimal" value={desconto} onChange={(e) => setDesconto(e.target.value)} /></div>}
+      </div>
+      <datalist id="patio-servicos">{sugestoes.map((s) => <option key={s.nome} value={s.nome} />)}</datalist>
+      {modo === 'servico' && (
+        <div style={{ marginTop: '10px', fontSize: '15px' }}>
+          <span style={{ color: '#d4af37', fontWeight: 'bold', marginRight: '10px' }}>👷 Quem executa:</span>
+          {tecnicos.length === 0 && <span style={{ color: '#f59e0b' }}>⚠️ Sem funcionários ativos no banco.</span>}
+          {tecnicos.map((t) => (
+            <label key={t.id} style={{ marginRight: '14px', color: '#e2e8f0', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <input type="checkbox" checked={tecs.includes(t.id)} onChange={() => marcar(t.id)} /> {t.nome}
+            </label>
+          ))}
+          {tecs.length > 0 && (
+            <label style={{ color: '#cbd5e1', marginLeft: '6px' }}>
+              Comissão % <input style={{ ...CAMPO, width: '80px', padding: '8px', display: 'inline-block' }} inputMode="decimal" value={comissao} onChange={(e) => setComissao(e.target.value)} placeholder="40" />
+            </label>
+          )}
+        </div>
+      )}
+      {erro && <div style={{ marginTop: '10px', color: '#f87171', fontSize: '14px' }}>{erro}</div>}
+      <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+        <button type="button" disabled={aGravar} style={BOTAO_OURO} onClick={gravar}>{aGravar ? 'A gravar…' : 'Gravar'}</button>
+        <button type="button" style={BOTAO_LINHA} onClick={onFechar}>Cancelar</button>
+      </div>
+    </div>
+  );
+}
+
 // Aba "Veículos no Pátio" ligada ao Supabase.
 // Mostra as OS em andamento. Uma OS sai do pátio quando está entregue E paga (ou se for cancelada).
 export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
   const [lista, setLista] = useState<OSPatio[]>([]);
   const [carteiras, setCarteiras] = useState<Carteira[]>([]);
+  const [tecnicos, setTecnicos] = useState<Funcionario[]>([]);
+  const [sugestoes, setSugestoes] = useState<SugestaoServico[]>([]);
+  const [acrescentarOS, setAcrescentarOS] = useState<string | null>(null);
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState('');
   const [aviso, setAviso] = useState('');
@@ -72,9 +177,11 @@ export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
   const carregar = useCallback(async () => {
     setErro('');
     try {
-      const [p, c] = await Promise.all([listarPatio(), listarCarteiras()]);
+      const [p, c, t, sg] = await Promise.all([listarPatio(), listarCarteiras(), listarTecnicos(), listarSugestoesServicos()]);
       setLista(p);
       setCarteiras(c);
+      setTecnicos(t);
+      setSugestoes(sg);
     } catch (e) {
       setErro(erroOS(e));
     } finally {
@@ -223,7 +330,8 @@ export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
               {/* Serviços */}
               <div style={{ marginTop: '12px', borderTop: '1px solid #222b45', paddingTop: '10px' }}>
                 {os.itens.map((i) => (
-                  <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', fontSize: '14px', color: '#cbd5e1', marginBottom: '4px' }}>
+                  <React.Fragment key={i.id}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', fontSize: '14px', color: '#cbd5e1', marginBottom: '4px' }}>
                     <span>
                       {i.descricao ?? 'Serviço'}
                       {i.desconto_pct > 0 && <span style={{ color: '#94a3b8' }}> (−{i.desconto_pct}%)</span>}
@@ -231,6 +339,15 @@ export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
                     </span>
                     <span style={{ whiteSpace: 'nowrap' }}>{euros(i.valor_cents)}</span>
                   </div>
+                  {i.comissao_pct != null && i.tecnicos.length > 0 && (
+                    <div style={{ fontSize: '12px', color: '#94a3b8', margin: '-2px 0 4px 12px' }}>Comissão {i.comissao_pct}%{i.tecnicos.length > 1 ? ` (dividida por ${i.tecnicos.length})` : ''}</div>
+                  )}
+                  {i.despesas.map((d, k) => (
+                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#f87171', margin: '0 0 4px 12px' }}>
+                      <span>− {d.descricao ?? 'Despesa'}</span><span>{euros(d.custo_cents)}</span>
+                    </div>
+                  ))}
+                  </React.Fragment>
                 ))}
                 {os.notas && <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '6px' }}>📝 {os.notas}</div>}
               </div>
@@ -247,6 +364,7 @@ export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
               {/* Ações */}
               <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {prox && <button disabled={ocupado} style={BOTAO_OURO} onClick={() => trocarEstado(os, prox.estado)}>{prox.texto}</button>}
+                <button disabled={ocupado} style={BOTAO_LINHA} onClick={() => setAcrescentarOS(acrescentarOS === os.id ? null : os.id)}>➕ Serviço / despesa</button>
                 {!os.paga && <button disabled={ocupado} style={BOTAO_VERDE} onClick={() => (pagOS === os.id ? setPagOS(null) : abrirPagamento(os))}>💶 Registar pagamento</button>}
                 {os.estado === 'pronta' && os.cliente?.telefone && (
                   <button style={BOTAO_VERDE} onClick={() => abrirWhatsApp(os.cliente!.telefone, mensagemPronto(os))}>💬 WhatsApp &quot;veículo pronto&quot;</button>
@@ -262,6 +380,16 @@ export default function PatioReal({ onNovaOS }: { onNovaOS?: () => void }) {
                   {(Object.keys(NOMES_ESTADO) as EstadoOS[]).filter((e) => e !== os.estado).map((e) => <option key={e} value={e}>{NOMES_ESTADO[e]}</option>)}
                 </select>
               </div>
+
+              {acrescentarOS === os.id && (
+                <Acrescentar
+                  os={os}
+                  tecnicos={tecnicos}
+                  sugestoes={sugestoes}
+                  onFechar={() => setAcrescentarOS(null)}
+                  onFeito={async (texto) => { setAcrescentarOS(null); setAviso(texto); setErro(''); await carregar(); }}
+                />
+              )}
 
               {/* Formulário de pagamento */}
               {pagOS === os.id && (

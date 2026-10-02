@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { listarClientes, mensagemErro, mostrarTelefone, type Cliente } from '@/lib/clientes';
+import SeletorDataHora from './SeletorDataHora';
 import {
   criarOS,
   estimarTotal,
@@ -244,8 +245,8 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
               <button type="button" disabled={linhas.length === 1} onClick={() => setLinhas((ls) => ls.filter((x) => x.chave !== l.chave))} style={{ ...BOTAO_LINHA, color: '#f87171', opacity: linhas.length === 1 ? 0.4 : 1 }}>Remover</button>
             </div>
             <div style={{ marginTop: '10px' }}>
-              <span style={{ fontSize: '14px', color: '#94a3b8', marginRight: '10px' }}>Quem executa:</span>
-              {tecnicos.length === 0 && <span style={{ fontSize: '14px', color: '#94a3b8' }}>(sem funcionários registados)</span>}
+              <span style={{ fontSize: '15px', color: '#d4af37', fontWeight: 'bold', marginRight: '10px' }}>👷 Quem executa (pode marcar mais de 1):</span>
+              {tecnicos.length === 0 && <span style={{ fontSize: '14px', color: '#f59e0b' }}>⚠️ Ainda não há funcionários ativos no banco, por isso não aparecem nomes para marcar.</span>}
               {tecnicos.map((t) => (
                 <label key={t.id} style={{ marginRight: '14px', fontSize: '15px', color: '#e2e8f0', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   <input type="checkbox" checked={l.tecnicos.includes(t.id)} onChange={() => alternarTecnico(l.chave, t.id)} /> {t.nome}
@@ -303,8 +304,12 @@ export default function NovaOSReal({ onCriada }: { onCriada?: (codigo: string) =
               {carteiras.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
             </select>
           </div>
-          <div><label style={ETIQUETA}>Saída combinada</label><input style={CAMPO} type="datetime-local" value={saida} onChange={(e) => setSaida(e.target.value)} /></div>
           <div><label style={ETIQUETA}>Notas da OS</label><input style={CAMPO} value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Ex.: cliente pediu atenção às jantes" /></div>
+        </div>
+
+        <div style={{ marginTop: '16px' }}>
+          <label style={ETIQUETA}>Entrega combinada (clique no dia e na hora)</label>
+          <SeletorDataHora valor={saida} onChange={setSaida} />
         </div>
 
         <div style={{ marginTop: '18px', padding: '14px', backgroundColor: '#090a0f', borderRadius: '10px', display: 'flex', gap: '24px', flexWrap: 'wrap', fontSize: '16px' }}>

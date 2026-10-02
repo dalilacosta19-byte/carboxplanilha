@@ -24,6 +24,8 @@ export interface ItemOS {
   valor_cents: number;
   desconto_pct: number;
   tecnicos: string[]; // nomes
+  comissao_pct: number | null;
+  despesas: { descricao: string | null; custo_cents: number }[];
 }
 
 export interface OSPatio {
@@ -147,17 +149,29 @@ export async function listarPatio(): Promise<OSPatio[]> {
 
   const itemIds = ((itens.data ?? []) as any[]).map((i) => i.id);
   const tecs = itemIds.length
-    ? await supabase.from('os_item_tecnicos').select('os_item_id, funcionario_id, funcao').in('os_item_id', itemIds)
+    ? await supabase.from('os_item_tecnicos').select('os_item_id, funcionario_id, funcao, comissao_pct').in('os_item_id', itemIds)
     : VAZIO;
   if (tecs.error) throw tecs.error;
+  const terc = itemIds.length
+    ? await supabase.from('os_terceirizados').select('os_item_id, descricao, custo_cents').in('os_item_id', itemIds)
+    : VAZIO;
+  if (terc.error) throw terc.error;
+  const despesasPorItem = new Map<string, { descricao: string | null; custo_cents: number }[]>();
+  for (const t of (terc.data ?? []) as any[]) {
+    const l = despesasPorItem.get(t.os_item_id) ?? [];
+    l.push({ descricao: t.descricao, custo_cents: t.custo_cents });
+    despesasPorItem.set(t.os_item_id, l);
+  }
   const funcIds = [...new Set(((tecs.data ?? []) as any[]).map((t) => t.funcionario_id))];
   const funcs = funcIds.length ? await supabase.from('funcionarios').select('id, nome').in('id', funcIds) : VAZIO;
   if (funcs.error) throw funcs.error;
   const nomeFunc = new Map<string, string>(((funcs.data ?? []) as any[]).map((f) => [f.id, f.nome] as [string, string]));
 
   const tecnicosPorItem = new Map<string, string[]>();
+  const comissaoPorItem = new Map<string, number>();
   for (const t of tecs.data ?? []) {
     if (t.funcao !== 'executou') continue;
+    if (t.comissao_pct != null) comissaoPorItem.set(t.os_item_id, Number(t.comissao_pct));
     const l = tecnicosPorItem.get(t.os_item_id) ?? [];
     l.push(nomeFunc.get(t.funcionario_id) ?? '?');
     tecnicosPorItem.set(t.os_item_id, l);
@@ -183,7 +197,7 @@ export async function listarPatio(): Promise<OSPatio[]> {
         veiculo: (o.veiculo_id && veiPorId.get(o.veiculo_id)) || null,
         itens: ((itens.data ?? []) as any[])
           .filter((i) => i.os_id === o.id)
-          .map((i) => ({ ...i, desconto_pct: Number(i.desconto_pct), tecnicos: tecnicosPorItem.get(i.id) ?? [] })),
+          .map((i) => ({ ...i, desconto_pct: Number(i.desconto_pct), tecnicos: tecnicosPorItem.get(i.id) ?? [], comissao_pct: comissaoPorItem.get(i.id) ?? null, despesas: despesasPorItem.get(i.id) ?? [] })),
         total_cents: f?.total_cents ?? 0,
         pago_cents: f?.pago_cents ?? 0,
         a_receber_cents: f?.a_receber_cents ?? 0,
@@ -209,6 +223,49 @@ export interface NovaOS {
   sinal_carteira_id: string | null;
 }
 
+// Grava um serviço (linha) numa OS, com os técnicos e as despesas a terceiros.
+async function inserirLinha(osId: string, ordem: number, l: NovaLinha): Promise<string> {
+  const { data: item, error: e1 } = await supabase
+    .from('os_itens')
+    .insert({ os_id: osId, ordem, descricao: l.descricao, servico_id: l.servico_id, valor_cents: l.valor_cents, desconto_pct: l.desconto_pct })
+    .select('id')
+    .single();
+  if (e1) throw e1;
+  try {
+    if (l.tecnicos.length) {
+      const parte = Math.round((100 / l.tecnicos.length) * 100) / 100; // 2 técnicos = 50% cada
+      const { error: e2 } = await supabase
+        .from('os_item_tecnicos')
+        .insert(l.tecnicos.map((fid) => ({ os_item_id: item.id, funcionario_id: fid, parte_pct: parte, funcao: 'executou', comissao_pct: l.comissao_pct ?? 0 })));
+      if (e2) throw e2;
+    }
+    // Despesas deste serviço pagas a terceiros (ex.: pintor). Entram no cálculo do lucro e da comissão.
+    if (l.terceiros.length) await adicionarDespesaServico(item.id, l.terceiros);
+  } catch (erro) {
+    await supabase.from('os_item_tecnicos').delete().eq('os_item_id', item.id);
+    await supabase.from('os_terceirizados').delete().eq('os_item_id', item.id);
+    await supabase.from('os_itens').delete().eq('id', item.id);
+    throw erro;
+  }
+  return item.id as string;
+}
+
+// Acrescenta um serviço a uma OS que já existe (ex.: o cliente pediu mais um trabalho no pátio).
+export async function adicionarServicoOS(osId: string, l: NovaLinha): Promise<void> {
+  const { data, error } = await supabase.from('os_itens').select('ordem').eq('os_id', osId).order('ordem', { ascending: false }).limit(1);
+  if (error) throw error;
+  const proxima = ((data?.[0]?.ordem as number | undefined) ?? 0) + 1;
+  await inserirLinha(osId, proxima, l);
+}
+
+// Acrescenta despesas (pintor, peças…) a um serviço que já existe.
+export async function adicionarDespesaServico(osItemId: string, despesas: { descricao: string; custo_cents: number }[]): Promise<void> {
+  const { error } = await supabase
+    .from('os_terceirizados')
+    .insert(despesas.map((t) => ({ os_item_id: osItemId, descricao: t.descricao, custo_cents: t.custo_cents })));
+  if (error) throw error;
+}
+
 // Cria a OS, as linhas, os técnicos e (se houver) o sinal. Se algo falhar, apaga o que já foi criado.
 export async function criarOS(d: NovaOS): Promise<string> {
   const { data: os, error } = await supabase
@@ -228,29 +285,7 @@ export async function criarOS(d: NovaOS): Promise<string> {
   if (error) throw error;
 
   try {
-    for (let i = 0; i < d.linhas.length; i++) {
-      const l = d.linhas[i];
-      const { data: item, error: e1 } = await supabase
-        .from('os_itens')
-        .insert({ os_id: os.id, ordem: i + 1, descricao: l.descricao, servico_id: l.servico_id, valor_cents: l.valor_cents, desconto_pct: l.desconto_pct })
-        .select('id')
-        .single();
-      if (e1) throw e1;
-      if (l.tecnicos.length) {
-        const parte = Math.round((100 / l.tecnicos.length) * 100) / 100; // 2 técnicos = 50% cada
-        const { error: e2 } = await supabase
-          .from('os_item_tecnicos')
-          .insert(l.tecnicos.map((fid) => ({ os_item_id: item.id, funcionario_id: fid, parte_pct: parte, funcao: 'executou', comissao_pct: l.comissao_pct ?? 0 })));
-        if (e2) throw e2;
-      }
-      // Despesas deste serviço pagas a terceiros (ex.: pintor). Entram no cálculo do lucro e da comissão.
-      if (l.terceiros.length) {
-        const { error: e4 } = await supabase
-          .from('os_terceirizados')
-          .insert(l.terceiros.map((t) => ({ os_item_id: item.id, descricao: t.descricao, custo_cents: t.custo_cents })));
-        if (e4) throw e4;
-      }
-    }
+    for (let i = 0; i < d.linhas.length; i++) await inserirLinha(os.id, i + 1, d.linhas[i]);
     if (d.sinal_cents > 0 && d.sinal_carteira_id) {
       const { error: e3 } = await supabase.from('movimentos').insert({
         carteira_id: d.sinal_carteira_id,
